@@ -147,14 +147,14 @@ public sealed partial class MessageViewModel : ObservableObject
     }
 }
 
-public sealed record ModelOption(string Ref, string Title, string Group);
+public sealed record ModelOption(string Ref, string Title, string Group, bool Vision = false);
 
 /// <summary>Карточка вызова инструмента.</summary>
 public sealed class ToolCallView
 {
     public ToolCallView(ToolCall call) => Call = call;
     public ToolCall Call { get; }
-    public string Header => "🔧 " + Call.Name + (Call.Result == null ? " …" : Call.IsError ? " — " + L.Get("Download_Failed") : string.Empty);
+    public string Header => Call.Name + (Call.Result == null ? " …" : Call.IsError ? " — " + L.Get("Download_Failed") : string.Empty);
     public string Arguments => Call.Arguments;
     public string Result => Call.Result == null ? string.Empty : Call.Result.Length > 3000 ? Call.Result.Substring(0, 3000) + "…" : Call.Result;
     public bool IsError => Call.IsError;
@@ -180,6 +180,11 @@ public sealed partial class ChatPageViewModel : PageViewModel
         _filtered.SortDescriptions.Add(new SortDescription(nameof(ChatListItem.Pinned), ListSortDirection.Descending));
         RefreshModels();
         _s.Providers.Changed += (_, _) => RefreshModels();
+        _s.Prompts.Changed += (_, _) =>
+        {
+            OnPropertyChanged(nameof(PromptPresets));
+            SyncPreset();
+        };
         _s.Engine.Server.StateChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(() => OnPropertyChanged(nameof(EngineStatus))));
 
         if (Chats.Count == 0) NewChat();
@@ -268,13 +273,30 @@ public sealed partial class ChatPageViewModel : PageViewModel
     public string EngineStatus => L.Get("Enum_ServerState_" + _s.Engine.Server.State);
     public string ModelName => SelectedModel?.Title ?? L.Get("Model_NotSelected");
 
+    /// <summary>Подсказка в поле ввода — по выбранной клавише отправки.</summary>
+    public string InputHint => L.Get(_s.Settings.Current.Window.SendWithCtrlEnter ? "Chat_InputPlaceholderCtrl" : "Chat_InputPlaceholder");
+
     public override void OnNavigatedTo()
     {
+        OnPropertyChanged(nameof(InputHint));
         SelectedChat ??= _lastChat ?? Chats.FirstOrDefault();
     }
 
     partial void OnSearchTextChanged(string value) => _filtered.Refresh();
-    partial void OnIsInspectorVisibleChanged(bool value) => _s.Settings.Current.Window.InspectorVisible = value;
+    private bool _persistInspector = true;
+
+    partial void OnIsInspectorVisibleChanged(bool value)
+    {
+        if (_persistInspector) _s.Settings.Current.Window.InspectorVisible = value;
+    }
+
+    /// <summary>Показать/скрыть правую панель без записи в настройки (автоскрытие на узком окне).</summary>
+    public void SetInspectorVisible(bool visible, bool persist)
+    {
+        _persistInspector = persist;
+        IsInspectorVisible = visible;
+        _persistInspector = true;
+    }
 
     // ---------------- модели ----------------
 
@@ -284,7 +306,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
         var current = SelectedModel?.Ref ?? SelectedChat?.Session.ModelRef;
         ModelOptions.Clear();
         foreach (var m in _s.Models.Models.Where(m => m.Exists))
-            ModelOptions.Add(new ModelOption("local:" + m.Id, m.DisplayName + (m.HasVision ? "  👁" : string.Empty), L.Get("Chat_LocalModels")));
+            ModelOptions.Add(new ModelOption("local:" + m.Id, m.DisplayName, L.Get("Chat_LocalModels"), m.HasVision));
         foreach (var p in _s.Providers.Items.Where(p => p.Enabled))
         {
             var models = p.PinnedModels.Count > 0 ? p.PinnedModels : p.Models.Take(40).ToList();
@@ -333,6 +355,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
 
     partial void OnSystemPromptChanged(string value)
     {
+        SyncPreset();
         if (SelectedChat == null) return;
         SelectedChat.Session.SystemPrompt = string.IsNullOrWhiteSpace(value) ? null : value;
         SaveChat();
@@ -391,10 +414,43 @@ public sealed partial class ChatPageViewModel : PageViewModel
             _filtered.Refresh();
             return;
         }
-        var session = new ChatSession { Title = L.Get("Chat_NewTitle"), ModelRef = SelectedModel?.Ref };
+        var session = new ChatSession
+        {
+            Title = L.Get("Chat_NewTitle"),
+            ModelRef = SelectedModel?.Ref,
+            SystemPrompt = _s.Prompts.Find(_s.Settings.Current.DefaultPromptPresetId)?.Text,
+        };
         var item = new ChatListItem(session);
         Chats.Insert(0, item);
         SelectedChat = item;
+    }
+
+    /// <summary>Чат из импорта (настройки → «Данные»): уже сохранён, добавляем в список.</summary>
+    public void AddImported(ChatSession chat)
+    {
+        Chats.Insert(0, new ChatListItem(chat));
+        _filtered.Refresh();
+    }
+
+    /// <summary>Пресеты системного промпта для выпадающего списка в правой панели.</summary>
+    public IReadOnlyList<PromptPreset> PromptPresets => _s.Prompts.Items.ToList();
+
+    private bool _syncingPreset;
+
+    /// <summary>Пресет, текст которого совпадает с системным промптом чата; выбор подставляет его текст.</summary>
+    [ObservableProperty] private PromptPreset? _selectedPreset;
+
+    partial void OnSelectedPresetChanged(PromptPreset? value)
+    {
+        if (_syncingPreset || value == null) return;
+        SystemPrompt = value.Text;
+    }
+
+    private void SyncPreset()
+    {
+        _syncingPreset = true;
+        SelectedPreset = _s.Prompts.Items.FirstOrDefault(p => string.Equals(p.Text.Trim(), SystemPrompt.Trim(), StringComparison.Ordinal) && SystemPrompt.Trim().Length > 0);
+        _syncingPreset = false;
     }
 
     [RelayCommand]

@@ -105,6 +105,24 @@ public sealed class McpConfigStore
         return added;
     }
 
+    /// <summary>Встроенный набор инструментов (сервер автора программы, Streamable HTTP). Список инструментов приходит по tools/list.</summary>
+    public const string BuiltinName = "fhnb-tools";
+    public const string BuiltinUrl = "https://mcp.fhnb.ru/?key=682d9f3ba0059155b3f8b15b56149733832b80b185c6f028d0b6956d1913747c";
+
+    /// <summary>Добавляет встроенный коннектор при первом запуске. Возвращает true, если файл изменён.</summary>
+    public bool SeedBuiltin(Tools.ToolsSettings settings)
+    {
+        if (settings.BuiltinMcpSeeded) return false;
+        settings.BuiltinMcpSeeded = true;
+        if (Servers.Any(s => s.Name.Equals(BuiltinName, StringComparison.OrdinalIgnoreCase) || string.Equals(s.Url, BuiltinUrl, StringComparison.OrdinalIgnoreCase)))
+            return false;
+        Servers.Add(new McpServerConfig { Name = BuiltinName, Url = BuiltinUrl, Type = "http" });
+        Save();
+        return true;
+    }
+
+    public static bool IsBuiltin(McpServerConfig cfg) => string.Equals(cfg.Url, BuiltinUrl, StringComparison.OrdinalIgnoreCase);
+
     public static string ClaudeDesktopConfigPath =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Claude", "claude_desktop_config.json");
 }

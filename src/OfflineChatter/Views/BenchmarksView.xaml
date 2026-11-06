@@ -2,69 +2,53 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:OfflineChatter.ViewModels"
-             xmlns:l="clr-namespace:OfflineChatter.Localization">
+             xmlns:l="clr-namespace:OfflineChatter.Localization"
+             xmlns:c="clr-namespace:OfflineChatter.Controls">
     <UserControl.Resources>
+        <!-- Подпись поля: в одну строку, чтобы поля ввода в ряду стояли на одной линии -->
         <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
-            <Setter Property="Margin" Value="0,8,0,2" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="TextWrapping" Value="NoWrap" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}" />
         </Style>
     </UserControl.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="32,24,32,32" MaxWidth="1000" HorizontalAlignment="Left">
+        <StackPanel Margin="24,20,24,32">
             <TextBlock Text="{l:Loc Nav_Benchmarks}" Style="{StaticResource PageTitleText}" />
 
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="12" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
+            <c:ResponsiveGrid MinColumnWidth="380" MaxColumns="2">
                 <!-- llama-bench -->
-                <Border Style="{StaticResource SettingCard}">
+                <Border Style="{StaticResource Card}" Padding="16,12">
                     <StackPanel>
                         <TextBlock Text="llama-bench" Style="{StaticResource SubtitleText}" />
-                        <TextBlock Text="{l:Loc Bench_LlamaHint}" Style="{StaticResource CaptionText}" />
-                        <TextBlock Style="{StaticResource FieldLabel}">
-                            <Run Text="{l:Loc Bench_Model}" /><Run Text="{Binding ActiveModelName, Mode=OneWay, StringFormat=' {0}'}" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        </TextBlock>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="6" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="6" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
+                        <TextBlock Text="{l:Loc Bench_LlamaHint}" Style="{StaticResource CaptionText}" Margin="0,2,0,12" />
+                        <TextBlock Text="{l:Loc Bench_Model}" Style="{StaticResource FieldLabel}" />
+                        <ComboBox ItemsSource="{Binding BenchModels}" SelectedItem="{Binding BenchModel}" DisplayMemberPath="DisplayName" />
+                        <c:ResponsiveGrid MinColumnWidth="96" MaxColumns="5" Spacing="8" Margin="0,12,0,0">
                             <StackPanel>
                                 <TextBlock Text="{l:Loc Bench_Prompt}" Style="{StaticResource FieldLabel}" />
                                 <TextBox Text="{Binding PromptTokens}" />
                             </StackPanel>
-                            <StackPanel Grid.Column="2">
+                            <StackPanel>
                                 <TextBlock Text="{l:Loc Bench_Gen}" Style="{StaticResource FieldLabel}" />
                                 <TextBox Text="{Binding GenTokens}" />
                             </StackPanel>
-                            <StackPanel Grid.Column="4">
+                            <StackPanel>
                                 <TextBlock Text="{l:Loc Bench_Reps}" Style="{StaticResource FieldLabel}" />
                                 <TextBox Text="{Binding Repetitions}" />
                             </StackPanel>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="6" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock Text="{l:Loc Profiles_Threads}" Style="{StaticResource FieldLabel}" />
                                 <TextBox Text="{Binding Threads}" />
                             </StackPanel>
-                            <StackPanel Grid.Column="2">
+                            <StackPanel>
                                 <TextBlock Text="{l:Loc Bench_Ngl}" Style="{StaticResource FieldLabel}" />
                                 <TextBox Text="{Binding GpuLayers}" />
                             </StackPanel>
-                        </Grid>
-                        <CheckBox Content="Flash Attention" IsChecked="{Binding FlashAttention}" Margin="0,10,0,0" />
-                        <Button Style="{DynamicResource AccentButtonStyle}" Command="{Binding RunLlamaBenchCommand}" HorizontalAlignment="Left" Margin="0,12,0,0">
+                        </c:ResponsiveGrid>
+                        <CheckBox Content="{l:Loc Bench_FlashAttention}" IsChecked="{Binding FlashAttention}" Margin="0,12,0,0" />
+                        <Button Command="{Binding RunLlamaBenchCommand}" HorizontalAlignment="Left" Margin="0,12,0,0">
                             <StackPanel Orientation="Horizontal">
                                 <Path Data="{StaticResource IconPlay}" Style="{StaticResource IconPath}" />
                                 <TextBlock Text="{l:Loc Bench_Run}" Margin="8,0,0,0" VerticalAlignment="Center" />
@@ -74,38 +58,33 @@
                 </Border>
 
                 <!-- chat-bench -->
-                <Border Grid.Column="2" Style="{StaticResource SettingCard}">
+                <Border Style="{StaticResource Card}" Padding="16,12">
                     <StackPanel>
                         <TextBlock Text="chat-bench" Style="{StaticResource SubtitleText}" />
-                        <TextBlock Text="{l:Loc Bench_ChatHint}" Style="{StaticResource CaptionText}" />
+                        <TextBlock Text="{l:Loc Bench_ChatHint}" Style="{StaticResource CaptionText}" Margin="0,2,0,12" />
                         <TextBlock Text="{l:Loc Bench_Target}" Style="{StaticResource FieldLabel}" />
                         <ComboBox ItemsSource="{Binding Targets}" SelectedItem="{Binding ChatTarget}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:ModelOption}">
-                                    <TextBlock>
+                                    <TextBlock TextTrimming="CharacterEllipsis">
                                         <Run Text="{Binding Title, Mode=OneWay}" /><Run Text="{Binding Group, Mode=OneWay, StringFormat='  {0}'}" Foreground="{DynamicResource TextTertiaryBrush}" />
                                     </TextBlock>
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="6" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
+                        <c:ResponsiveGrid MinColumnWidth="120" MaxColumns="2" Spacing="8" Margin="0,12,0,0">
                             <StackPanel>
                                 <TextBlock Text="{l:Loc Bench_Runs}" Style="{StaticResource FieldLabel}" />
                                 <TextBox Text="{Binding ChatRuns}" />
                             </StackPanel>
-                            <StackPanel Grid.Column="2">
+                            <StackPanel>
                                 <TextBlock Text="{l:Loc Profiles_MaxTokens}" Style="{StaticResource FieldLabel}" />
                                 <TextBox Text="{Binding ChatMaxTokens}" />
                             </StackPanel>
-                        </Grid>
-                        <TextBlock Text="{l:Loc Bench_Prompts}" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding ChatPrompts}" AcceptsReturn="True" TextWrapping="Wrap" Height="80" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
-                        <Button Style="{DynamicResource AccentButtonStyle}" Command="{Binding RunChatBenchCommand}" HorizontalAlignment="Left" Margin="0,12,0,0">
+                        </c:ResponsiveGrid>
+                        <TextBlock Text="{l:Loc Bench_Prompts}" Style="{StaticResource FieldLabel}" Margin="0,12,0,4" />
+                        <TextBox Text="{Binding ChatPrompts}" AcceptsReturn="True" TextWrapping="Wrap" Height="88" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
+                        <Button Command="{Binding RunChatBenchCommand}" HorizontalAlignment="Left" Margin="0,12,0,0">
                             <StackPanel Orientation="Horizontal">
                                 <Path Data="{StaticResource IconPlay}" Style="{StaticResource IconPath}" />
                                 <TextBlock Text="{l:Loc Bench_Run}" Margin="8,0,0,0" VerticalAlignment="Center" />
@@ -113,10 +92,9 @@
                         </Button>
                     </StackPanel>
                 </Border>
-            </Grid>
-
+            </c:ResponsiveGrid>
             <!-- Ход выполнения -->
-            <DockPanel Margin="0,4,0,0">
+            <DockPanel Margin="0,12,0,0">
                 <Button DockPanel.Dock="Right" Content="{l:Loc Common_Cancel}" Command="{Binding CancelCommand}"
                         Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}" />
                 <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
@@ -129,7 +107,7 @@
 
             <!-- Отчёты -->
             <DockPanel Margin="0,20,0,8">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <WrapPanel DockPanel.Dock="Right">
                     <Button Content="HTML" Command="{Binding ExportCommand}" CommandParameter="html" />
                     <Button Content="Markdown" Command="{Binding ExportCommand}" CommandParameter="md" Margin="4,0,0,0" />
                     <Button Content="CSV" Command="{Binding ExportCommand}" CommandParameter="csv" Margin="4,0,0,0" />
@@ -137,7 +115,7 @@
                     <Button Style="{DynamicResource SubtleButtonStyle}" Command="{Binding OpenFolderCommand}" Margin="4,0,0,0" ToolTip="{l:Loc Settings_OpenData}">
                         <Path Data="{StaticResource IconFolder}" Style="{StaticResource IconPath}" />
                     </Button>
-                </StackPanel>
+                </WrapPanel>
                 <TextBlock Text="{l:Loc Bench_Reports}" Style="{StaticResource SubtitleText}" VerticalAlignment="Center" />
             </DockPanel>
             <TextBlock Text="{l:Loc Bench_ReportsHint}" Style="{StaticResource CaptionText}" Margin="0,0,0,6" />
@@ -153,7 +131,7 @@
                                 <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Center">
                                     <StackPanel>
                                         <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
-                                        <TextBlock Text="{Binding Summary}" Style="{StaticResource CaptionText}" />
+                                        <TextBlock Text="{Binding Summary}" Style="{StaticResource StatText}" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </CheckBox>
                             </DockPanel>
@@ -170,7 +148,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Style="{StaticResource CaptionText}">
-                                    <Run Text="●" Foreground="{DynamicResource AccentBrush}" /> <Run Text="{Binding Mode=OneWay}" />
+                                    <Run Text="{Binding Mode=OneWay}" />
                                 </TextBlock>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

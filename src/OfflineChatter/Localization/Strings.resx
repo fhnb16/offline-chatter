@@ -13,7 +13,7 @@
   <data name="Nav_Benchmarks" xml:space="preserve"><value>Benchmarks</value></data>
   <data name="Nav_Logs" xml:space="preserve"><value>Logs</value></data>
   <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
-  <data name="Page_InProgress" xml:space="preserve"><value>This section is under construction.</value></data>
+  <data name="Page_InProgress" xml:space="preserve"><value>This section is under construction</value></data>
   <data name="App_UnexpectedError" xml:space="preserve"><value>An unexpected error occurred. Details were written to the log:
 {0}
 
@@ -34,7 +34,7 @@
   <data name="Chat_Search" xml:space="preserve"><value>Search chats</value></data>
   <data name="Chat_ToggleInspector" xml:space="preserve"><value>Show or hide the side panel</value></data>
   <data name="Chat_EmptyTitle" xml:space="preserve"><value>How can I help?</value></data>
-  <data name="Chat_EmptySubtitle" xml:space="preserve"><value>Local GGUF models via llama.cpp or any OpenAI-compatible API.</value></data>
+  <data name="Chat_EmptySubtitle" xml:space="preserve"><value>Local GGUF models via llama.cpp or any OpenAI-compatible API</value></data>
   <data name="Chat_Suggest1" xml:space="preserve"><value>Explain Euler&apos;s identity</value></data>
   <data name="Chat_Suggest1Prompt" xml:space="preserve"><value>Explain Euler&apos;s identity $e^{i\pi} + 1 = 0$</value></data>
   <data name="Chat_Suggest2" xml:space="preserve"><value>Quicksort in C#</value></data>
@@ -45,18 +45,18 @@
   <data name="Chat_InputPlaceholder" xml:space="preserve"><value>Message… (Enter to send, Shift+Enter for a new line)</value></data>
   <data name="Chat_Send" xml:space="preserve"><value>Send (Enter)</value></data>
   <data name="Chat_StatsEmpty" xml:space="preserve"><value>Generation: — tok/s  ·  Prompt: — tok/s  ·  First token: —  ·  Context: — / —</value></data>
-  <data name="Chat_EngineStub" xml:space="preserve"><value>The engine is not connected yet.</value></data>
+  <data name="Chat_EngineStub" xml:space="preserve"><value>The engine is not connected yet</value></data>
   <data name="Inspector_Title" xml:space="preserve"><value>Generation</value></data>
-  <data name="Inspector_Empty" xml:space="preserve"><value>Generation parameters and live statistics will appear here.</value></data>
+  <data name="Inspector_Empty" xml:space="preserve"><value>Generation parameters and live statistics will appear here</value></data>
   <data name="Engine_NotInstalled" xml:space="preserve"><value>Engine not installed</value></data>
   <data name="Model_NotSelected" xml:space="preserve"><value>No model selected</value></data>
   <data name="Settings_Appearance" xml:space="preserve"><value>Appearance</value></data>
   <data name="Settings_General" xml:space="preserve"><value>General</value></data>
   <data name="Settings_Language" xml:space="preserve"><value>Interface language</value></data>
   <data name="Settings_LanguageAuto" xml:space="preserve"><value>As in Windows</value></data>
-  <data name="Settings_RestartRequired" xml:space="preserve"><value>Restart the app to apply</value></data>
+  <data name="Settings_RestartRequired" xml:space="preserve"><value>The new language applies after a restart</value></data>
   <data name="Settings_LogContent" xml:space="preserve"><value>Write message text to the log</value></data>
-  <data name="Settings_LogContentHint" xml:space="preserve"><value>Off by default: the log contains only technical events.</value></data>
+  <data name="Settings_LogContentHint" xml:space="preserve"><value>Off by default: the log contains only technical events</value></data>
   <data name="Settings_System" xml:space="preserve"><value>System</value></data>
   <data name="Settings_Runtime" xml:space="preserve"><value>.NET Framework CLR {0}, {1} process</value></data>
   <data name="Settings_DataPortable" xml:space="preserve"><value>Portable mode: {0}</value></data>
@@ -64,10 +64,10 @@
   <data name="Settings_OpenData" xml:space="preserve"><value>Open data folder</value></data>
   <data name="Settings_OpenLogs" xml:space="preserve"><value>Open logs folder</value></data>
   <data name="Appearance_Skin" xml:space="preserve"><value>Control style</value></data>
-  <data name="Appearance_SkinHint" xml:space="preserve"><value>Native WPF themes of different Windows versions work on any OS.</value></data>
+  <data name="Appearance_SkinHint" xml:space="preserve"><value>Native WPF themes of different Windows versions work on any OS</value></data>
   <data name="Appearance_Mode" xml:space="preserve"><value>Theme</value></data>
   <data name="Appearance_Backdrop" xml:space="preserve"><value>Window backdrop</value></data>
-  <data name="Appearance_BackdropHint" xml:space="preserve"><value>Only effects supported by this Windows version are listed.</value></data>
+  <data name="Appearance_BackdropHint" xml:space="preserve"><value>Only effects supported by this Windows version are listed</value></data>
   <data name="Appearance_Accent" xml:space="preserve"><value>Accent color</value></data>
   <data name="Appearance_Now" xml:space="preserve"><value>Now: {0}</value></data>
   <data name="Appearance_NowHighContrast" xml:space="preserve"><value>Now: high contrast mode</value></data>
@@ -100,10 +100,10 @@
   <data name="Net_ProxyUser" xml:space="preserve"><value>User</value></data>
   <data name="Net_ProxyPassword" xml:space="preserve"><value>Password</value></data>
   <data name="Net_Tls" xml:space="preserve"><value>TLS mode</value></data>
-  <data name="Net_TlsHint" xml:space="preserve"><value>Auto: system TLS first; on certificate or handshake errors — built-in root certificates, then the built-in TLS 1.2/1.3 stack.</value></data>
+  <data name="Net_TlsHint" xml:space="preserve"><value>Auto: system TLS first; on certificate or handshake errors — built-in root certificates, then the built-in TLS 1.2/1.3 stack</value></data>
   <data name="Net_RootsInfo" xml:space="preserve"><value>Built-in root certificates: {0}. Extra ones can be put into {1}</value></data>
   <data name="Net_Mirrors" xml:space="preserve"><value>Mirrors</value></data>
-  <data name="Net_MirrorsHint" xml:space="preserve"><value>Change only if the original sites are unavailable.</value></data>
+  <data name="Net_MirrorsHint" xml:space="preserve"><value>Change only if the original sites are unavailable</value></data>
   <data name="Net_GitHubPrefix" xml:space="preserve"><value>GitHub download prefix (empty — direct)</value></data>
   <data name="Net_Concurrent" xml:space="preserve"><value>Simultaneous downloads</value></data>
   <data name="Net_SpeedLimit" xml:space="preserve"><value>Speed limit, KB/s</value></data>
@@ -147,14 +147,14 @@
   <data name="Engine_Nvidia" xml:space="preserve"><value>NVIDIA driver {0}, CUDA up to {1}</value></data>
   <data name="Engine_VulkanYes" xml:space="preserve"><value>Vulkan: available</value></data>
   <data name="Engine_VulkanNo" xml:space="preserve"><value>Vulkan: not found (update the GPU driver)</value></data>
-  <data name="Engine_NoUcrt" xml:space="preserve"><value>Universal C Runtime (KB2999226) is missing — llama.cpp will not start.</value></data>
-  <data name="Engine_NoVcRuntime" xml:space="preserve"><value>Visual C++ 2015–2022 runtime is missing — llama.cpp needs it.</value></data>
+  <data name="Engine_NoUcrt" xml:space="preserve"><value>Universal C Runtime (KB2999226) is missing — llama.cpp will not start</value></data>
+  <data name="Engine_NoVcRuntime" xml:space="preserve"><value>Visual C++ 2015–2022 runtime is missing — llama.cpp needs it</value></data>
   <data name="Engine_GetVcRuntime" xml:space="preserve"><value>Download VC++ runtime</value></data>
   <data name="Engine_InstalledTitle" xml:space="preserve"><value>Installed</value></data>
-  <data name="Engine_NoneInstalled" xml:space="preserve"><value>No engine yet: download one below or connect your own llama.cpp folder.</value></data>
+  <data name="Engine_NoneInstalled" xml:space="preserve"><value>No engine yet: download one below or connect your own llama.cpp folder</value></data>
   <data name="Engine_AddExternal" xml:space="preserve"><value>Connect existing llama.cpp…</value></data>
   <data name="Engine_PickServerExe" xml:space="preserve"><value>Select llama-server.exe of your llama.cpp build</value></data>
-  <data name="Engine_NotAnEngine" xml:space="preserve"><value>llama-server.exe was not found in this folder.</value></data>
+  <data name="Engine_NotAnEngine" xml:space="preserve"><value>llama-server.exe was not found in this folder</value></data>
   <data name="Engine_MakeActive" xml:space="preserve"><value>Use</value></data>
   <data name="Engine_Active" xml:space="preserve"><value>active</value></data>
   <data name="Engine_External" xml:space="preserve"><value>connected folder</value></data>
@@ -226,7 +226,7 @@ No — only remove from the list</value></data>
   <data name="Models_EstimateCpu" xml:space="preserve"><value>≈ {0} memory at {1} context</value></data>
   <data name="Models_MmprojInfo" xml:space="preserve"><value>Also download the vision projector {0} ({1}) — needed to understand images</value></data>
   <data name="Models_Download" xml:space="preserve"><value>Download</value></data>
-  <data name="Models_Gated" xml:space="preserve"><value>This model requires accepting its license on huggingface.co and an access token (see Options below).</value></data>
+  <data name="Models_Gated" xml:space="preserve"><value>This model requires accepting its license on huggingface.co and an access token (see Options below)</value></data>
   <data name="Models_Options" xml:space="preserve"><value>Options</value></data>
   <data name="Models_DownloadFolder" xml:space="preserve"><value>Folder for downloaded models</value></data>
   <data name="Models_PickDownloadFolder" xml:space="preserve"><value>Folder for downloaded models (can be on another disk)</value></data>
@@ -263,8 +263,8 @@ No — only remove from the list</value></data>
   <data name="Profiles_Draft" xml:space="preserve"><value>Draft model for speculative decoding (path to GGUF, optional)</value></data>
   <data name="Profiles_Extra" xml:space="preserve"><value>Extra llama-server arguments</value></data>
   <data name="Profiles_Preview" xml:space="preserve"><value>Command line</value></data>
-  <data name="Profiles_NoModel" xml:space="preserve"><value>Select a model in «Models» to see the command line.</value></data>
-  <data name="Profiles_NoEngine" xml:space="preserve"><value>Install or connect an engine first.</value></data>
+  <data name="Profiles_NoModel" xml:space="preserve"><value>Select a model in «Models» to see the command line</value></data>
+  <data name="Profiles_NoEngine" xml:space="preserve"><value>Install or connect an engine first</value></data>
   <data name="Profiles_Skipped" xml:space="preserve"><value>Not supported by this llama.cpp version and skipped: {0}</value></data>
   <data name="Profiles_Estimate" xml:space="preserve"><value>≈ {0} total (weights {1}, KV {2}, on GPU {3}) at context {4}</value></data>
   <data name="Profiles_Start" xml:space="preserve"><value>Start / restart</value></data>
@@ -290,7 +290,7 @@ No — only remove from the list</value></data>
   <data name="Chat_ThinkingOff" xml:space="preserve"><value>Off (faster answers)</value></data>
   <data name="Chat_SystemPrompt" xml:space="preserve"><value>System prompt</value></data>
   <data name="Chat_OverrideTemperature" xml:space="preserve"><value>Own temperature for this chat</value></data>
-  <data name="Chat_InspectorHint" xml:space="preserve"><value>Other sampling parameters come from the launch profile (Engine → Launch profile).</value></data>
+  <data name="Chat_InspectorHint" xml:space="preserve"><value>Other sampling parameters come from the launch profile (Engine → Launch profile)</value></data>
   <data name="Chat_ModelPicker" xml:space="preserve"><value>Model: local GGUF or connected API</value></data>
   <data name="Chat_LocalModels" xml:space="preserve"><value>local</value></data>
   <data name="Chat_Pin" xml:space="preserve"><value>Pin / unpin</value></data>
@@ -298,12 +298,12 @@ No — only remove from the list</value></data>
   <data name="Chat_AttachFilter" xml:space="preserve"><value>Images, text, code, DOCX</value></data>
   <data name="Chat_AttachUnsupported" xml:space="preserve"><value>Unsupported file: {0}</value></data>
   <data name="Chat_AttachFailed" xml:space="preserve"><value>Cannot attach {0}: {1}</value></data>
-  <data name="Chat_NoModel" xml:space="preserve"><value>No model selected — download one in «Models» or connect an API.</value></data>
+  <data name="Chat_NoModel" xml:space="preserve"><value>No model selected — download one in «Models» or connect an API</value></data>
   <data name="Chat_ModelMissing" xml:space="preserve"><value>Model file not found: {0}</value></data>
-  <data name="Chat_NoEngine" xml:space="preserve"><value>llama.cpp is not installed — open «Engine».</value></data>
+  <data name="Chat_NoEngine" xml:space="preserve"><value>llama.cpp is not installed — open «Engine»</value></data>
   <data name="Chat_StartingModel" xml:space="preserve"><value>Loading {0}…</value></data>
   <data name="Chat_ServerFailed" xml:space="preserve"><value>llama-server did not start: {0}</value></data>
-  <data name="Chat_ProviderMissing" xml:space="preserve"><value>The API provider was removed.</value></data>
+  <data name="Chat_ProviderMissing" xml:space="preserve"><value>The API provider was removed</value></data>
   <data name="Chat_LiveStats" xml:space="preserve"><value>Generating: {0} tok · {1} tok/s · first token {2}</value></data>
   <data name="Chat_Context" xml:space="preserve"><value>Context {0} / {1}</value></data>
   <data name="Chat_ContextNoLimit" xml:space="preserve"><value>Context {0} tokens</value></data>
@@ -316,10 +316,10 @@ No — only remove from the list</value></data>
   <data name="Stats_Stopped" xml:space="preserve"><value>stopped</value></data>
   <data name="Providers_Hint" xml:space="preserve"><value>Cloud and local OpenAI-compatible APIs. Keys are stored encrypted (DPAPI). Selected models appear in the chat model picker.</value></data>
   <data name="Providers_Add" xml:space="preserve"><value>Add</value></data>
-  <data name="Providers_None" xml:space="preserve"><value>No providers yet — choose a preset above.</value></data>
+  <data name="Providers_None" xml:space="preserve"><value>No providers yet — choose a preset above</value></data>
   <data name="Providers_Enabled" xml:space="preserve"><value>Enabled</value></data>
   <data name="Providers_ApiKey" xml:space="preserve"><value>API key</value></data>
-  <data name="Providers_GetKey" xml:space="preserve"><value>Get a key ↗</value></data>
+  <data name="Providers_GetKey" xml:space="preserve"><value>Get a key</value></data>
   <data name="Providers_KeySaved" xml:space="preserve"><value>Key saved (encrypted)</value></data>
   <data name="Providers_KeyMissing" xml:space="preserve"><value>A key is required</value></data>
   <data name="Providers_KeyOptional" xml:space="preserve"><value>Key is optional for this server</value></data>
@@ -327,7 +327,7 @@ No — only remove from the list</value></data>
   <data name="Providers_Testing" xml:space="preserve"><value>Connecting…</value></data>
   <data name="Providers_TestOk" xml:space="preserve"><value>Connected, models: {0}</value></data>
   <data name="Providers_Models" xml:space="preserve"><value>Models in the chat picker</value></data>
-  <data name="Providers_ModelsHint" xml:space="preserve"><value>Checked models are shown in the chat model picker.</value></data>
+  <data name="Providers_ModelsHint" xml:space="preserve"><value>Checked models are shown in the chat model picker</value></data>
   <data name="Providers_Quirks" xml:space="preserve"><value>API specifics</value></data>
   <data name="Providers_MaxTokensField" xml:space="preserve"><value>Max tokens field name</value></data>
   <data name="Providers_Vision" xml:space="preserve"><value>Supports images</value></data>
@@ -347,10 +347,10 @@ No — only remove from the list</value></data>
   <data name="Bench_Running" xml:space="preserve"><value>Measuring…</value></data>
   <data name="Bench_Done" xml:space="preserve"><value>Done — the report is saved</value></data>
   <data name="Bench_Failed" xml:space="preserve"><value>Benchmark failed: {0}</value></data>
-  <data name="Bench_NoBenchExe" xml:space="preserve"><value>llama-bench.exe was not found next to the active engine.</value></data>
+  <data name="Bench_NoBenchExe" xml:space="preserve"><value>llama-bench.exe was not found next to the active engine</value></data>
   <data name="Bench_Output" xml:space="preserve"><value>Output</value></data>
   <data name="Bench_Reports" xml:space="preserve"><value>Reports</value></data>
-  <data name="Bench_ReportsHint" xml:space="preserve"><value>Check reports to compare them and to export only them.</value></data>
+  <data name="Bench_ReportsHint" xml:space="preserve"><value>Check reports to compare them and to export only them</value></data>
   <data name="Bench_Compare" xml:space="preserve"><value>Comparison</value></data>
   <data name="Bench_Exported" xml:space="preserve"><value>Saved: {0}</value></data>
   <data name="Logs_LevelAll" xml:space="preserve"><value>All levels</value></data>
@@ -386,7 +386,7 @@ No — only remove from the list</value></data>
   <data name="Tools_AllowOnce" xml:space="preserve"><value>Allow once</value></data>
   <data name="Tools_AllowAlways" xml:space="preserve"><value>Always allow</value></data>
   <data name="Tools_Deny" xml:space="preserve"><value>Deny</value></data>
-  <data name="Tools_ExternalWarning" xml:space="preserve"><value>External MCP servers are programs or services with your rights — connect only those you trust.</value></data>
+  <data name="Tools_ExternalWarning" xml:space="preserve"><value>External MCP servers are programs or services with your rights — connect only those you trust</value></data>
   <data name="Tools_Running" xml:space="preserve"><value>Running tool {0}…</value></data>
   <data name="Tools_MaxSteps" xml:space="preserve"><value>Tool step limit reached</value></data>
   <data name="Enum_ConsentMode_Ask" xml:space="preserve"><value>Ask every time</value></data>
@@ -421,7 +421,7 @@ No — only remove from the list</value></data>
   <data name="Tray_Exit" xml:space="preserve"><value>Exit</value></data>
   <data name="Notify_DownloadDone" xml:space="preserve"><value>Download completed</value></data>
   <data name="Notify_DownloadFailed" xml:space="preserve"><value>Download failed</value></data>
-  <data name="Notify_InTray" xml:space="preserve"><value>The app keeps running in the notification area.</value></data>
+  <data name="Notify_InTray" xml:space="preserve"><value>The app keeps running in the notification area</value></data>
   <data name="Jump_Recent" xml:space="preserve"><value>Recent chats</value></data>
   <data name="QuickAsk_Placeholder" xml:space="preserve"><value>Ask anything… (Enter)</value></data>
   <data name="QuickAsk_OpenInChat" xml:space="preserve"><value>Open in chat</value></data>
@@ -432,7 +432,7 @@ No — only remove from the list</value></data>
   <data name="Palette_ToggleTheme" xml:space="preserve"><value>Switch light / dark theme</value></data>
   <data name="Palette_StopServer" xml:space="preserve"><value>Stop llama-server</value></data>
   <data name="Settings_CloseToTray" xml:space="preserve"><value>Closing the window keeps the app in the notification area</value></data>
-  <data name="Settings_QuickAskHotkey" xml:space="preserve"><value>Quick question by Ctrl+Alt+Space (after restart)</value></data>
+  <data name="Settings_QuickAskHotkey" xml:space="preserve"><value>Quick question from anywhere</value></data>
   <data name="Settings_Security" xml:space="preserve"><value>Security</value></data>
   <data name="Security_ModeDpapi" xml:space="preserve"><value>Keys are encrypted with your Windows account (DPAPI)</value></data>
   <data name="Security_ModeMaster" xml:space="preserve"><value>Keys are encrypted with a master password</value></data>
@@ -446,12 +446,12 @@ No — only remove from the list</value></data>
   <data name="Security_Enabled" xml:space="preserve"><value>Master password set, keys re-encrypted</value></data>
   <data name="Security_Disabled" xml:space="preserve"><value>Keys are encrypted with DPAPI again</value></data>
   <data name="Security_UnlockTitle" xml:space="preserve"><value>Master password</value></data>
-  <data name="Security_UnlockHint" xml:space="preserve"><value>Enter the master password to decrypt saved API keys and tokens.</value></data>
+  <data name="Security_UnlockHint" xml:space="preserve"><value>Enter the master password to decrypt saved API keys and tokens</value></data>
   <data name="Security_WrongPassword" xml:space="preserve"><value>Wrong password</value></data>
   <data name="Security_Skip" xml:space="preserve"><value>Skip</value></data>
   <data name="Security_Unlock" xml:space="preserve"><value>Unlock</value></data>
   <data name="Welcome_Title" xml:space="preserve"><value>Welcome to Offline Chatter</value></data>
-  <data name="Welcome_Subtitle" xml:space="preserve"><value>Three steps and you can chat with an AI model right on this computer — no internet needed afterwards.</value></data>
+  <data name="Welcome_Subtitle" xml:space="preserve"><value>Three steps and you can chat with an AI model right on this computer — no internet needed afterwards</value></data>
   <data name="Welcome_Loading" xml:space="preserve"><value>Checking…</value></data>
   <data name="Welcome_Step_Hardware" xml:space="preserve"><value>Your computer</value></data>
   <data name="Welcome_Step_Engine" xml:space="preserve"><value>Engine (llama.cpp)</value></data>
@@ -467,16 +467,145 @@ No — only remove from the list</value></data>
   <data name="Welcome_UseApi" xml:space="preserve"><value>Use an online API instead</value></data>
   <data name="Welcome_InstallAll" xml:space="preserve"><value>Install everything</value></data>
   <data name="Welcome_Finish" xml:space="preserve"><value>Go to chat</value></data>
-  <data name="Welcome_AllDone" xml:space="preserve"><value>All set — click «Go to chat».</value></data>
-  <data name="Welcome_Partial" xml:space="preserve"><value>Not everything is installed — see the messages above.</value></data>
+  <data name="Welcome_AllDone" xml:space="preserve"><value>All set — click «Go to chat»</value></data>
+  <data name="Welcome_Partial" xml:space="preserve"><value>Not everything is installed — see the messages above</value></data>
   <data name="Welcome_FirstPrompt" xml:space="preserve"><value>Hi! Briefly tell me what you can do.</value></data>
   <data name="Update_Title" xml:space="preserve"><value>Updates</value></data>
-  <data name="Update_RepoHint" xml:space="preserve"><value>GitHub repository of the app (owner/repo) to check for new releases</value></data>
+  <data name="Update_RepoHint" xml:space="preserve"><value>GitHub repository with app releases and Win7 builds of llama.cpp</value></data>
   <data name="Update_Check" xml:space="preserve"><value>Check</value></data>
-  <data name="Update_Open" xml:space="preserve"><value>Open release page ↗</value></data>
+  <data name="Update_Open" xml:space="preserve"><value>Open release page</value></data>
   <data name="Update_NoRepo" xml:space="preserve"><value>Enter the repository first</value></data>
   <data name="Update_Available" xml:space="preserve"><value>New version available: {0}</value></data>
-  <data name="Update_Latest" xml:space="preserve"><value>You have the latest version</value></data>
+  <data name="Update_Latest" xml:space="preserve"><value>You have the latest version ({0})</value></data>
   <data name="Update_RunWizard" xml:space="preserve"><value>Run the getting-started wizard</value></data>
   <data name="Engine_CompatChannel" xml:space="preserve"><value>Win7-compatible builds from the app repository (static CRT)</value></data>
+  <data name="Enum_SettingsSection_General" xml:space="preserve"><value>General</value></data>
+  <data name="Enum_SettingsSection_Appearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Enum_SettingsSection_Chat" xml:space="preserve"><value>Chat</value></data>
+  <data name="Enum_SettingsSection_Network" xml:space="preserve"><value>Network</value></data>
+  <data name="Enum_SettingsSection_LocalApi" xml:space="preserve"><value>Local API</value></data>
+  <data name="Enum_SettingsSection_Privacy" xml:space="preserve"><value>Privacy</value></data>
+  <data name="Enum_SettingsSection_Data" xml:space="preserve"><value>Data</value></data>
+  <data name="Enum_SettingsSection_About" xml:space="preserve"><value>About</value></data>
+  <data name="Enum_ProxyKind_Http" xml:space="preserve"><value>HTTP</value></data>
+  <data name="Enum_ProxyKind_Socks5" xml:space="preserve"><value>SOCKS5 (DNS on this PC)</value></data>
+  <data name="Enum_ProxyKind_Socks5h" xml:space="preserve"><value>SOCKS5h (DNS through proxy)</value></data>
+  <data name="Settings_Restart" xml:space="preserve"><value>Restart now</value></data>
+  <data name="Settings_Sidebar" xml:space="preserve"><value>Sidebar</value></data>
+  <data name="Settings_SidebarHint" xml:space="preserve"><value>Hidden sections stay available here and in the command palette (Ctrl+K)</value></data>
+  <data name="Settings_Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Settings_SendCtrlEnter" xml:space="preserve"><value>Send with Ctrl+Enter</value></data>
+  <data name="Settings_SendCtrlEnterHint" xml:space="preserve"><value>Enter then inserts a new line. Off: Enter sends, Shift+Enter starts a new line.</value></data>
+  <data name="Settings_QuickAskHint" xml:space="preserve"><value>Ctrl+Alt+Space, or Ctrl+Shift+Space if the first one is taken. Applies after a restart.</value></data>
+  <data name="Settings_QuickAskActive" xml:space="preserve"><value>Active shortcut: {0}</value></data>
+  <data name="Settings_ImageSection" xml:space="preserve"><value>Images sent to models</value></data>
+  <data name="Settings_ImageMaxSide" xml:space="preserve"><value>Longest side</value></data>
+  <data name="Settings_ImageMaxSideHint" xml:space="preserve"><value>Larger pictures are scaled down before sending: vision models gain nothing from more pixels, but spend more tokens and memory</value></data>
+  <data name="Settings_ImageQuality" xml:space="preserve"><value>JPEG quality</value></data>
+  <data name="Settings_ImageKeepPng" xml:space="preserve"><value>Keep small transparent images as PNG</value></data>
+  <data name="Settings_ImageKeepPngHint" xml:space="preserve"><value>Icons and interface screenshots stay sharp; everything else is sent as JPEG</value></data>
+  <data name="Settings_ImageOriginal" xml:space="preserve"><value>Original size</value></data>
+  <data name="Settings_ToolsByDefault" xml:space="preserve"><value>Tools on in new chats</value></data>
+  <data name="Settings_ToolsByDefaultHint" xml:space="preserve"><value>Models call built-in and MCP tools only after your confirmation, unless you allowed a tool permanently</value></data>
+  <data name="Appearance_Hex" xml:space="preserve"><value>Hex color</value></data>
+  <data name="Prompts_Title" xml:space="preserve"><value>System prompt presets</value></data>
+  <data name="Prompts_Hint" xml:space="preserve"><value>Pick a preset in the chat side panel. The default preset is used for new chats.</value></data>
+  <data name="Prompts_Preset" xml:space="preserve"><value>Preset</value></data>
+  <data name="Prompts_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Prompts_Text" xml:space="preserve"><value>Prompt</value></data>
+  <data name="Prompts_Default" xml:space="preserve"><value>Use for new chats</value></data>
+  <data name="Prompts_Add" xml:space="preserve"><value>New preset</value></data>
+  <data name="Prompts_Restore" xml:space="preserve"><value>Restore built-in presets</value></data>
+  <data name="Prompts_NewName" xml:space="preserve"><value>New preset</value></data>
+  <data name="Prompts_Apply" xml:space="preserve"><value>Insert a preset</value></data>
+  <data name="Net_RouteTitle" xml:space="preserve"><value>Connection route</value></data>
+  <data name="Net_Interface" xml:space="preserve"><value>Network interface</value></data>
+  <data name="Net_InterfaceHint" xml:space="preserve"><value>Requests to model sites and online APIs go through this adapter. Pick the VPN adapter (tun, wg…) to force traffic through it.</value></data>
+  <data name="Net_InterfaceDefault" xml:space="preserve"><value>Windows default route</value></data>
+  <data name="Net_InterfaceMissing" xml:space="preserve"><value>{0} (not connected)</value></data>
+  <data name="Net_ProxyType" xml:space="preserve"><value>Proxy type</value></data>
+  <data name="Net_ProxyHost" xml:space="preserve"><value>Host</value></data>
+  <data name="Net_ProxyPort" xml:space="preserve"><value>Port</value></data>
+  <data name="Net_PasswordSaved" xml:space="preserve"><value>Saved, encrypted. Type to replace.</value></data>
+  <data name="Net_ProxyLink" xml:space="preserve"><value>Paste a proxy link</value></data>
+  <data name="Net_ProxyLinkHint" xml:space="preserve"><value>For example socks5h://user:password@127.0.0.1:1080 — fields above are filled in automatically</value></data>
+  <data name="Net_ProxyLinkApply" xml:space="preserve"><value>Apply</value></data>
+  <data name="Net_ProxyLinkBad" xml:space="preserve"><value>Not a proxy link. Supported: http://, socks5://, socks5h://</value></data>
+  <data name="Net_ProxyLinkOk" xml:space="preserve"><value>Proxy set: {0}</value></data>
+  <data name="Net_ManagedStackNote" xml:space="preserve"><value>With a selected interface or a SOCKS proxy, connections use the built-in TLS stack</value></data>
+  <data name="Net_SecurityTitle" xml:space="preserve"><value>Encryption</value></data>
+  <data name="Net_DownloadsTitle" xml:space="preserve"><value>Downloads and mirrors</value></data>
+  <data name="Net_Timeout" xml:space="preserve"><value>Request timeout, seconds</value></data>
+  <data name="Net_HfMirror" xml:space="preserve"><value>Hugging Face</value></data>
+  <data name="Net_GitHubApi" xml:space="preserve"><value>GitHub API</value></data>
+  <data name="Net_Offline" xml:space="preserve"><value>Offline mode</value></data>
+  <data name="Net_OfflineHint" xml:space="preserve"><value>The app makes no network requests: no downloads, update checks, online APIs or remote MCP servers. Local models keep working.</value></data>
+  <data name="Net_OfflineBanner" xml:space="preserve"><value>Offline mode is on. Turn it off in Privacy to download models or use online APIs.</value></data>
+  <data name="Net_OfflineBadge" xml:space="preserve"><value>Offline</value></data>
+  <data name="Api_Hint" xml:space="preserve"><value>Lets other apps on this PC (or your network) use the running llama.cpp server through the OpenAI-compatible API. The chat keeps working at the same time.</value></data>
+  <data name="Api_Enable" xml:space="preserve"><value>Share the local server</value></data>
+  <data name="Api_EnableHint" xml:space="preserve"><value>Fixed port and secret; the server starts with the app using the active model</value></data>
+  <data name="Api_Port" xml:space="preserve"><value>Port</value></data>
+  <data name="Api_Key" xml:space="preserve"><value>Secret key</value></data>
+  <data name="Api_KeyHint" xml:space="preserve"><value>Clients send it as Authorization: Bearer. Stored encrypted.</value></data>
+  <data name="Api_Show" xml:space="preserve"><value>Show</value></data>
+  <data name="Api_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Api_Regenerate" xml:space="preserve"><value>New key</value></data>
+  <data name="Api_Lan" xml:space="preserve"><value>Allow access from the local network</value></data>
+  <data name="Api_LanHint" xml:space="preserve"><value>The server listens on all interfaces. Anyone in your network who knows the key can use the model.</value></data>
+  <data name="Api_Url" xml:space="preserve"><value>Base URL for clients</value></data>
+  <data name="Api_Example" xml:space="preserve"><value>Request example</value></data>
+  <data name="Api_Apply" xml:space="preserve"><value>Start or restart server</value></data>
+  <data name="Api_Stop" xml:space="preserve"><value>Stop server</value></data>
+  <data name="Api_ApplyHint" xml:space="preserve"><value>Restart the server to apply the changes</value></data>
+  <data name="Api_DisabledHint" xml:space="preserve"><value>Access is closed. The next server start uses a random port and key again.</value></data>
+  <data name="Api_StatusExposed" xml:space="preserve"><value>{0} · {1} · open on port {2}</value></data>
+  <data name="Api_StatusPrivate" xml:space="preserve"><value>{0} · private port {1}, only this app can connect</value></data>
+  <data name="Api_ModelHint" xml:space="preserve"><value>Model: {0}. Change it in the chat or in Models.</value></data>
+  <data name="Api_PortBusy" xml:space="preserve"><value>Port {0} is used by another program. Pick a different one.</value></data>
+  <data name="Api_Running" xml:space="preserve"><value>Server is running: {0}</value></data>
+  <data name="Api_RunningPrivate" xml:space="preserve"><value>Server is running for this app only</value></data>
+  <data name="Api_Stopped" xml:space="preserve"><value>Server stopped</value></data>
+  <data name="Data_ChatsTitle" xml:space="preserve"><value>Chats</value></data>
+  <data name="Data_ChatsHint" xml:space="preserve"><value>Export saves all chats with branches, attachments and statistics to one JSON file. Import also accepts plain message lists in the OpenAI format.</value></data>
+  <data name="Data_Export" xml:space="preserve"><value>Export chats</value></data>
+  <data name="Data_Import" xml:space="preserve"><value>Import chats</value></data>
+  <data name="Data_BackupTitle" xml:space="preserve"><value>Backup</value></data>
+  <data name="Data_BackupHint" xml:space="preserve"><value>Settings, launch profiles, providers, MCP servers and prompt presets in one archive. Keys stay encrypted: protected by Windows (DPAPI), they open only for this user on this PC; with a master password — anywhere.</value></data>
+  <data name="Data_IncludeChats" xml:space="preserve"><value>Include chats</value></data>
+  <data name="Data_Backup" xml:space="preserve"><value>Create backup</value></data>
+  <data name="Data_Restore" xml:space="preserve"><value>Restore from backup</value></data>
+  <data name="Data_NoChats" xml:space="preserve"><value>There are no chats to export yet</value></data>
+  <data name="Data_Exported" xml:space="preserve"><value>Exported chats: {0} → {1}</value></data>
+  <data name="Data_Imported" xml:space="preserve"><value>Imported chats: {0}</value></data>
+  <data name="Data_BackupDone" xml:space="preserve"><value>Backup saved: {0} settings files, {1} chats → {2}</value></data>
+  <data name="Data_NotBackup" xml:space="preserve"><value>This file is not an Offline Chatter backup</value></data>
+  <data name="Data_RestoreConfirm" xml:space="preserve"><value>Restore the backup from {0} (version {1}): {2} settings files, {3} chats?
+
+Current data is saved to cache\backups first. The app will restart.</value></data>
+  <data name="Data_RestoreDpapiNote" xml:space="preserve"><value>Keys in this backup are protected by Windows. On another PC or account you will need to enter them again.</value></data>
+  <data name="Data_RestoreDone" xml:space="preserve"><value>Backup restored. The previous state is saved to:
+{0}
+
+The app will now restart.</value></data>
+  <data name="Data_Failed" xml:space="preserve"><value>Failed: {0}</value></data>
+  <data name="Data_Folders" xml:space="preserve"><value>Folders</value></data>
+  <data name="Update_Checking" xml:space="preserve"><value>Checking…</value></data>
+  <data name="Update_NotChecked" xml:space="preserve"><value>Updates have not been checked yet</value></data>
+  <data name="Update_Downloading" xml:space="preserve"><value>Downloading {0}…</value></data>
+  <data name="Update_Failed" xml:space="preserve"><value>Could not install the update: {0}. Download it from the release page instead.</value></data>
+  <data name="Update_Install" xml:space="preserve"><value>Install and restart</value></data>
+  <data name="Update_AutoCheck" xml:space="preserve"><value>Check for updates at startup</value></data>
+  <data name="Update_AutoCheckHint" xml:space="preserve"><value>One request to GitHub. Nothing is downloaded without your confirmation.</value></data>
+  <data name="Update_Repo" xml:space="preserve"><value>Release source</value></data>
+  <data name="Chat_PrevVariant" xml:space="preserve"><value>Previous version</value></data>
+  <data name="Chat_NextVariant" xml:space="preserve"><value>Next version</value></data>
+  <data name="Models_Vision" xml:space="preserve"><value>vision</value></data>
+  <data name="Models_LikesFormat" xml:space="preserve"><value> · {0:N0} likes</value></data>
+  <data name="Models_DownloadsFormat" xml:space="preserve"><value> · {0:N0} downloads</value></data>
+  <data name="Models_OpenHf" xml:space="preserve"><value>Open on Hugging Face</value></data>
+  <data name="Models_HfTitle" xml:space="preserve"><value>Hugging Face</value></data>
+  <data name="Models_Readme" xml:space="preserve"><value>Model card (README)</value></data>
+  <data name="Bench_FlashAttention" xml:space="preserve"><value>Flash Attention</value></data>
+  <data name="Chat_InputPlaceholderCtrl" xml:space="preserve"><value>Message… (Ctrl+Enter to send)</value></data>
 </root>

@@ -25,7 +25,7 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <DockPanel Margin="32,24,32,24">
+    <DockPanel Margin="24,20,24,20">
         <TextBlock DockPanel.Dock="Top" Text="{l:Loc Nav_Compare}" Style="{StaticResource PageTitleText}" />
         <TextBlock DockPanel.Dock="Top" Text="{l:Loc Compare_Hint}" Style="{StaticResource CaptionText}" Margin="0,-8,0,12" />
         <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Padding="6" Margin="0,0,0,12">

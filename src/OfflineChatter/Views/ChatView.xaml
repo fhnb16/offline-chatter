@@ -6,33 +6,12 @@
              xmlns:l="clr-namespace:OfflineChatter.Localization"
              AllowDrop="True" Drop="OnDrop" DragOver="OnDragOver">
     <UserControl.Resources>
-        <!-- Маленькая кнопка действия под сообщением -->
-        <Style x:Key="MsgAction" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Padding" Value="6,3" />
-            <Setter Property="MinHeight" Value="0" />
-            <Setter Property="Margin" Value="0,0,2,0" />
-            <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="Transparent" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleHoverBrush}" />
-                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <DataTemplate DataType="{x:Type vm:MessageViewModel}">
-            <Grid x:Name="Root" Margin="0,0,0,14" Background="Transparent">
+            <Grid x:Name="Root" Margin="0,0,0,10" Background="Transparent">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Border x:Name="Bubble" HorizontalAlignment="Left" MaxWidth="820" Style="{StaticResource Card}" Padding="14,10">
                     <StackPanel>
                         <!-- Вложения -->
@@ -80,7 +59,13 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:ToolCallView}">
                                     <Border Margin="0,2" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource CardBorderBrush}" Background="{DynamicResource CodeBackgroundBrush}" Padding="8,4">
-                                        <Expander Header="{Binding Header}">
+                                        <Expander>
+                                            <Expander.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Data="{StaticResource IconTool}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource TextSecondaryBrush}" />
+                                                    <TextBlock Text="{Binding Header}" Margin="8,0,0,0" VerticalAlignment="Center" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" />
+                                                </StackPanel>
+                                            </Expander.Header>
                                             <StackPanel>
                                                 <TextBlock Text="{l:Loc Tools_Arguments}" Style="{StaticResource CaptionText}" />
                                                 <TextBox Text="{Binding Arguments, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" />
@@ -105,35 +90,39 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Действия -->
-                <StackPanel x:Name="Actions" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="4,0,0,-22" Opacity="0.0">
+                <!-- Действия и статистика: отдельной строкой под сообщением, в общем потоке вёрстки (без отрицательных отступов) -->
+                <WrapPanel x:Name="Actions" Grid.Row="1" HorizontalAlignment="Left" Margin="2,2,0,0" Opacity="0.0">
                     <StackPanel Orientation="Horizontal" Visibility="{Binding HasVariants, Converter={StaticResource BoolToVisibility}}">
-                        <Button Style="{StaticResource MsgAction}" Content="‹" Command="{Binding DataContext.PrevVariantCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-                        <TextBlock Text="{Binding VariantText}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
-                        <Button Style="{StaticResource MsgAction}" Content="›" Command="{Binding DataContext.NextVariantCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                        <Button Style="{StaticResource IconButton}" ToolTip="{l:Loc Chat_PrevVariant}" Command="{Binding DataContext.PrevVariantCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                            <Path Data="{StaticResource IconChevronLeft}" Style="{StaticResource IconPath}" />
+                        </Button>
+                        <TextBlock Text="{Binding VariantText}" Style="{StaticResource StatText}" VerticalAlignment="Center" />
+                        <Button Style="{StaticResource IconButton}" ToolTip="{l:Loc Chat_NextVariant}" Command="{Binding DataContext.NextVariantCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                            <Path Data="{StaticResource IconChevronRight}" Style="{StaticResource IconPath}" />
+                        </Button>
                     </StackPanel>
-                    <Button Style="{StaticResource MsgAction}" ToolTip="{l:Loc Chat_Copy}" Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                    <Button Style="{StaticResource IconButton}" ToolTip="{l:Loc Chat_Copy}" Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
                         <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
                     </Button>
-                    <Button x:Name="EditBtn" Style="{StaticResource MsgAction}" ToolTip="{l:Loc Chat_Edit}" Visibility="Collapsed"
+                    <Button x:Name="EditBtn" Style="{StaticResource IconButton}" ToolTip="{l:Loc Chat_Edit}" Visibility="Collapsed"
                             Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
                         <Path Data="{StaticResource IconEdit}" Style="{StaticResource IconPath}" />
                     </Button>
-                    <Button Style="{StaticResource MsgAction}" ToolTip="{l:Loc Chat_Regenerate}" Command="{Binding DataContext.RegenerateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
-                        <Path Data="{StaticResource IconRefresh}" Style="{StaticResource IconPath}" />
+                    <Button Style="{StaticResource IconButton}" ToolTip="{l:Loc Chat_Regenerate}" Command="{Binding DataContext.RegenerateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                        <Path Data="{StaticResource IconRetry}" Style="{StaticResource IconPath}" />
                     </Button>
-                    <Button Style="{StaticResource MsgAction}" ToolTip="{l:Loc Chat_Speak}" Command="{Binding DataContext.SpeakCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
-                        <Path Data="M2.5,6 H5 L8.5,3 V13 L5,10 H2.5 Z M10.5,5.5 A3,3 0 0 1 10.5,10.5 M12,3.5 A5.5,5.5 0 0 1 12,12.5" Style="{StaticResource IconPath}" />
+                    <Button x:Name="SpeakBtn" Style="{StaticResource IconButton}" ToolTip="{l:Loc Chat_Speak}" Command="{Binding DataContext.SpeakCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                        <Path Data="{StaticResource IconSpeak}" Style="{StaticResource IconPath}" />
                     </Button>
-                    <Button Style="{StaticResource MsgAction}" ToolTip="{l:Loc Export_Message}" Command="{Binding DataContext.ExportMessageCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                    <Button Style="{StaticResource IconButton}" ToolTip="{l:Loc Export_Message}" Command="{Binding DataContext.ExportMessageCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
                         <Path Data="{StaticResource IconExport}" Style="{StaticResource IconPath}" />
                     </Button>
-                    <Button Style="{StaticResource MsgAction}" ToolTip="{l:Loc Common_Remove}" Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                    <Button Style="{StaticResource IconButton}" ToolTip="{l:Loc Common_Remove}" Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
                         <Path Data="{StaticResource IconTrash}" Style="{StaticResource IconPath}" />
                     </Button>
-                    <TextBlock Text="{Binding StatsText}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource TextTertiaryBrush}"
-                               VerticalAlignment="Center" Margin="6,0,0,0" TextWrapping="NoWrap" />
-                </StackPanel>
+                    <TextBlock Text="{Binding StatsText}" Style="{StaticResource StatText}" VerticalAlignment="Center" Margin="8,0,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding StatsText, Converter={StaticResource NullToCollapsed}}" />
+                </WrapPanel>
             </Grid>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding IsUser}" Value="True">
@@ -144,6 +133,7 @@
                     <Setter TargetName="Body" Property="Foreground" Value="{DynamicResource UserBubbleTextBrush}" />
                     <Setter TargetName="Actions" Property="HorizontalAlignment" Value="Right" />
                     <Setter TargetName="EditBtn" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="SpeakBtn" Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding IsAssistant}" Value="True">
                     <Setter TargetName="Actions" Property="Opacity" Value="0.85" />
@@ -173,7 +163,7 @@
 
         <!-- Модель и статус -->
         <DockPanel Grid.Row="0" Margin="20,12,12,8" LastChildFill="False">
-            <ComboBox DockPanel.Dock="Left" MinWidth="280" MaxWidth="420" ItemsSource="{Binding ModelOptions}" SelectedItem="{Binding SelectedModel}"
+            <ComboBox DockPanel.Dock="Left" MinWidth="200" MaxWidth="420" ItemsSource="{Binding ModelOptions}" SelectedItem="{Binding SelectedModel}"
                       ToolTip="{l:Loc Chat_ModelPicker}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:ModelOption}">
@@ -220,7 +210,7 @@
         <Border Grid.Row="2" Margin="20,4,20,6" Style="{StaticResource Card}" Padding="6">
             <StackPanel>
                 <DockPanel Margin="6,2,6,6" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
-                    <Button DockPanel.Dock="Right" Style="{StaticResource MsgAction}" Content="{l:Loc Common_Cancel}" Command="{Binding CancelEditCommand}" />
+                    <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Content="{l:Loc Common_Cancel}" Command="{Binding CancelEditCommand}" />
                     <TextBlock Text="{l:Loc Chat_Editing}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource AccentTextBrush}" VerticalAlignment="Center" />
                 </DockPanel>
                 <ItemsControl ItemsSource="{Binding PendingAttachments}" Margin="4,0,4,4" Visibility="{Binding HasPending, Converter={StaticResource BoolToVisibility}}">
@@ -235,7 +225,7 @@
                                 <StackPanel Orientation="Horizontal" Margin="4">
                                     <Image Source="{Binding Thumbnail}" Height="40" MaxWidth="80" Stretch="Uniform" Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibility}}" />
                                     <TextBlock Text="{Binding Name}" Margin="6,0" VerticalAlignment="Center" MaxWidth="160" TextTrimming="CharacterEllipsis" />
-                                    <Button Style="{StaticResource MsgAction}" Command="{Binding DataContext.RemoveAttachmentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                                    <Button Style="{StaticResource IconButton}" Width="22" Height="22" Command="{Binding DataContext.RemoveAttachmentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
                                         <Path Data="{StaticResource IconClose}" Style="{StaticResource IconPath}" Width="12" Height="12" />
                                     </Button>
                                 </StackPanel>
@@ -255,12 +245,8 @@
                     <Grid Grid.Column="1" Margin="4,0">
                         <TextBox x:Name="InputBox" Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap"
                                  MaxHeight="220" MinHeight="34" VerticalScrollBarVisibility="Auto" FontSize="14" Background="Transparent" BorderThickness="0"
-                                 VerticalContentAlignment="Center" PreviewKeyDown="OnInputPreviewKeyDown">
-                            <TextBox.InputBindings>
-                                <KeyBinding Key="Enter" Command="{Binding SendCommand}" />
-                            </TextBox.InputBindings>
-                        </TextBox>
-                        <TextBlock Text="{l:Loc Chat_InputPlaceholder}" Margin="10,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="14"
+                                 VerticalContentAlignment="Center" PreviewKeyDown="OnInputPreviewKeyDown" />
+                        <TextBlock Text="{Binding InputHint}" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="14"
                                    Foreground="{DynamicResource TextTertiaryBrush}" Visibility="{Binding Text, ElementName=InputBox, Converter={StaticResource EmptyToVisible}}" />
                     </Grid>
                     <Grid Grid.Column="2" VerticalAlignment="Bottom">
@@ -280,23 +266,25 @@
         <!-- Статус и статистика -->
         <DockPanel Grid.Row="3" Margin="24,0,20,10">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Visibility="{Binding ContextText, Converter={StaticResource NullToCollapsed}}">
-                <TextBlock Text="{Binding ContextText}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding ContextText}" Style="{StaticResource StatText}" VerticalAlignment="Center" />
                 <ProgressBar Width="80" Value="{Binding ContextRatio, Mode=OneWay}" Maximum="1" Margin="8,0,0,0" VerticalAlignment="Center" />
             </StackPanel>
             <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource AccentTextBrush}" Margin="0,0,12,0"
                        Visibility="{Binding Status, Converter={StaticResource NullToCollapsed}}" TextTrimming="CharacterEllipsis" />
-            <TextBlock Text="{Binding LiveStats}" Style="{StaticResource CaptionText}" TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="{Binding LiveStats}" Style="{StaticResource StatText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
         </DockPanel>
 
         <!-- Правая панель: параметры беседы -->
-        <Border Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" Width="300" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1,0,0,0"
+        <Border x:Name="Inspector" Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" Width="300" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1,0,0,0"
                 Visibility="{Binding IsInspectorVisible, Converter={StaticResource BoolToVisibility}}">
             <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16,12,16,16">
                 <StackPanel>
                     <TextBlock Text="{l:Loc Inspector_Title}" Style="{StaticResource SubtitleText}" />
 
                     <TextBlock Text="{l:Loc Chat_SystemPrompt}" Style="{StaticResource SectionHeaderText}" />
-                    <TextBox Text="{Binding SystemPrompt}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" MaxHeight="200"
+                    <ComboBox ItemsSource="{Binding PromptPresets}" SelectedItem="{Binding SelectedPreset}" DisplayMemberPath="Name" Margin="0,0,0,6"
+                              ToolTip="{l:Loc Prompts_Apply}" />
+                    <TextBox Text="{Binding SystemPrompt, UpdateSourceTrigger=PropertyChanged, Delay=500}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" MaxHeight="200"
                              VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
 
                     <TextBlock Text="{l:Loc Chat_ThinkingMode}" Style="{StaticResource SectionHeaderText}" />
@@ -311,8 +299,8 @@
                     <TextBlock Text="{l:Loc Chat_InspectorHint}" Style="{StaticResource CaptionText}" Margin="0,12,0,0" />
 
                     <TextBlock Text="{l:Loc Res_Title}" Style="{StaticResource SectionHeaderText}" Margin="0,20,0,6" />
-                    <TextBlock Text="{Binding ResourceText}" Style="{StaticResource BodyText}" LineHeight="20" />
-                    <TextBlock Text="{Binding LiveStats}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />
+                    <TextBlock Text="{Binding ResourceText}" Style="{StaticResource StatText}" FontSize="12" LineHeight="20" />
+                    <TextBlock Text="{Binding LiveStats}" Style="{StaticResource StatText}" TextWrapping="Wrap" Margin="0,8,0,0" />
                 </StackPanel>
             </ScrollViewer>
         </Border>

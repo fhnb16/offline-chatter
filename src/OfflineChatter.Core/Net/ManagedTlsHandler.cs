@@ -28,19 +28,19 @@ public sealed class ManagedTlsHandler : HttpMessageHandler
 {
     private const int MaxRedirects = 10;
     private readonly TrustedRoots _roots;
-    private readonly Func<Uri, Uri?> _proxyResolver;
-    private readonly NetworkCredential? _proxyCredentials;
+    private readonly Func<Uri, ProxyEndpoint?> _proxyResolver;
+    private readonly Func<IPAddress?> _localAddress;
     private readonly TimeSpan _connectTimeout;
 
-    /// <param name="proxyResolver">Возвращает адрес HTTP-прокси для URL или null для прямого соединения.</param>
-    public ManagedTlsHandler(TrustedRoots roots, Func<Uri, Uri?> proxyResolver, NetworkCredential? proxyCredentials, TimeSpan connectTimeout)
+    /// <param name="proxyResolver">Прокси (HTTP, SOCKS5, SOCKS5h) для URL или null — напрямую.</param>
+    /// <param name="localAddress">Локальный адрес выбранного сетевого интерфейса или null — маршрут Windows по умолчанию.</param>
+    public ManagedTlsHandler(TrustedRoots roots, Func<Uri, ProxyEndpoint?> proxyResolver, Func<IPAddress?> localAddress, TimeSpan connectTimeout)
     {
         _roots = roots;
         _proxyResolver = proxyResolver;
-        _proxyCredentials = proxyCredentials;
+        _localAddress = localAddress;
         _connectTimeout = connectTimeout;
     }
-
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
     {
         var method = request.Method;
@@ -68,22 +68,27 @@ public sealed class ManagedTlsHandler : HttpMessageHandler
     private HttpResponseMessage SendOnce(HttpRequestMessage original, HttpMethod method, Uri uri, byte[]? body, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        var tcp = new TcpClient { NoDelay = true, ReceiveTimeout = 0 };
+        var proxy = _proxyResolver(uri);
+        var local = _localAddress();
+        var tcp = local != null ? new TcpClient(new IPEndPoint(local, 0)) : new TcpClient(AddressFamily.InterNetwork);
+        tcp.NoDelay = true;
         var connection = new ConnectionOwner(tcp);
         using var cancelReg = ct.Register(() => connection.Dispose());
         try
         {
-            var proxy = _proxyResolver(uri);
             var targetHost = proxy?.Host ?? uri.IdnHost;
             var targetPort = proxy?.Port ?? uri.Port;
-            var connectTask = tcp.ConnectAsync(targetHost, targetPort);
+            // При привязке к интерфейсу адрес должен быть того же семейства (IPv4), поэтому разрешаем имя сами
+            var addresses = Dns.GetHostAddresses(targetHost).Where(a => a.AddressFamily == AddressFamily.InterNetwork).ToArray();
+            if (addresses.Length == 0) throw new HttpRequestException($"No IPv4 address for {targetHost}");
+            var connectTask = tcp.ConnectAsync(addresses, targetPort);
             if (!connectTask.Wait(_connectTimeout))
                 throw new HttpRequestException($"Connection to {targetHost}:{targetPort} timed out");
             if (connectTask.IsFaulted) throw new HttpRequestException($"Cannot connect to {targetHost}:{targetPort}", connectTask.Exception!.GetBaseException());
 
             Stream net = tcp.GetStream();
-            if (proxy != null && uri.Scheme == Uri.UriSchemeHttps) EstablishTunnel(net, uri);
-
+            if (proxy is { Kind: ProxyKind.Socks5 or ProxyKind.Socks5h }) Socks5Connect(net, proxy, uri);
+            else if (proxy != null && uri.Scheme == Uri.UriSchemeHttps) EstablishTunnel(net, uri, proxy.Credentials);
             Stream stream;
             if (uri.Scheme == Uri.UriSchemeHttps)
             {
@@ -97,7 +102,7 @@ public sealed class ManagedTlsHandler : HttpMessageHandler
                 stream = net;
             }
 
-            WriteRequest(stream, original, method, uri, body, proxy != null && uri.Scheme == Uri.UriSchemeHttp);
+            WriteRequest(stream, original, method, uri, body, proxy is { Kind: ProxyKind.Http } && uri.Scheme == Uri.UriSchemeHttp);
 
             var reader = new BufferedStream(stream, 64 * 1024);
             var head = HttpWire.ReadResponseHead(reader);
@@ -128,15 +133,84 @@ public sealed class ManagedTlsHandler : HttpMessageHandler
         }
     }
 
-    private void EstablishTunnel(Stream net, Uri uri)
+    /// <summary>
+    /// SOCKS5 (RFC 1928/1929): приветствие, при необходимости логин/пароль, CONNECT.
+    /// SOCKS5h передаёт имя хоста прокси (DNS на стороне прокси), SOCKS5 — уже разрешённый IPv4.
+    /// </summary>
+    internal static void Socks5Connect(Stream s, ProxyEndpoint proxy, Uri target)
+    {
+        var auth = proxy.Credentials != null && !string.IsNullOrEmpty(proxy.Credentials.UserName);
+        s.Write(auth ? new byte[] { 5, 2, 0, 2 } : new byte[] { 5, 1, 0 }, 0, auth ? 4 : 3);
+        var reply = ReadExact(s, 2);
+        if (reply[0] != 5) throw new HttpRequestException("Not a SOCKS5 proxy");
+        if (reply[1] == 2)
+        {
+            if (!auth) throw new HttpRequestException("SOCKS5 proxy requires a login and password");
+            var u = Encoding.UTF8.GetBytes(proxy.Credentials!.UserName);
+            var p = Encoding.UTF8.GetBytes(proxy.Credentials.Password ?? string.Empty);
+            var msg = new List<byte> { 1, (byte)u.Length };
+            msg.AddRange(u);
+            msg.Add((byte)p.Length);
+            msg.AddRange(p);
+            s.Write(msg.ToArray(), 0, msg.Count);
+            if (ReadExact(s, 2)[1] != 0) throw new HttpRequestException("SOCKS5 authentication failed");
+        }
+        else if (reply[1] != 0)
+        {
+            throw new HttpRequestException("SOCKS5 proxy rejected all authentication methods");
+        }
+
+        var req = new List<byte> { 5, 1, 0 };
+        if (proxy.Kind == ProxyKind.Socks5h)
+        {
+            var host = Encoding.ASCII.GetBytes(target.IdnHost);
+            req.Add(3);
+            req.Add((byte)host.Length);
+            req.AddRange(host);
+        }
+        else
+        {
+            var ip = Dns.GetHostAddresses(target.IdnHost).FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork)
+                     ?? throw new HttpRequestException("No IPv4 address for " + target.Host);
+            req.Add(1);
+            req.AddRange(ip.GetAddressBytes());
+        }
+        req.Add((byte)(target.Port >> 8));
+        req.Add((byte)(target.Port & 0xFF));
+        s.Write(req.ToArray(), 0, req.Count);
+
+        var head = ReadExact(s, 4);
+        if (head[1] != 0)
+        {
+            var reason = head[1] switch { 1 => "general failure", 2 => "not allowed", 3 => "network unreachable", 4 => "host unreachable", 5 => "connection refused", 6 => "TTL expired", 7 => "command not supported", 8 => "address type not supported", _ => "error " + head[1] };
+            throw new HttpRequestException("SOCKS5 CONNECT failed: " + reason);
+        }
+        var skip = head[3] switch { 1 => 4, 4 => 16, 3 => ReadExact(s, 1)[0], _ => 0 };
+        ReadExact(s, skip + 2);
+    }
+
+    private static byte[] ReadExact(Stream s, int n)
+    {
+        var buf = new byte[n];
+        var read = 0;
+        while (read < n)
+        {
+            var r = s.Read(buf, read, n - read);
+            if (r <= 0) throw new IOException("Proxy closed the connection");
+            read += r;
+        }
+        return buf;
+    }
+
+    private static void EstablishTunnel(Stream net, Uri uri, NetworkCredential? credentials)
     {
         var hostPort = uri.IdnHost + ":" + uri.Port.ToString(CultureInfo.InvariantCulture);
         var sb = new StringBuilder();
         sb.Append("CONNECT ").Append(hostPort).Append(" HTTP/1.1\r\n");
         sb.Append("Host: ").Append(hostPort).Append("\r\n");
-        if (_proxyCredentials != null && !string.IsNullOrEmpty(_proxyCredentials.UserName))
+        if (credentials != null && !string.IsNullOrEmpty(credentials.UserName))
         {
-            var token = Convert.ToBase64String(Encoding.UTF8.GetBytes(_proxyCredentials.UserName + ":" + _proxyCredentials.Password));
+            var token = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials.UserName + ":" + credentials.Password));
             sb.Append("Proxy-Authorization: Basic ").Append(token).Append("\r\n");
         }
         sb.Append("\r\n");

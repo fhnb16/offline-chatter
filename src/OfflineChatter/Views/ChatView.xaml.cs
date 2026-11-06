@@ -20,6 +20,7 @@ public partial class ChatView : UserControl
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
         Loaded += (_, _) => InputBox.Focus();
+        SizeChanged += OnSizeChanged;
         MessagesScroll.ScrollChanged += (_, e) =>
         {
             // Пользователь прокрутил вверх — не дёргаем ленту; вернулся вниз — снова следуем за ответом
@@ -69,18 +70,42 @@ public partial class ChatView : UserControl
     private void OnInputPreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (_vm == null) return;
+        if (e.Key == Key.Enter)
+        {
+            // Отправка: Enter (Shift+Enter — перенос) или Ctrl+Enter (Enter — перенос), по настройке
+            var ctrlMode = App.Settings.Current.Window.SendWithCtrlEnter;
+            var mods = Keyboard.Modifiers;
+            var send = ctrlMode ? mods == ModifierKeys.Control : mods == ModifierKeys.None;
+            if (send)
+            {
+                if (_vm.SendCommand.CanExecute(null)) _vm.SendCommand.Execute(null);
+                e.Handled = true;
+            }
+            else if (ctrlMode && mods == ModifierKeys.None || !ctrlMode && mods == ModifierKeys.Shift)
+            {
+                // AcceptsReturn сам вставит перевод строки только для «чистого» Enter — делаем это явно
+                var box = InputBox;
+                var caret = box.CaretIndex;
+                box.SelectedText = Environment.NewLine;
+                box.CaretIndex = caret + Environment.NewLine.Length;
+                box.SelectionLength = 0;
+                e.Handled = true;
+            }
+            return;
+        }
         if (e.Key == Key.V && Keyboard.Modifiers == ModifierKeys.Control)
         {
             try
             {
-                if (Clipboard.ContainsImage() && Clipboard.GetImage() is { } img)
-                {
-                    _vm.AddImage(img);
-                    e.Handled = true;
-                }
-                else if (Clipboard.ContainsFileDropList())
+                if (Clipboard.ContainsFileDropList())
                 {
                     _vm.AddFiles(Clipboard.GetFileDropList().Cast<string>());
+                    e.Handled = true;
+                }
+                // Текст из Word/Excel приходит вместе с картинкой-превью — тогда вставляем текст, как обычно
+                else if (!Clipboard.ContainsText() && Rendering.ImageAttachments.GetClipboardImage() is { } img)
+                {
+                    _vm.AddImage(img);
                     e.Handled = true;
                 }
             }
@@ -95,6 +120,29 @@ public partial class ChatView : UserControl
                 _vm.EditCommand.Execute(last);
                 e.Handled = true;
             }
+        }
+    }
+
+    // Правая панель на узком окне занимала половину ленты: прячем её автоматически
+    // и возвращаем, когда места снова хватает (если пользователь её не закрыл сам).
+    private const double InspectorBreakpoint = 880;
+    private bool _autoHidden;
+
+    private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_vm == null || !e.WidthChanged) return;
+        var narrow = e.NewSize.Width < InspectorBreakpoint;
+        // Только при переходе через границу: если на узком окне панель открыли вручную — не закрываем её снова
+        var crossedToNarrow = narrow && (e.PreviousSize.Width >= InspectorBreakpoint || e.PreviousSize.Width == 0);
+        if (crossedToNarrow && _vm.IsInspectorVisible)
+        {
+            _autoHidden = true;
+            _vm.SetInspectorVisible(false, persist: false);
+        }
+        else if (!narrow && _autoHidden)
+        {
+            _autoHidden = false;
+            _vm.SetInspectorVisible(true, persist: false);
         }
     }
 

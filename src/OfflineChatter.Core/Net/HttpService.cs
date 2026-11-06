@@ -90,7 +90,7 @@ public sealed class HttpService : IDisposable
     {
         var creds = ProxyCredentials();
         if (level == TlsLevel.Managed)
-            return new ManagedTlsHandler(_roots, ResolveProxy, creds, TimeSpan.FromSeconds(_settings.TimeoutSeconds));
+            return new ManagedTlsHandler(_roots, ResolveProxy, () => NetworkRoute.LocalAddressFor(_settings.NetworkInterface), TimeSpan.FromSeconds(_settings.TimeoutSeconds));
 
         var handler = new HttpClientHandler
         {
@@ -103,9 +103,9 @@ public sealed class HttpService : IDisposable
             case ProxyMode.None:
                 handler.UseProxy = false;
                 break;
-            case ProxyMode.Manual when Uri.TryCreate(_settings.ProxyAddress, UriKind.Absolute, out var proxyUri):
+            case ProxyMode.Manual when ProxyEndpoint.Parse(_settings.ProxyAddress, creds) is { Kind: ProxyKind.Http } hp:
                 handler.UseProxy = true;
-                handler.Proxy = new WebProxy(proxyUri) { Credentials = creds };
+                handler.Proxy = new WebProxy(hp.Host, hp.Port) { Credentials = hp.Credentials };
                 break;
             default:
                 handler.UseProxy = true;
@@ -125,19 +125,19 @@ public sealed class HttpService : IDisposable
         return new NetworkCredential(_settings.ProxyUser, Secrets.UnprotectOrEmpty(_settings.ProxyPasswordProtected));
     }
 
-    private Uri? ResolveProxy(Uri target)
+    private ProxyEndpoint? ResolveProxy(Uri target)
     {
         switch (_settings.ProxyMode)
         {
             case ProxyMode.None:
                 return null;
             case ProxyMode.Manual:
-                return Uri.TryCreate(_settings.ProxyAddress, UriKind.Absolute, out var p) ? p : null;
+                return ProxyEndpoint.Parse(_settings.ProxyAddress, ProxyCredentials());
             default:
                 try
                 {
                     var sys = WebRequest.GetSystemWebProxy().GetProxy(target);
-                    return sys == null || sys == target ? null : sys;
+                    return sys == null || sys == target ? null : new ProxyEndpoint(ProxyKind.Http, sys.Host, sys.Port, ProxyCredentials());
                 }
                 catch (Exception ex) when (ex is NotSupportedException or InvalidOperationException or System.Security.SecurityException)
                 {
@@ -146,8 +146,20 @@ public sealed class HttpService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Выбран сетевой интерфейс или SOCKS-прокси — системный HTTP-стек .NET так не умеет,
+    /// поэтому весь трафик идёт через собственный (уровень 3).
+    /// </summary>
+    public bool ForcesManagedStack =>
+        !string.IsNullOrWhiteSpace(_settings.NetworkInterface) ||
+        (_settings.ProxyMode == ProxyMode.Manual && ProxyEndpoint.Parse(_settings.ProxyAddress) is { Kind: ProxyKind.Socks5 or ProxyKind.Socks5h });
     private IEnumerable<TlsLevel> LevelsFor(string host)
     {
+        if (ForcesManagedStack)
+        {
+            yield return TlsLevel.Managed;
+            yield break;
+        }
         switch (_settings.TlsMode)
         {
             case TlsMode.System: yield return TlsLevel.System; yield break;
@@ -165,6 +177,12 @@ public sealed class HttpService : IDisposable
     /// </summary>
     public async Task<HttpResponseMessage> SendAsync(Func<HttpRequestMessage> makeRequest, HttpCompletionOption completion, CancellationToken ct)
     {
+        if (_settings.OfflineMode)
+        {
+            var h = PeekHost(makeRequest);
+            Log.Warn("Net", "Blocked by offline mode: " + h);
+            throw new OfflineModeException(h);
+        }
         Exception? last = null;
         string host = "?";
         foreach (var level in LevelsFor(PeekHost(makeRequest)))
@@ -256,7 +274,7 @@ public sealed class HttpService : IDisposable
         }
         catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or IOException)
         {
-            return new NetCheckResult(host, false, null, sw.Elapsed, ex.GetBaseException().Message);
+            return new NetCheckResult(host, false, null, sw.Elapsed, ex is OfflineModeException ? ex.Message : ex.GetBaseException().Message);
         }
     }
 

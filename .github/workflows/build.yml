@@ -1,16 +1,33 @@
-# Сборка и тесты Offline Chatter. Release-сборка — один exe (Costura) в артефактах.
-# При push тега vX.Y.Z — черновик релиза с exe.
+# Сборка, тесты и публикация Offline Chatter.
+#
+# push в master/main → Release-сборка (один exe через Costura) → тесты → релиз vX.Y.N на GitHub.
+# Тег создаётся автоматически (gh release create --target <commit>): без тега GitHub релиз не публикует.
+# Версия: X.Y — из <Version> в Directory.Build.props, N — номер запуска workflow.
+# Программа сама находит этот релиз (настройки → «О программе»), качает OfflineChatter.exe и сверяет SHA-256
+# с полем digest ассета.
+#
+# Не публиковать конкретный коммит: добавьте [skip release] в сообщение коммита.
+# Pull request: только сборка и тесты.
 name: build
 
 on:
   push:
     branches: [ main, master ]
-    tags: [ 'v*' ]
+    paths-ignore: [ '**.md', '.github/workflows/llama-win7.yml' ]
   pull_request:
   workflow_dispatch:
+    inputs:
+      prerelease:
+        description: 'Mark the release as pre-release'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -22,6 +39,18 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Compute version
+        id: ver
+        shell: pwsh
+        run: |
+          [xml]$props = Get-Content Directory.Build.props
+          $base = ($props.Project.PropertyGroup | Where-Object { $_.Version } | Select-Object -First 1).Version
+          $parts = $base.Split('.')
+          $version = "$($parts[0]).$($parts[1]).${{ github.run_number }}"
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=v$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Version: $version"
+
       - name: Verify generated strings are up to date
         shell: pwsh
         run: |
@@ -29,29 +58,41 @@ jobs:
           git diff --exit-code -- src/OfflineChatter/Localization/*.resx
 
       - name: Build (Release)
-        run: dotnet build OfflineChatter.sln -c Release -nologo
+        run: dotnet build OfflineChatter.sln -c Release -nologo -p:Version=${{ steps.ver.outputs.version }}
 
       - name: Test (offline tests only)
         run: dotnet test OfflineChatter.sln -c Release --no-build -nologo
 
-      - name: Collect exe
+      - name: Collect files
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force out | Out-Null
           Copy-Item src/OfflineChatter/bin/Release/net48/OfflineChatter.exe out/
           Copy-Item src/OfflineChatter/bin/Release/net48/OfflineChatter.exe.config out/
+          $lines = Get-ChildItem out -File | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)" }
+          $lines | Set-Content out/SHA256SUMS.txt -Encoding ascii
           Get-ChildItem out | Format-Table Name, Length
+          Get-Content out/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: OfflineChatter
+          name: OfflineChatter-${{ steps.ver.outputs.version }}
           path: out/
 
-      - name: Draft release for tags
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: true
-          files: |
-            out/OfflineChatter.exe
-            out/OfflineChatter.exe.config
+      - name: Publish release (creates the tag)
+        if: github.event_name != 'pull_request' && !contains(github.event.head_commit.message, '[skip release]')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ steps.ver.outputs.tag }}'
+          $flags = @('--target', '${{ github.sha }}', '--title', "Offline Chatter $tag", '--generate-notes')
+          if ('${{ inputs.prerelease }}' -eq 'true') { $flags += '--prerelease' }
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release $tag already exists — uploading assets"
+            gh release upload $tag out/OfflineChatter.exe out/OfflineChatter.exe.config out/SHA256SUMS.txt --clobber
+          } else {
+            gh release create $tag out/OfflineChatter.exe out/OfflineChatter.exe.config out/SHA256SUMS.txt @flags
+          }
+          if ($LASTEXITCODE -ne 0) { throw "gh release failed" }

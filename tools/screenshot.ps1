@@ -10,7 +10,10 @@ param(
     [switch]$HitTestMaxButton,
     [switch]$KeepOpen,
     [string]$Page,
-    [string]$Prompt
+    [string]$Prompt,
+    [string]$Section,
+    [int]$Width,
+    [int]$Height
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -27,16 +30,19 @@ public static class OcShot {
 }
 $dir = Split-Path (Resolve-Path $Exe) -Parent
 $settingsPath = Join-Path $dir 'config\settings.json'
-if ((Test-Path $settingsPath) -and ($Skin -or $Mode -or $Backdrop -or $Language)) {
+if ((Test-Path $settingsPath) -and ($Skin -or $Mode -or $Backdrop -or $Language -or $Width -or $Height)) {
     $s = Get-Content $settingsPath -Raw | ConvertFrom-Json
     if ($Skin) { $s.Appearance.Skin = $Skin }
     if ($Mode) { $s.Appearance.Mode = $Mode }
     if ($Backdrop) { $s.Appearance.Backdrop = $Backdrop }
     if ($Language) { $s.Language = $Language }
+    if ($Width) { $s.Window.Width = $Width; $s.Window.Maximized = $false }
+    if ($Height) { $s.Window.Height = $Height; $s.Window.Maximized = $false }
     $s | ConvertTo-Json -Depth 6 | Set-Content $settingsPath -Encoding utf8
 }
 $argsList = @()
 if ($Page) { $argsList += '--page', $Page }
+if ($Section) { $argsList += '--section', $Section }
 if ($Prompt) { $argsList += '--prompt', ('"' + $Prompt.Replace('"', '\"') + '"') }
 $p = if ($argsList.Count -gt 0) { Start-Process $Exe -ArgumentList $argsList -PassThru } else { Start-Process $Exe -PassThru }
 Start-Sleep $WaitSeconds

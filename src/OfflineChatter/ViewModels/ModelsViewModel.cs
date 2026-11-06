@@ -335,7 +335,7 @@ public sealed partial class ModelsViewModel : PageViewModel
             if (cts.IsCancellationRequested) return;
             FillQuants(files, info);
 
-            Readme = await _s.Hf.GetReadmeAsync(model.Id, cts.Token);
+            Readme = StripFrontMatter(await _s.Hf.GetReadmeAsync(model.Id, cts.Token));
         }
         catch (OperationCanceledException) { }
         catch (HttpStatusException ex) when ((int)ex.Status is 401 or 403)
@@ -438,5 +438,15 @@ public sealed partial class ModelsViewModel : PageViewModel
     private void OpenOnHf()
     {
         if (SelectedResult != null) EngineViewModel.OpenUrl(_s.Hf.RepoPageUrl(SelectedResult.Id));
+    }
+
+    /// <summary>README на HF начинается с YAML-метаданных (license, tags…) — в карточке они не нужны.</summary>
+    internal static string? StripFrontMatter(string? readme)
+    {
+        if (readme == null || !readme.StartsWith("---", StringComparison.Ordinal)) return readme;
+        var end = readme.IndexOf("\n---", 3, StringComparison.Ordinal);
+        if (end < 0) return readme;
+        var next = readme.IndexOf('\n', end + 4);
+        return next < 0 ? string.Empty : readme.Substring(next + 1).TrimStart();
     }
 }

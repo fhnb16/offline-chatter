@@ -72,11 +72,17 @@ public sealed partial class BenchmarksViewModel : PageViewModel
     [ObservableProperty] private string? _status;
     [ObservableProperty] private string _output = string.Empty;
 
-    public string ActiveModelName => _s.ActiveModel?.DisplayName ?? L.Get("Model_NotSelected");
+    /// <summary>Локальные модели для llama-bench (по умолчанию — активная).</summary>
+    public ObservableCollection<Core.Models.LocalModel> BenchModels { get; } = new();
+
+    [ObservableProperty] private Core.Models.LocalModel? _benchModel;
 
     public override void OnNavigatedTo()
     {
-        OnPropertyChanged(nameof(ActiveModelName));
+        var keep = BenchModel?.Id ?? _s.ActiveModel?.Id;
+        BenchModels.Clear();
+        foreach (var m in _s.Models.Models.Where(m => m.Exists)) BenchModels.Add(m);
+        BenchModel = BenchModels.FirstOrDefault(m => m.Id == keep) ?? BenchModels.FirstOrDefault();
         ChatTarget ??= _main.Chat.SelectedModel ?? Targets.FirstOrDefault();
         Reload();
     }
@@ -104,7 +110,7 @@ public sealed partial class BenchmarksViewModel : PageViewModel
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task RunLlamaBenchAsync()
     {
-        var model = _s.ActiveModel;
+        var model = BenchModel;
         var engine = _s.Engine.Registry.Active;
         if (model == null || engine == null || !File.Exists(engine.BenchExe))
         {

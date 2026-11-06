@@ -16,7 +16,7 @@
                     <Button Command="{Binding SaveAsNewCommand}" Content="{l:Loc Profiles_SaveAsNew}" />
                     <Button Command="{Binding ResetOrDeleteCommand}" Content="{l:Loc Profiles_ResetOrDelete}" Margin="6,0,0,0" />
                 </StackPanel>
-                <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding Selected}" DisplayMemberPath="Name" Width="220" HorizontalAlignment="Left" />
+                <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding Selected}" DisplayMemberPath="Name" MinWidth="220" HorizontalAlignment="Left" />
             </DockPanel>
             <CheckBox Content="{l:Loc Profiles_DefaultForAll}" IsChecked="{Binding IsDefaultForAll}" Margin="0,8,0,0" />
 
@@ -143,7 +143,7 @@
             <!-- Сравнение -->
             <Expander Header="{l:Loc Profiles_Compare}" Margin="0,12,0,0">
                 <StackPanel>
-                    <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding CompareWith}" DisplayMemberPath="Name" Width="220" HorizontalAlignment="Left" />
+                    <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding CompareWith}" DisplayMemberPath="Name" MinWidth="220" HorizontalAlignment="Left" />
                     <ItemsControl ItemsSource="{Binding Differences}" Margin="0,8,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>

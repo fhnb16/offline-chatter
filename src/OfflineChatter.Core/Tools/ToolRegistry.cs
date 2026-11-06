@@ -44,6 +44,9 @@ public sealed class ToolsSettings
 
     /// <summary>Включены ли инструменты в чатах по умолчанию.</summary>
     public bool EnabledByDefault { get; set; } = true;
+
+    /// <summary>Встроенный коннектор MCP уже добавлялся в mcp.json (если пользователь его удалил — не возвращаем).</summary>
+    public bool BuiltinMcpSeeded { get; set; }
 }
 
 public sealed class ToolDefinition

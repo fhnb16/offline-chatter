@@ -4,7 +4,9 @@
              xmlns:vm="clr-namespace:OfflineChatter.ViewModels"
              xmlns:views="clr-namespace:OfflineChatter.Views"
              xmlns:models="clr-namespace:OfflineChatter.Core.Models;assembly=OfflineChatter.Core"
-             xmlns:l="clr-namespace:OfflineChatter.Localization">
+             xmlns:l="clr-namespace:OfflineChatter.Localization"
+             xmlns:r="clr-namespace:OfflineChatter.Rendering"
+             xmlns:c="clr-namespace:OfflineChatter.Controls">
     <UserControl.Resources>
         <DataTemplate x:Key="EnumItemTemplate">
             <TextBlock Text="{Binding Converter={StaticResource EnumDisplay}}" />
@@ -12,30 +14,30 @@
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="32,24,32,32" MaxWidth="1100" HorizontalAlignment="Stretch">
+        <StackPanel Margin="24,20,24,32">
             <TextBlock Text="{l:Loc Nav_Models}" Style="{StaticResource PageTitleText}" />
 
             <!-- ===== Мои модели ===== -->
-            <DockPanel Margin="0,0,0,8">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Command="{Binding AddLocalCommand}">
+            <c:AdaptiveRow Margin="0,0,0,8" Breakpoint="640">
+                <TextBlock Text="{l:Loc Models_Mine}" Style="{StaticResource SubtitleText}" />
+                <WrapPanel HorizontalAlignment="Right">
+                    <Button Command="{Binding AddLocalCommand}" Margin="0,0,6,4">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconPlus}" Style="{StaticResource IconPath}" />
                             <TextBlock Text="{l:Loc Models_AddFile}" Margin="8,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
-                    <Button Command="{Binding ScanCommand}" Margin="6,0,0,0">
+                    <Button Command="{Binding ScanCommand}" Margin="0,0,6,4">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconSearch}" Style="{StaticResource IconPath}" />
                             <TextBlock Text="{l:Loc Models_Scan}" Margin="8,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
-                    <Button Command="{Binding AddScanFolderCommand}" Margin="6,0,0,0" ToolTip="{l:Loc Models_PickScanFolder}">
+                    <Button Command="{Binding AddScanFolderCommand}" Margin="0,0,0,4" ToolTip="{l:Loc Models_PickScanFolder}">
                         <Path Data="{StaticResource IconFolder}" Style="{StaticResource IconPath}" />
                     </Button>
-                </StackPanel>
-                <TextBlock Text="{l:Loc Models_Mine}" Style="{StaticResource SubtitleText}" VerticalAlignment="Center" />
-            </DockPanel>
+                </WrapPanel>
+            </c:AdaptiveRow>
             <TextBlock Text="{Binding ScanStatus}" Style="{StaticResource CaptionText}" Margin="0,0,0,6"
                        Visibility="{Binding ScanStatus, Converter={StaticResource NullToCollapsed}}" />
             <TextBlock Text="{l:Loc Models_NoneYet}" Style="{StaticResource CaptionText}" Margin="0,0,0,8"
@@ -46,7 +48,7 @@
                         <Border Style="{StaticResource SettingCard}">
                             <DockPanel>
                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Button Style="{DynamicResource AccentButtonStyle}" Content="{l:Loc Models_Use}" Margin="0,0,6,0"
+                                    <Button Content="{l:Loc Models_Use}" Margin="0,0,6,0"
                                             Command="{Binding DataContext.UseModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"
                                             IsEnabled="{Binding Exists}" />
                                     <Button Style="{DynamicResource SubtleButtonStyle}" ToolTip="{l:Loc Settings_OpenData}"
@@ -60,7 +62,7 @@
                                 </StackPanel>
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Title}" Style="{StaticResource BodyText}" FontWeight="SemiBold" TextWrapping="NoWrap" />
+                                        <TextBlock Text="{Binding Title}" Style="{StaticResource BodyText}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                                         <Border Style="{StaticResource StatusPill}" Margin="8,0,0,0" Padding="7,1"
                                                 Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibility}}">
                                             <TextBlock Text="{l:Loc Engine_Active}" FontSize="11" Foreground="{DynamicResource AccentTextBrush}" />
@@ -70,7 +72,7 @@
                                             <StackPanel Orientation="Horizontal">
                                                 <Path Data="{StaticResource IconImage}" Style="{StaticResource IconPath}" Width="14" Height="14"
                                                       TextElement.Foreground="{DynamicResource TextSecondaryBrush}" StrokeThickness="1.1" />
-                                                <TextBlock Text="vision" FontSize="11" Margin="4,0,0,0" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                                <TextBlock Text="{l:Loc Models_Vision}" FontSize="11" Margin="4,0,0,0" Foreground="{DynamicResource TextSecondaryBrush}" />
                                             </StackPanel>
                                         </Border>
                                     </StackPanel>
@@ -87,15 +89,15 @@
             </ItemsControl>
 
             <!-- ===== Hugging Face ===== -->
-            <TextBlock Text="Hugging Face" Style="{StaticResource SubtitleText}" Margin="0,20,0,8" />
+            <TextBlock Text="{l:Loc Models_HfTitle}" Style="{StaticResource SubtitleText}" Margin="0,20,0,8" />
             <Border Style="{StaticResource SettingCard}">
-                <DockPanel>
-                    <Button DockPanel.Dock="Right" Style="{DynamicResource AccentButtonStyle}" Command="{Binding ShowDefaultCommand}" Content="{l:Loc Models_ShowDefault}" />
+                <c:AdaptiveRow>
                     <StackPanel>
                         <TextBlock Text="{l:Loc Models_DefaultTitle}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
                         <TextBlock Text="{Binding DefaultRepo}" Style="{StaticResource CaptionText}" />
                     </StackPanel>
-                </DockPanel>
+                    <Button Command="{Binding ShowDefaultCommand}" Content="{l:Loc Models_ShowDefault}" HorizontalAlignment="Right" />
+                </c:AdaptiveRow>
             </Border>
 
             <Grid Margin="0,4,0,8">
@@ -116,27 +118,23 @@
                                Foreground="{DynamicResource TextTertiaryBrush}"
                                Visibility="{Binding Text, ElementName=Query, Converter={StaticResource EmptyToVisible}}" />
                 </Grid>
-                <ComboBox Grid.Column="1" Width="170" Margin="8,0,0,0" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding Sort}"
+                <ComboBox Grid.Column="1" MinWidth="150" Margin="8,0,0,0" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding Sort}"
                           ItemTemplate="{StaticResource EnumItemTemplate}" />
                 <Button Grid.Column="2" Margin="8,0,0,0" Command="{Binding SearchCommand}" Content="{l:Loc Models_Search}" />
             </Grid>
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                <CheckBox Content="{l:Loc Models_VisionOnly}" IsChecked="{Binding VisionOnly}" />
-                <CheckBox Content="{l:Loc Models_FitsOnly}" IsChecked="{Binding FitsOnly}" Margin="20,0,0,0" />
-            </StackPanel>
+            <WrapPanel Margin="0,0,0,8">
+                <CheckBox Content="{l:Loc Models_VisionOnly}" IsChecked="{Binding VisionOnly}" Margin="0,0,20,4" />
+                <CheckBox Content="{l:Loc Models_FitsOnly}" IsChecked="{Binding FitsOnly}" Margin="0,0,20,4" />
+            </WrapPanel>
             <ProgressBar IsIndeterminate="True" Margin="0,0,0,8" Visibility="{Binding IsSearching, Converter={StaticResource BoolToVisibility}}" />
             <TextBlock Text="{Binding SearchError}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
                        Visibility="{Binding SearchError, Converter={StaticResource NullToCollapsed}}" Margin="0,0,0,8" />
 
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="5*" MinWidth="280" />
-                    <ColumnDefinition Width="12" />
-                    <ColumnDefinition Width="6*" />
-                </Grid.ColumnDefinitions>
-
+            <!-- Список и детали: рядом на широком окне, друг под другом на узком.
+                 Список прижат к верху: раньше он центрировался в растянутой ячейке, и при раскрытии README появлялись поля сверху и снизу. -->
+            <c:ResponsiveGrid MinColumnWidth="340" MaxColumns="2">
                 <!-- Результаты -->
-                <Border Style="{StaticResource Card}" Padding="4">
+                <Border Style="{StaticResource Card}" Padding="4" VerticalAlignment="Top">
                     <ListBox ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedResult}" Height="460"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True">
                         <ListBox.ItemTemplate>
@@ -145,8 +143,8 @@
                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                                     <TextBlock Style="{StaticResource CaptionText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
                                         <Run Text="{Binding Author, Mode=OneWay}" />
-                                        <Run Text="{Binding Downloads, Mode=OneWay, StringFormat=' · ⤓ {0:N0}'}" />
-                                        <Run Text="{Binding Likes, Mode=OneWay, StringFormat=' · ♥ {0:N0}'}" />
+                                        <Run Text="{Binding Downloads, Mode=OneWay, StringFormat={l:Loc Models_DownloadsFormat}}" />
+                                        <Run Text="{Binding Likes, Mode=OneWay, StringFormat={l:Loc Models_LikesFormat}}" />
                                         <Run Text="{Binding PipelineTag, Mode=OneWay, StringFormat=' · {0}'}" />
                                     </TextBlock>
                                 </StackPanel>
@@ -156,13 +154,13 @@
                 </Border>
 
                 <!-- Детали -->
-                <Border Grid.Column="2" Style="{StaticResource Card}">
+                <Border Style="{StaticResource Card}" VerticalAlignment="Top" MinHeight="200">
                     <Grid>
                         <TextBlock Text="{l:Loc Models_SelectHint}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" HorizontalAlignment="Center"
                                    Visibility="{Binding HasSelection, Converter={StaticResource InverseBoolToVisibility}}" />
                         <StackPanel Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}">
                             <DockPanel>
-                                <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding OpenOnHfCommand}" Content="huggingface.co ↗" />
+                                <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding OpenOnHfCommand}" Content="{l:Loc Models_OpenHf}" />
                                 <TextBlock Text="{Binding SelectedResult.Id}" Style="{StaticResource SubtitleText}" TextWrapping="Wrap" />
                             </DockPanel>
                             <TextBlock Style="{StaticResource CaptionText}" Margin="0,2,0,8">
@@ -214,37 +212,42 @@
                                     <TextBlock Text="{l:Loc Models_Download}" Margin="8,0,0,0" VerticalAlignment="Center" />
                                 </StackPanel>
                             </Button>
-
-                            <Expander Header="README" Margin="0,12,0,0" Visibility="{Binding Readme, Converter={StaticResource NullToCollapsed}}">
-                                <TextBox Text="{Binding Readme, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="300"
-                                         VerticalScrollBarVisibility="Auto" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" VerticalContentAlignment="Top" />
-                            </Expander>
                         </StackPanel>
                     </Grid>
                 </Border>
-            </Grid>
+            </c:ResponsiveGrid>
+
+            <!-- README выбранной модели: во всю ширину под списком, Markdown как в чате -->
+            <Expander Margin="0,12,0,0" Visibility="{Binding Readme, Converter={StaticResource NullToCollapsed}}">
+                <Expander.Header>
+                    <TextBlock Text="{l:Loc Models_Readme}" Style="{StaticResource SubtitleText}" />
+                </Expander.Header>
+                <Border Style="{StaticResource Card}" Margin="0,8,0,0" Padding="16,12">
+                    <r:MarkdownView Markdown="{Binding Readme}" />
+                </Border>
+            </Expander>
 
             <!-- ===== Параметры ===== -->
             <TextBlock Text="{l:Loc Models_Options}" Style="{StaticResource SubtitleText}" Margin="0,20,0,8" />
             <Border Style="{StaticResource SettingCard}">
-                <DockPanel>
-                    <Button DockPanel.Dock="Right" Command="{Binding ChangeDownloadFolderCommand}" Content="{l:Loc Common_Browse}" />
+                <c:AdaptiveRow>
                     <StackPanel>
                         <TextBlock Text="{l:Loc Models_DownloadFolder}" Style="{StaticResource BodyText}" />
                         <TextBlock Text="{Binding DownloadFolder}" Style="{StaticResource CaptionText}" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
-                </DockPanel>
+                    <Button Command="{Binding ChangeDownloadFolderCommand}" Content="{l:Loc Common_Browse}" HorizontalAlignment="Right" />
+                </c:AdaptiveRow>
             </Border>
             <Border Style="{StaticResource SettingCard}">
-                <DockPanel>
-                    <PasswordBox x:Name="HfToken" DockPanel.Dock="Right" Width="260" MinHeight="32" VerticalContentAlignment="Center" LostFocus="OnHfTokenLostFocus" />
+                <c:AdaptiveRow ControlMinWidth="240">
                     <StackPanel>
                         <TextBlock Text="{l:Loc Models_HfToken}" Style="{StaticResource BodyText}" />
                         <TextBlock Text="{l:Loc Models_HfTokenHint}" Style="{StaticResource CaptionText}" />
                         <TextBlock Text="{l:Loc Models_HfTokenSaved}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusOkBrush}"
                                    Visibility="{Binding HasHfToken, Converter={StaticResource BoolToVisibility}}" />
                     </StackPanel>
-                </DockPanel>
+                    <PasswordBox x:Name="HfToken" LostFocus="OnHfTokenLostFocus" />
+                </c:AdaptiveRow>
             </Border>
 
             <views:DownloadsView DataContext="{Binding Downloads}" Margin="0,16,0,0" />

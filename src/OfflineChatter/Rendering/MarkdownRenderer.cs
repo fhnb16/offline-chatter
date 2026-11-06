@@ -235,7 +235,7 @@ public sealed class MarkdownRenderer
                 break;
             }
             case LinkInline link when link.IsImage:
-                target.Add(new Run("🖼 " + (link.FirstChild?.ToString() ?? link.Url)));
+                target.Add(new Run("[" + (link.FirstChild?.ToString() ?? link.Url) + "]"));
                 break;
             case LinkInline link:
             {

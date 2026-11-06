@@ -51,16 +51,18 @@ Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
 
-# ---------- Runtime data (лежит рядом с exe, в репозиторий не попадает) ----------
-engine/
-models/
-chats/
-logs/
-reports/
-cache/
-config/
-!src/**/config/
-portable.flag
+# ---------- Runtime data ----------
+# ВАЖНО: только с «/» в начале (корень репозитория). Без неё «engine/» и «models/» на Windows
+# (git без учёта регистра) совпадают с папками исходников src/OfflineChatter.Core/Engine и Models,
+# и они не попадают в репозиторий — сборка в CI падает. Данные рядом с exe лежат в bin/ и так игнорируются.
+/engine/
+/models/
+/chats/
+/logs/
+/reports/
+/cache/
+/config/
+/portable.flag
 
 # Скачивание и временные файлы
 *.part

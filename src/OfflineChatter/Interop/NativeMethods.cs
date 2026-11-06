@@ -129,6 +129,18 @@ internal static class User32
     public const int SM_CXPADDEDBORDER = 92;
     public const int WM_NCHITTEST = 0x0084;
     public const int HTMAXBUTTON = 9;
+    public const int WM_ACTIVATE = 0x0006;
+
+    public const uint SWP_NOSIZE = 0x0001;
+    public const uint SWP_NOMOVE = 0x0002;
+    public const uint SWP_NOZORDER = 0x0004;
+    public const uint SWP_NOACTIVATE = 0x0010;
+    public const uint SWP_FRAMECHANGED = 0x0020;
+
+    /// <summary>Win2000+. С SWP_FRAMECHANGED заставляет DWM перерисовать рамку и подложку.</summary>
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool SetWindowPos(IntPtr hwnd, IntPtr insertAfter, int x, int y, int cx, int cy, uint flags);
 
     [DllImport("user32.dll")]
     public static extern int GetSystemMetrics(int index);

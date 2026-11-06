@@ -37,6 +37,7 @@ public sealed class AppPaths
     public string ProvidersFile => Path.Combine(Config, "providers.json");
     public string McpFile => Path.Combine(Config, "mcp.json");
     public string ModelsFile => Path.Combine(Config, "models.json");
+    public string PromptsFile => Path.Combine(Config, "prompts.json");
 
     public void EnsureCreated()
     {

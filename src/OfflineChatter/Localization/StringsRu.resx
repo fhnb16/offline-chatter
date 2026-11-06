@@ -13,7 +13,7 @@
   <data name="Nav_Benchmarks" xml:space="preserve"><value>Бенчмарки</value></data>
   <data name="Nav_Logs" xml:space="preserve"><value>Журнал</value></data>
   <data name="Nav_Settings" xml:space="preserve"><value>Настройки</value></data>
-  <data name="Page_InProgress" xml:space="preserve"><value>Раздел в разработке.</value></data>
+  <data name="Page_InProgress" xml:space="preserve"><value>Раздел в разработке</value></data>
   <data name="App_UnexpectedError" xml:space="preserve"><value>Произошла непредвиденная ошибка. Подробности записаны в журнал:
 {0}
 
@@ -34,7 +34,7 @@
   <data name="Chat_Search" xml:space="preserve"><value>Поиск по чатам</value></data>
   <data name="Chat_ToggleInspector" xml:space="preserve"><value>Показать или скрыть панель справа</value></data>
   <data name="Chat_EmptyTitle" xml:space="preserve"><value>Чем могу помочь?</value></data>
-  <data name="Chat_EmptySubtitle" xml:space="preserve"><value>Локальные GGUF-модели через llama.cpp или любой OpenAI-совместимый API.</value></data>
+  <data name="Chat_EmptySubtitle" xml:space="preserve"><value>Локальные GGUF-модели через llama.cpp или любой OpenAI-совместимый API</value></data>
   <data name="Chat_Suggest1" xml:space="preserve"><value>Объясни формулу Эйлера</value></data>
   <data name="Chat_Suggest1Prompt" xml:space="preserve"><value>Объясни формулу Эйлера $e^{i\pi} + 1 = 0$</value></data>
   <data name="Chat_Suggest2" xml:space="preserve"><value>Быстрая сортировка на C#</value></data>
@@ -45,18 +45,18 @@
   <data name="Chat_InputPlaceholder" xml:space="preserve"><value>Сообщение… (Enter — отправить, Shift+Enter — новая строка)</value></data>
   <data name="Chat_Send" xml:space="preserve"><value>Отправить (Enter)</value></data>
   <data name="Chat_StatsEmpty" xml:space="preserve"><value>Генерация: — ток/с  ·  Промпт: — ток/с  ·  Первый токен: —  ·  Контекст: — / —</value></data>
-  <data name="Chat_EngineStub" xml:space="preserve"><value>Движок ещё не подключён.</value></data>
+  <data name="Chat_EngineStub" xml:space="preserve"><value>Движок ещё не подключён</value></data>
   <data name="Inspector_Title" xml:space="preserve"><value>Генерация</value></data>
-  <data name="Inspector_Empty" xml:space="preserve"><value>Здесь появятся параметры генерации и живая статистика.</value></data>
+  <data name="Inspector_Empty" xml:space="preserve"><value>Здесь появятся параметры генерации и живая статистика</value></data>
   <data name="Engine_NotInstalled" xml:space="preserve"><value>Движок не установлен</value></data>
   <data name="Model_NotSelected" xml:space="preserve"><value>Модель не выбрана</value></data>
   <data name="Settings_Appearance" xml:space="preserve"><value>Оформление</value></data>
   <data name="Settings_General" xml:space="preserve"><value>Общие</value></data>
   <data name="Settings_Language" xml:space="preserve"><value>Язык интерфейса</value></data>
   <data name="Settings_LanguageAuto" xml:space="preserve"><value>Как в Windows</value></data>
-  <data name="Settings_RestartRequired" xml:space="preserve"><value>Перезапустите приложение, чтобы применить</value></data>
+  <data name="Settings_RestartRequired" xml:space="preserve"><value>Новый язык применится после перезапуска</value></data>
   <data name="Settings_LogContent" xml:space="preserve"><value>Записывать текст сообщений в журнал</value></data>
-  <data name="Settings_LogContentHint" xml:space="preserve"><value>По умолчанию выключено: в журнале только технические события.</value></data>
+  <data name="Settings_LogContentHint" xml:space="preserve"><value>По умолчанию выключено: в журнале только технические события</value></data>
   <data name="Settings_System" xml:space="preserve"><value>Система</value></data>
   <data name="Settings_Runtime" xml:space="preserve"><value>.NET Framework CLR {0}, процесс {1}</value></data>
   <data name="Settings_DataPortable" xml:space="preserve"><value>Портативный режим: {0}</value></data>
@@ -64,10 +64,10 @@
   <data name="Settings_OpenData" xml:space="preserve"><value>Открыть папку данных</value></data>
   <data name="Settings_OpenLogs" xml:space="preserve"><value>Открыть папку журналов</value></data>
   <data name="Appearance_Skin" xml:space="preserve"><value>Стиль элементов</value></data>
-  <data name="Appearance_SkinHint" xml:space="preserve"><value>Родные темы WPF разных версий Windows работают на любой ОС.</value></data>
+  <data name="Appearance_SkinHint" xml:space="preserve"><value>Родные темы WPF разных версий Windows работают на любой ОС</value></data>
   <data name="Appearance_Mode" xml:space="preserve"><value>Тема</value></data>
   <data name="Appearance_Backdrop" xml:space="preserve"><value>Подложка окна</value></data>
-  <data name="Appearance_BackdropHint" xml:space="preserve"><value>Показаны только эффекты, которые поддерживает эта версия Windows.</value></data>
+  <data name="Appearance_BackdropHint" xml:space="preserve"><value>Показаны только эффекты, которые поддерживает эта версия Windows</value></data>
   <data name="Appearance_Accent" xml:space="preserve"><value>Акцентный цвет</value></data>
   <data name="Appearance_Now" xml:space="preserve"><value>Сейчас: {0}</value></data>
   <data name="Appearance_NowHighContrast" xml:space="preserve"><value>Сейчас: режим высокой контрастности</value></data>
@@ -100,10 +100,10 @@
   <data name="Net_ProxyUser" xml:space="preserve"><value>Пользователь</value></data>
   <data name="Net_ProxyPassword" xml:space="preserve"><value>Пароль</value></data>
   <data name="Net_Tls" xml:space="preserve"><value>Режим TLS</value></data>
-  <data name="Net_TlsHint" xml:space="preserve"><value>Авто: сначала системный TLS; при ошибке сертификата или рукопожатия — вшитые корневые сертификаты, затем встроенный стек TLS 1.2/1.3.</value></data>
+  <data name="Net_TlsHint" xml:space="preserve"><value>Авто: сначала системный TLS; при ошибке сертификата или рукопожатия — вшитые корневые сертификаты, затем встроенный стек TLS 1.2/1.3</value></data>
   <data name="Net_RootsInfo" xml:space="preserve"><value>Вшитых корневых сертификатов: {0}. Дополнительные можно положить в {1}</value></data>
   <data name="Net_Mirrors" xml:space="preserve"><value>Зеркала</value></data>
-  <data name="Net_MirrorsHint" xml:space="preserve"><value>Меняйте, только если исходные сайты недоступны.</value></data>
+  <data name="Net_MirrorsHint" xml:space="preserve"><value>Меняйте, только если исходные сайты недоступны</value></data>
   <data name="Net_GitHubPrefix" xml:space="preserve"><value>Префикс для скачивания с GitHub (пусто — напрямую)</value></data>
   <data name="Net_Concurrent" xml:space="preserve"><value>Одновременных загрузок</value></data>
   <data name="Net_SpeedLimit" xml:space="preserve"><value>Ограничение скорости, КБ/с</value></data>
@@ -147,14 +147,14 @@
   <data name="Engine_Nvidia" xml:space="preserve"><value>Драйвер NVIDIA {0}, CUDA до {1}</value></data>
   <data name="Engine_VulkanYes" xml:space="preserve"><value>Vulkan: доступен</value></data>
   <data name="Engine_VulkanNo" xml:space="preserve"><value>Vulkan: не найден (обновите драйвер видеокарты)</value></data>
-  <data name="Engine_NoUcrt" xml:space="preserve"><value>Нет Universal C Runtime (KB2999226) — llama.cpp не запустится.</value></data>
-  <data name="Engine_NoVcRuntime" xml:space="preserve"><value>Нет среды Visual C++ 2015–2022 — она нужна llama.cpp.</value></data>
+  <data name="Engine_NoUcrt" xml:space="preserve"><value>Нет Universal C Runtime (KB2999226) — llama.cpp не запустится</value></data>
+  <data name="Engine_NoVcRuntime" xml:space="preserve"><value>Нет среды Visual C++ 2015–2022 — она нужна llama.cpp</value></data>
   <data name="Engine_GetVcRuntime" xml:space="preserve"><value>Скачать VC++ runtime</value></data>
   <data name="Engine_InstalledTitle" xml:space="preserve"><value>Установленные</value></data>
-  <data name="Engine_NoneInstalled" xml:space="preserve"><value>Движка пока нет: скачайте ниже или подключите свою папку с llama.cpp.</value></data>
+  <data name="Engine_NoneInstalled" xml:space="preserve"><value>Движка пока нет: скачайте ниже или подключите свою папку с llama.cpp</value></data>
   <data name="Engine_AddExternal" xml:space="preserve"><value>Подключить свою сборку…</value></data>
   <data name="Engine_PickServerExe" xml:space="preserve"><value>Выберите llama-server.exe вашей сборки llama.cpp</value></data>
-  <data name="Engine_NotAnEngine" xml:space="preserve"><value>В этой папке не найден llama-server.exe.</value></data>
+  <data name="Engine_NotAnEngine" xml:space="preserve"><value>В этой папке не найден llama-server.exe</value></data>
   <data name="Engine_MakeActive" xml:space="preserve"><value>Использовать</value></data>
   <data name="Engine_Active" xml:space="preserve"><value>активный</value></data>
   <data name="Engine_External" xml:space="preserve"><value>подключённая папка</value></data>
@@ -263,8 +263,8 @@
   <data name="Profiles_Draft" xml:space="preserve"><value>Черновая модель для спекулятивного декодирования (путь к GGUF, необязательно)</value></data>
   <data name="Profiles_Extra" xml:space="preserve"><value>Дополнительные аргументы llama-server</value></data>
   <data name="Profiles_Preview" xml:space="preserve"><value>Командная строка</value></data>
-  <data name="Profiles_NoModel" xml:space="preserve"><value>Выберите модель в разделе «Модели», чтобы увидеть командную строку.</value></data>
-  <data name="Profiles_NoEngine" xml:space="preserve"><value>Сначала установите или подключите движок.</value></data>
+  <data name="Profiles_NoModel" xml:space="preserve"><value>Выберите модель в разделе «Модели», чтобы увидеть командную строку</value></data>
+  <data name="Profiles_NoEngine" xml:space="preserve"><value>Сначала установите или подключите движок</value></data>
   <data name="Profiles_Skipped" xml:space="preserve"><value>Не поддерживается этой версией llama.cpp и пропущено: {0}</value></data>
   <data name="Profiles_Estimate" xml:space="preserve"><value>≈ {0} всего (веса {1}, KV {2}, на GPU {3}) при контексте {4}</value></data>
   <data name="Profiles_Start" xml:space="preserve"><value>Запустить / перезапустить</value></data>
@@ -290,7 +290,7 @@
   <data name="Chat_ThinkingOff" xml:space="preserve"><value>Выключен (быстрее ответы)</value></data>
   <data name="Chat_SystemPrompt" xml:space="preserve"><value>Системный промпт</value></data>
   <data name="Chat_OverrideTemperature" xml:space="preserve"><value>Своя температура для этого чата</value></data>
-  <data name="Chat_InspectorHint" xml:space="preserve"><value>Остальные параметры сэмплинга берутся из профиля запуска (Движок → Профиль запуска).</value></data>
+  <data name="Chat_InspectorHint" xml:space="preserve"><value>Остальные параметры сэмплинга берутся из профиля запуска (Движок → Профиль запуска)</value></data>
   <data name="Chat_ModelPicker" xml:space="preserve"><value>Модель: локальная GGUF или подключённый API</value></data>
   <data name="Chat_LocalModels" xml:space="preserve"><value>локальная</value></data>
   <data name="Chat_Pin" xml:space="preserve"><value>Закрепить / открепить</value></data>
@@ -298,12 +298,12 @@
   <data name="Chat_AttachFilter" xml:space="preserve"><value>Изображения, текст, код, DOCX</value></data>
   <data name="Chat_AttachUnsupported" xml:space="preserve"><value>Неподдерживаемый файл: {0}</value></data>
   <data name="Chat_AttachFailed" xml:space="preserve"><value>Не удалось прикрепить {0}: {1}</value></data>
-  <data name="Chat_NoModel" xml:space="preserve"><value>Модель не выбрана — скачайте её в разделе «Модели» или подключите API.</value></data>
+  <data name="Chat_NoModel" xml:space="preserve"><value>Модель не выбрана — скачайте её в разделе «Модели» или подключите API</value></data>
   <data name="Chat_ModelMissing" xml:space="preserve"><value>Файл модели не найден: {0}</value></data>
-  <data name="Chat_NoEngine" xml:space="preserve"><value>llama.cpp не установлен — откройте раздел «Движок».</value></data>
+  <data name="Chat_NoEngine" xml:space="preserve"><value>llama.cpp не установлен — откройте раздел «Движок»</value></data>
   <data name="Chat_StartingModel" xml:space="preserve"><value>Загрузка {0}…</value></data>
   <data name="Chat_ServerFailed" xml:space="preserve"><value>llama-server не запустился: {0}</value></data>
-  <data name="Chat_ProviderMissing" xml:space="preserve"><value>API-провайдер удалён.</value></data>
+  <data name="Chat_ProviderMissing" xml:space="preserve"><value>API-провайдер удалён</value></data>
   <data name="Chat_LiveStats" xml:space="preserve"><value>Генерация: {0} ток · {1} ток/с · первый токен {2}</value></data>
   <data name="Chat_Context" xml:space="preserve"><value>Контекст {0} / {1}</value></data>
   <data name="Chat_ContextNoLimit" xml:space="preserve"><value>Контекст {0} токенов</value></data>
@@ -316,10 +316,10 @@
   <data name="Stats_Stopped" xml:space="preserve"><value>остановлено</value></data>
   <data name="Providers_Hint" xml:space="preserve"><value>Облачные и локальные OpenAI-совместимые API. Ключи хранятся зашифрованными (DPAPI). Выбранные модели появляются в меню модели в чате.</value></data>
   <data name="Providers_Add" xml:space="preserve"><value>Добавить</value></data>
-  <data name="Providers_None" xml:space="preserve"><value>Провайдеров пока нет — выберите пресет выше.</value></data>
+  <data name="Providers_None" xml:space="preserve"><value>Провайдеров пока нет — выберите пресет выше</value></data>
   <data name="Providers_Enabled" xml:space="preserve"><value>Включён</value></data>
   <data name="Providers_ApiKey" xml:space="preserve"><value>Ключ API</value></data>
-  <data name="Providers_GetKey" xml:space="preserve"><value>Получить ключ ↗</value></data>
+  <data name="Providers_GetKey" xml:space="preserve"><value>Получить ключ</value></data>
   <data name="Providers_KeySaved" xml:space="preserve"><value>Ключ сохранён (зашифрован)</value></data>
   <data name="Providers_KeyMissing" xml:space="preserve"><value>Нужен ключ</value></data>
   <data name="Providers_KeyOptional" xml:space="preserve"><value>Для этого сервера ключ не обязателен</value></data>
@@ -327,7 +327,7 @@
   <data name="Providers_Testing" xml:space="preserve"><value>Подключение…</value></data>
   <data name="Providers_TestOk" xml:space="preserve"><value>Подключено, моделей: {0}</value></data>
   <data name="Providers_Models" xml:space="preserve"><value>Модели в меню чата</value></data>
-  <data name="Providers_ModelsHint" xml:space="preserve"><value>Отмеченные модели показываются в меню выбора модели в чате.</value></data>
+  <data name="Providers_ModelsHint" xml:space="preserve"><value>Отмеченные модели показываются в меню выбора модели в чате</value></data>
   <data name="Providers_Quirks" xml:space="preserve"><value>Особенности API</value></data>
   <data name="Providers_MaxTokensField" xml:space="preserve"><value>Имя поля лимита токенов</value></data>
   <data name="Providers_Vision" xml:space="preserve"><value>Поддерживает изображения</value></data>
@@ -347,10 +347,10 @@
   <data name="Bench_Running" xml:space="preserve"><value>Идёт замер…</value></data>
   <data name="Bench_Done" xml:space="preserve"><value>Готово — отчёт сохранён</value></data>
   <data name="Bench_Failed" xml:space="preserve"><value>Замер не удался: {0}</value></data>
-  <data name="Bench_NoBenchExe" xml:space="preserve"><value>Рядом с активным движком нет llama-bench.exe.</value></data>
+  <data name="Bench_NoBenchExe" xml:space="preserve"><value>Рядом с активным движком нет llama-bench.exe</value></data>
   <data name="Bench_Output" xml:space="preserve"><value>Вывод</value></data>
   <data name="Bench_Reports" xml:space="preserve"><value>Отчёты</value></data>
-  <data name="Bench_ReportsHint" xml:space="preserve"><value>Отметьте отчёты, чтобы сравнить их и экспортировать только их.</value></data>
+  <data name="Bench_ReportsHint" xml:space="preserve"><value>Отметьте отчёты, чтобы сравнить их и экспортировать только их</value></data>
   <data name="Bench_Compare" xml:space="preserve"><value>Сравнение</value></data>
   <data name="Bench_Exported" xml:space="preserve"><value>Сохранено: {0}</value></data>
   <data name="Logs_LevelAll" xml:space="preserve"><value>Все уровни</value></data>
@@ -386,7 +386,7 @@
   <data name="Tools_AllowOnce" xml:space="preserve"><value>Разрешить один раз</value></data>
   <data name="Tools_AllowAlways" xml:space="preserve"><value>Разрешать всегда</value></data>
   <data name="Tools_Deny" xml:space="preserve"><value>Отклонить</value></data>
-  <data name="Tools_ExternalWarning" xml:space="preserve"><value>Внешние MCP-серверы — это программы и сервисы с вашими правами; подключайте только те, которым доверяете.</value></data>
+  <data name="Tools_ExternalWarning" xml:space="preserve"><value>Внешние MCP-серверы — это программы и сервисы с вашими правами; подключайте только те, которым доверяете</value></data>
   <data name="Tools_Running" xml:space="preserve"><value>Выполняется инструмент {0}…</value></data>
   <data name="Tools_MaxSteps" xml:space="preserve"><value>Достигнут лимит шагов с инструментами</value></data>
   <data name="Enum_ConsentMode_Ask" xml:space="preserve"><value>Спрашивать</value></data>
@@ -421,7 +421,7 @@
   <data name="Tray_Exit" xml:space="preserve"><value>Выход</value></data>
   <data name="Notify_DownloadDone" xml:space="preserve"><value>Загрузка завершена</value></data>
   <data name="Notify_DownloadFailed" xml:space="preserve"><value>Загрузка не удалась</value></data>
-  <data name="Notify_InTray" xml:space="preserve"><value>Приложение продолжает работать в области уведомлений.</value></data>
+  <data name="Notify_InTray" xml:space="preserve"><value>Приложение продолжает работать в области уведомлений</value></data>
   <data name="Jump_Recent" xml:space="preserve"><value>Последние чаты</value></data>
   <data name="QuickAsk_Placeholder" xml:space="preserve"><value>Спросите что угодно… (Enter)</value></data>
   <data name="QuickAsk_OpenInChat" xml:space="preserve"><value>Открыть в чате</value></data>
@@ -432,7 +432,7 @@
   <data name="Palette_ToggleTheme" xml:space="preserve"><value>Переключить светлую / тёмную тему</value></data>
   <data name="Palette_StopServer" xml:space="preserve"><value>Остановить llama-server</value></data>
   <data name="Settings_CloseToTray" xml:space="preserve"><value>Закрытие окна оставляет приложение в области уведомлений</value></data>
-  <data name="Settings_QuickAskHotkey" xml:space="preserve"><value>Быстрый вопрос по Ctrl+Alt+Space (после перезапуска)</value></data>
+  <data name="Settings_QuickAskHotkey" xml:space="preserve"><value>Быстрый вопрос из любого места</value></data>
   <data name="Settings_Security" xml:space="preserve"><value>Безопасность</value></data>
   <data name="Security_ModeDpapi" xml:space="preserve"><value>Ключи зашифрованы учётной записью Windows (DPAPI)</value></data>
   <data name="Security_ModeMaster" xml:space="preserve"><value>Ключи зашифрованы мастер-паролем</value></data>
@@ -446,12 +446,12 @@
   <data name="Security_Enabled" xml:space="preserve"><value>Мастер-пароль задан, ключи перешифрованы</value></data>
   <data name="Security_Disabled" xml:space="preserve"><value>Ключи снова зашифрованы DPAPI</value></data>
   <data name="Security_UnlockTitle" xml:space="preserve"><value>Мастер-пароль</value></data>
-  <data name="Security_UnlockHint" xml:space="preserve"><value>Введите мастер-пароль, чтобы расшифровать сохранённые ключи API и токены.</value></data>
+  <data name="Security_UnlockHint" xml:space="preserve"><value>Введите мастер-пароль, чтобы расшифровать сохранённые ключи API и токены</value></data>
   <data name="Security_WrongPassword" xml:space="preserve"><value>Неверный пароль</value></data>
   <data name="Security_Skip" xml:space="preserve"><value>Пропустить</value></data>
   <data name="Security_Unlock" xml:space="preserve"><value>Разблокировать</value></data>
   <data name="Welcome_Title" xml:space="preserve"><value>Добро пожаловать в Offline Chatter</value></data>
-  <data name="Welcome_Subtitle" xml:space="preserve"><value>Три шага — и можно общаться с ИИ-моделью прямо на этом компьютере, дальше без интернета.</value></data>
+  <data name="Welcome_Subtitle" xml:space="preserve"><value>Три шага — и можно общаться с ИИ-моделью прямо на этом компьютере, дальше без интернета</value></data>
   <data name="Welcome_Loading" xml:space="preserve"><value>Проверяю…</value></data>
   <data name="Welcome_Step_Hardware" xml:space="preserve"><value>Ваш компьютер</value></data>
   <data name="Welcome_Step_Engine" xml:space="preserve"><value>Движок (llama.cpp)</value></data>
@@ -467,16 +467,145 @@
   <data name="Welcome_UseApi" xml:space="preserve"><value>Подключить онлайн-API</value></data>
   <data name="Welcome_InstallAll" xml:space="preserve"><value>Установить всё</value></data>
   <data name="Welcome_Finish" xml:space="preserve"><value>Перейти в чат</value></data>
-  <data name="Welcome_AllDone" xml:space="preserve"><value>Всё готово — нажмите «Перейти в чат».</value></data>
+  <data name="Welcome_AllDone" xml:space="preserve"><value>Всё готово — нажмите «Перейти в чат»</value></data>
   <data name="Welcome_Partial" xml:space="preserve"><value>Установлено не всё — см. сообщения выше.</value></data>
   <data name="Welcome_FirstPrompt" xml:space="preserve"><value>Привет! Коротко расскажи, что ты умеешь.</value></data>
   <data name="Update_Title" xml:space="preserve"><value>Обновления</value></data>
-  <data name="Update_RepoHint" xml:space="preserve"><value>Репозиторий программы на GitHub (owner/repo) для проверки новых релизов</value></data>
+  <data name="Update_RepoHint" xml:space="preserve"><value>Репозиторий GitHub с релизами программы и Win7-сборками llama.cpp</value></data>
   <data name="Update_Check" xml:space="preserve"><value>Проверить</value></data>
-  <data name="Update_Open" xml:space="preserve"><value>Открыть страницу релиза ↗</value></data>
+  <data name="Update_Open" xml:space="preserve"><value>Открыть страницу релиза</value></data>
   <data name="Update_NoRepo" xml:space="preserve"><value>Сначала укажите репозиторий</value></data>
   <data name="Update_Available" xml:space="preserve"><value>Доступна новая версия: {0}</value></data>
-  <data name="Update_Latest" xml:space="preserve"><value>У вас последняя версия</value></data>
+  <data name="Update_Latest" xml:space="preserve"><value>У вас последняя версия ({0})</value></data>
   <data name="Update_RunWizard" xml:space="preserve"><value>Запустить мастер первого запуска</value></data>
   <data name="Engine_CompatChannel" xml:space="preserve"><value>Сборки, совместимые с Win7, из репозитория программы (статический CRT)</value></data>
+  <data name="Enum_SettingsSection_General" xml:space="preserve"><value>Общие</value></data>
+  <data name="Enum_SettingsSection_Appearance" xml:space="preserve"><value>Оформление</value></data>
+  <data name="Enum_SettingsSection_Chat" xml:space="preserve"><value>Чат</value></data>
+  <data name="Enum_SettingsSection_Network" xml:space="preserve"><value>Сеть</value></data>
+  <data name="Enum_SettingsSection_LocalApi" xml:space="preserve"><value>Локальный API</value></data>
+  <data name="Enum_SettingsSection_Privacy" xml:space="preserve"><value>Приватность</value></data>
+  <data name="Enum_SettingsSection_Data" xml:space="preserve"><value>Данные</value></data>
+  <data name="Enum_SettingsSection_About" xml:space="preserve"><value>О программе</value></data>
+  <data name="Enum_ProxyKind_Http" xml:space="preserve"><value>HTTP</value></data>
+  <data name="Enum_ProxyKind_Socks5" xml:space="preserve"><value>SOCKS5 (DNS на этом ПК)</value></data>
+  <data name="Enum_ProxyKind_Socks5h" xml:space="preserve"><value>SOCKS5h (DNS через прокси)</value></data>
+  <data name="Settings_Restart" xml:space="preserve"><value>Перезапустить</value></data>
+  <data name="Settings_Sidebar" xml:space="preserve"><value>Боковая панель</value></data>
+  <data name="Settings_SidebarHint" xml:space="preserve"><value>Скрытые разделы остаются доступны здесь и в палитре команд (Ctrl+K)</value></data>
+  <data name="Settings_Open" xml:space="preserve"><value>Открыть</value></data>
+  <data name="Settings_SendCtrlEnter" xml:space="preserve"><value>Отправлять по Ctrl+Enter</value></data>
+  <data name="Settings_SendCtrlEnterHint" xml:space="preserve"><value>Тогда Enter переносит строку. Выключено: Enter отправляет, Shift+Enter переносит строку.</value></data>
+  <data name="Settings_QuickAskHint" xml:space="preserve"><value>Ctrl+Alt+Space, либо Ctrl+Shift+Space, если первая занята. Применяется после перезапуска.</value></data>
+  <data name="Settings_QuickAskActive" xml:space="preserve"><value>Текущее сочетание: {0}</value></data>
+  <data name="Settings_ImageSection" xml:space="preserve"><value>Изображения для моделей</value></data>
+  <data name="Settings_ImageMaxSide" xml:space="preserve"><value>Длинная сторона</value></data>
+  <data name="Settings_ImageMaxSideHint" xml:space="preserve"><value>Большие картинки уменьшаются перед отправкой: vision-модели не выигрывают от лишних пикселей, но тратят на них токены и память</value></data>
+  <data name="Settings_ImageQuality" xml:space="preserve"><value>Качество JPEG</value></data>
+  <data name="Settings_ImageKeepPng" xml:space="preserve"><value>Оставлять небольшие прозрачные картинки в PNG</value></data>
+  <data name="Settings_ImageKeepPngHint" xml:space="preserve"><value>Значки и скриншоты интерфейса остаются чёткими; остальное отправляется в JPEG</value></data>
+  <data name="Settings_ImageOriginal" xml:space="preserve"><value>Исходный размер</value></data>
+  <data name="Settings_ToolsByDefault" xml:space="preserve"><value>Инструменты включены в новых чатах</value></data>
+  <data name="Settings_ToolsByDefaultHint" xml:space="preserve"><value>Модель вызывает встроенные и MCP-инструменты только после вашего подтверждения, если инструмент не разрешён навсегда</value></data>
+  <data name="Appearance_Hex" xml:space="preserve"><value>Цвет в HEX</value></data>
+  <data name="Prompts_Title" xml:space="preserve"><value>Пресеты системного промпта</value></data>
+  <data name="Prompts_Hint" xml:space="preserve"><value>Пресет выбирается в правой панели чата. Пресет по умолчанию подставляется в новые чаты.</value></data>
+  <data name="Prompts_Preset" xml:space="preserve"><value>Пресет</value></data>
+  <data name="Prompts_Name" xml:space="preserve"><value>Название</value></data>
+  <data name="Prompts_Text" xml:space="preserve"><value>Промпт</value></data>
+  <data name="Prompts_Default" xml:space="preserve"><value>Использовать в новых чатах</value></data>
+  <data name="Prompts_Add" xml:space="preserve"><value>Новый пресет</value></data>
+  <data name="Prompts_Restore" xml:space="preserve"><value>Вернуть встроенные пресеты</value></data>
+  <data name="Prompts_NewName" xml:space="preserve"><value>Новый пресет</value></data>
+  <data name="Prompts_Apply" xml:space="preserve"><value>Подставить пресет</value></data>
+  <data name="Net_RouteTitle" xml:space="preserve"><value>Маршрут подключения</value></data>
+  <data name="Net_Interface" xml:space="preserve"><value>Сетевой интерфейс</value></data>
+  <data name="Net_InterfaceHint" xml:space="preserve"><value>Запросы к сайтам моделей и онлайн-API идут через этот адаптер. Выберите адаптер VPN (tun, wg…), чтобы направить трафик через него.</value></data>
+  <data name="Net_InterfaceDefault" xml:space="preserve"><value>Маршрут Windows по умолчанию</value></data>
+  <data name="Net_InterfaceMissing" xml:space="preserve"><value>{0} (не подключён)</value></data>
+  <data name="Net_ProxyType" xml:space="preserve"><value>Тип прокси</value></data>
+  <data name="Net_ProxyHost" xml:space="preserve"><value>Адрес</value></data>
+  <data name="Net_ProxyPort" xml:space="preserve"><value>Порт</value></data>
+  <data name="Net_PasswordSaved" xml:space="preserve"><value>Сохранён в зашифрованном виде. Введите новый, чтобы заменить.</value></data>
+  <data name="Net_ProxyLink" xml:space="preserve"><value>Вставить ссылку на прокси</value></data>
+  <data name="Net_ProxyLinkHint" xml:space="preserve"><value>Например, socks5h://user:password@127.0.0.1:1080 — поля выше заполнятся сами</value></data>
+  <data name="Net_ProxyLinkApply" xml:space="preserve"><value>Применить</value></data>
+  <data name="Net_ProxyLinkBad" xml:space="preserve"><value>Это не ссылка на прокси. Поддерживаются http://, socks5://, socks5h://</value></data>
+  <data name="Net_ProxyLinkOk" xml:space="preserve"><value>Прокси задан: {0}</value></data>
+  <data name="Net_ManagedStackNote" xml:space="preserve"><value>При выбранном интерфейсе или SOCKS-прокси соединения идут через встроенный TLS-стек</value></data>
+  <data name="Net_SecurityTitle" xml:space="preserve"><value>Шифрование</value></data>
+  <data name="Net_DownloadsTitle" xml:space="preserve"><value>Загрузки и зеркала</value></data>
+  <data name="Net_Timeout" xml:space="preserve"><value>Таймаут запроса, секунд</value></data>
+  <data name="Net_HfMirror" xml:space="preserve"><value>Hugging Face</value></data>
+  <data name="Net_GitHubApi" xml:space="preserve"><value>GitHub API</value></data>
+  <data name="Net_Offline" xml:space="preserve"><value>Офлайн-режим</value></data>
+  <data name="Net_OfflineHint" xml:space="preserve"><value>Программа не обращается к сети: нет загрузок, проверки обновлений, онлайн-API и удалённых MCP-серверов. Локальные модели работают как обычно.</value></data>
+  <data name="Net_OfflineBanner" xml:space="preserve"><value>Включён офлайн-режим. Чтобы скачивать модели или пользоваться онлайн-API, выключите его на вкладке «Приватность».</value></data>
+  <data name="Net_OfflineBadge" xml:space="preserve"><value>Офлайн</value></data>
+  <data name="Api_Hint" xml:space="preserve"><value>Позволяет другим программам на этом ПК (или в вашей сети) пользоваться запущенным сервером llama.cpp через OpenAI-совместимый API. Чат при этом работает как обычно.</value></data>
+  <data name="Api_Enable" xml:space="preserve"><value>Открыть доступ к локальному серверу</value></data>
+  <data name="Api_EnableHint" xml:space="preserve"><value>Постоянный порт и секрет; сервер запускается вместе с программой на активной модели</value></data>
+  <data name="Api_Port" xml:space="preserve"><value>Порт</value></data>
+  <data name="Api_Key" xml:space="preserve"><value>Секретный ключ</value></data>
+  <data name="Api_KeyHint" xml:space="preserve"><value>Клиенты передают его в заголовке Authorization: Bearer. Хранится в зашифрованном виде.</value></data>
+  <data name="Api_Show" xml:space="preserve"><value>Показать</value></data>
+  <data name="Api_Copy" xml:space="preserve"><value>Копировать</value></data>
+  <data name="Api_Regenerate" xml:space="preserve"><value>Новый ключ</value></data>
+  <data name="Api_Lan" xml:space="preserve"><value>Разрешить доступ из локальной сети</value></data>
+  <data name="Api_LanHint" xml:space="preserve"><value>Сервер слушает все интерфейсы. Любой в вашей сети, кто знает ключ, сможет пользоваться моделью.</value></data>
+  <data name="Api_Url" xml:space="preserve"><value>Базовый адрес для клиентов</value></data>
+  <data name="Api_Example" xml:space="preserve"><value>Пример запроса</value></data>
+  <data name="Api_Apply" xml:space="preserve"><value>Запустить или перезапустить сервер</value></data>
+  <data name="Api_Stop" xml:space="preserve"><value>Остановить сервер</value></data>
+  <data name="Api_ApplyHint" xml:space="preserve"><value>Перезапустите сервер, чтобы применить изменения</value></data>
+  <data name="Api_DisabledHint" xml:space="preserve"><value>Доступ закрыт. При следующем запуске сервер снова получит случайный порт и ключ.</value></data>
+  <data name="Api_StatusExposed" xml:space="preserve"><value>{0} · {1} · доступен на порту {2}</value></data>
+  <data name="Api_StatusPrivate" xml:space="preserve"><value>{0} · закрытый порт {1}, подключается только эта программа</value></data>
+  <data name="Api_ModelHint" xml:space="preserve"><value>Модель: {0}. Сменить можно в чате или в разделе «Модели».</value></data>
+  <data name="Api_PortBusy" xml:space="preserve"><value>Порт {0} занят другой программой. Выберите другой.</value></data>
+  <data name="Api_Running" xml:space="preserve"><value>Сервер работает: {0}</value></data>
+  <data name="Api_RunningPrivate" xml:space="preserve"><value>Сервер работает только для этой программы</value></data>
+  <data name="Api_Stopped" xml:space="preserve"><value>Сервер остановлен</value></data>
+  <data name="Data_ChatsTitle" xml:space="preserve"><value>Чаты</value></data>
+  <data name="Data_ChatsHint" xml:space="preserve"><value>Экспорт сохраняет все чаты с ветками, вложениями и статистикой в один JSON-файл. Импорт понимает и простые списки сообщений в формате OpenAI.</value></data>
+  <data name="Data_Export" xml:space="preserve"><value>Экспортировать чаты</value></data>
+  <data name="Data_Import" xml:space="preserve"><value>Импортировать чаты</value></data>
+  <data name="Data_BackupTitle" xml:space="preserve"><value>Резервная копия</value></data>
+  <data name="Data_BackupHint" xml:space="preserve"><value>Настройки, профили запуска, провайдеры, MCP-серверы и пресеты промптов в одном архиве. Ключи остаются зашифрованными: под защитой Windows (DPAPI) они откроются только у этого пользователя на этом ПК, с мастер-паролем — где угодно.</value></data>
+  <data name="Data_IncludeChats" xml:space="preserve"><value>Включить чаты</value></data>
+  <data name="Data_Backup" xml:space="preserve"><value>Создать копию</value></data>
+  <data name="Data_Restore" xml:space="preserve"><value>Восстановить из копии</value></data>
+  <data name="Data_NoChats" xml:space="preserve"><value>Пока нечего экспортировать</value></data>
+  <data name="Data_Exported" xml:space="preserve"><value>Экспортировано чатов: {0} → {1}</value></data>
+  <data name="Data_Imported" xml:space="preserve"><value>Импортировано чатов: {0}</value></data>
+  <data name="Data_BackupDone" xml:space="preserve"><value>Копия сохранена: файлов настроек {0}, чатов {1} → {2}</value></data>
+  <data name="Data_NotBackup" xml:space="preserve"><value>Этот файл не является резервной копией Offline Chatter</value></data>
+  <data name="Data_RestoreConfirm" xml:space="preserve"><value>Восстановить копию от {0} (версия {1}): файлов настроек {2}, чатов {3}?
+
+Текущие данные сначала сохранятся в cache\backups. Программа перезапустится.</value></data>
+  <data name="Data_RestoreDpapiNote" xml:space="preserve"><value>Ключи в этой копии защищены Windows. На другом ПК или под другой учётной записью их придётся ввести заново.</value></data>
+  <data name="Data_RestoreDone" xml:space="preserve"><value>Копия восстановлена. Прежнее состояние сохранено в:
+{0}
+
+Сейчас программа перезапустится.</value></data>
+  <data name="Data_Failed" xml:space="preserve"><value>Не удалось: {0}</value></data>
+  <data name="Data_Folders" xml:space="preserve"><value>Папки</value></data>
+  <data name="Update_Checking" xml:space="preserve"><value>Проверяем…</value></data>
+  <data name="Update_NotChecked" xml:space="preserve"><value>Обновления ещё не проверялись</value></data>
+  <data name="Update_Downloading" xml:space="preserve"><value>Скачиваем {0}…</value></data>
+  <data name="Update_Failed" xml:space="preserve"><value>Не удалось установить обновление: {0}. Скачайте его со страницы релиза.</value></data>
+  <data name="Update_Install" xml:space="preserve"><value>Установить и перезапустить</value></data>
+  <data name="Update_AutoCheck" xml:space="preserve"><value>Проверять обновления при запуске</value></data>
+  <data name="Update_AutoCheckHint" xml:space="preserve"><value>Один запрос к GitHub. Без вашего подтверждения ничего не скачивается.</value></data>
+  <data name="Update_Repo" xml:space="preserve"><value>Источник релизов</value></data>
+  <data name="Chat_PrevVariant" xml:space="preserve"><value>Предыдущий вариант</value></data>
+  <data name="Chat_NextVariant" xml:space="preserve"><value>Следующий вариант</value></data>
+  <data name="Models_Vision" xml:space="preserve"><value>vision</value></data>
+  <data name="Models_LikesFormat" xml:space="preserve"><value> · {0:N0} отметок</value></data>
+  <data name="Models_DownloadsFormat" xml:space="preserve"><value> · {0:N0} загрузок</value></data>
+  <data name="Models_OpenHf" xml:space="preserve"><value>Открыть на Hugging Face</value></data>
+  <data name="Models_HfTitle" xml:space="preserve"><value>Hugging Face</value></data>
+  <data name="Models_Readme" xml:space="preserve"><value>Карточка модели (README)</value></data>
+  <data name="Bench_FlashAttention" xml:space="preserve"><value>Flash Attention</value></data>
+  <data name="Chat_InputPlaceholderCtrl" xml:space="preserve"><value>Сообщение… (Ctrl+Enter — отправить)</value></data>
 </root>

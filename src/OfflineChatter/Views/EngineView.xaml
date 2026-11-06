@@ -5,7 +5,7 @@
              xmlns:views="clr-namespace:OfflineChatter.Views"
              xmlns:l="clr-namespace:OfflineChatter.Localization">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="32,24,32,32" MaxWidth="900" HorizontalAlignment="Left">
+        <StackPanel Margin="24,20,24,32">
             <TextBlock Text="{l:Loc Nav_Engine}" Style="{StaticResource PageTitleText}" />
 
             <!-- ===== Сервер ===== -->

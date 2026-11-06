@@ -21,6 +21,9 @@ public sealed class SettingsStore
 
     public string FilePath => _path;
 
+    /// <summary>Запрет записи: после восстановления из копии файл на диске новее, чем настройки в памяти.</summary>
+    public bool Frozen { get; set; }
+
     /// <summary>
     /// Загружает настройки. Если файла нет — значения по умолчанию.
     /// Если файл повреждён — он переименовывается в *.corrupt-*.json и тоже берутся значения по умолчанию.
@@ -47,6 +50,7 @@ public sealed class SettingsStore
 
     public void Save()
     {
+        if (Frozen) return;
         lock (_gate)
         {
             try
@@ -94,6 +98,7 @@ public sealed class SettingsStore
         s.Models.HfTokenProtected ??= string.Empty;
         s.Engine ??= new Engine.EngineSettings();
         s.Engine.ExternalEngines ??= new System.Collections.Generic.List<string>();
+        s.Engine.ApiKeyProtected ??= string.Empty;
         if (s.Engine.Port is < 0 or > 65535) s.Engine.Port = 0;
         var n = s.Network;
         if (n.TimeoutSeconds is < 5 or > 600) n.TimeoutSeconds = 30;
@@ -105,8 +110,14 @@ public sealed class SettingsStore
         n.ProxyUser ??= string.Empty;
         n.ProxyPasswordProtected ??= string.Empty;
         n.GitHubDownloadPrefix ??= string.Empty;
+        n.NetworkInterface ??= string.Empty;
         if (string.IsNullOrWhiteSpace(s.Language)) s.Language = "auto";
-        s.UpdateRepo ??= string.Empty;
+        if (string.IsNullOrWhiteSpace(s.UpdateRepo)) s.UpdateRepo = AppSettings.DefaultUpdateRepo;
+        s.Window.HiddenPages ??= new System.Collections.Generic.List<string>();
+        s.Attachments ??= new AttachmentSettings();
+        if (s.Attachments.ImageMaxSide is < 0 or > 8192) s.Attachments.ImageMaxSide = 1536;
+        if (s.Attachments.ImageMaxSide is > 0 and < 256) s.Attachments.ImageMaxSide = 256;
+        if (s.Attachments.ImageQuality is < 40 or > 100) s.Attachments.ImageQuality = 85;
 
         if (string.IsNullOrWhiteSpace(s.Appearance.CustomAccent) || !ColorHex.TryParse(s.Appearance.CustomAccent, out _, out _, out _))
             s.Appearance.CustomAccent = "#0078D4";

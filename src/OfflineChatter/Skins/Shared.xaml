@@ -43,6 +43,16 @@
     <Geometry x:Key="IconClose">M3.5,3.5 L12.5,12.5 M12.5,3.5 L3.5,12.5</Geometry>
     <Geometry x:Key="IconImage">M2,3 H14 V13 H2 Z M2,11 L6,7 L9.5,10.5 L11,9 L14,12 M10.5,5.8 A0.8,0.8 0 1 1 10.49,5.8</Geometry>
     <Geometry x:Key="IconBranch">M5,2.5 V13.5 M5,9 C5,6 11,7 11,4.5 M11,2.5 V4.5</Geometry>
+    <Geometry x:Key="IconPin">M6,2 H10 M7,2 V6.5 L4.5,9 H11.5 L9,6.5 V2 M8,9 V14</Geometry>
+    <Geometry x:Key="IconEye">M1.5,8 C3.5,4 12.5,4 14.5,8 C12.5,12 3.5,12 1.5,8 Z M8,6.2 A1.8,1.8 0 1 1 7.99,6.2</Geometry>
+    <Geometry x:Key="IconTool">M10.5,2 A3,3 0 0 0 9.2,6.5 L2.5,13.2 L3.8,14.5 L10.5,7.8 A3,3 0 0 0 14,5.5 L12,6 L10.5,4.5 L11,2.5 Z</Geometry>
+    <Geometry x:Key="IconRetry">M3,8 A5,5 0 1 0 4.5,4.4 M4.5,1.5 V4.5 H7.5</Geometry>
+    <Geometry x:Key="IconSpeak">M2.5,6 H5 L8.5,3 V13 L5,10 H2.5 Z M11,5.5 A3.5,3.5 0 0 1 11,10.5</Geometry>
+    <Geometry x:Key="IconImport">M8,1.5 V10 M4.5,6.5 L8,10 L11.5,6.5 M2.5,9 V14 H13.5 V9</Geometry>
+    <Geometry x:Key="IconKey">M5,5.5 A2.5,2.5 0 1 1 4.99,5.5 M7.5,8 H14 M12,8 V10.5 M14,8 V10</Geometry>
+    <Geometry x:Key="IconOffline">M2,2 L14,14 M5,9.5 A4.5,4.5 0 0 1 8,8.5 M2.5,6.5 A8,8 0 0 1 6,4.6 M10.5,4.8 A8,8 0 0 1 13.5,6.5 M8,12 V12.5</Geometry>
+    <Geometry x:Key="IconChevronLeft">M10,3 L5,8 L10,13</Geometry>
+    <Geometry x:Key="IconChevronRight">M6,3 L11,8 L6,13</Geometry>
 
     <Style x:Key="IconPath" TargetType="Path">
         <Setter Property="Width" Value="16" />
@@ -116,6 +126,115 @@
 
     <Style x:Key="SettingCard" TargetType="Border" BasedOn="{StaticResource Card}">
         <Setter Property="Padding" Value="16,12" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+
+    <!-- Полоса вкладок: собственный шаблон, одинаковый во всех скинах; переносится на узком окне -->
+    <Style x:Key="TabStripItem" TargetType="ListBoxItem">
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="Margin" Value="0,0,4,4" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Grid Background="Transparent">
+                        <Border x:Name="Bg" CornerRadius="6" Background="Transparent" />
+                        <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+                        <Border x:Name="Bar" Height="3" Width="16" CornerRadius="1.5" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                                Background="{DynamicResource AccentBrush}" Visibility="Hidden" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SubtleHoverBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SelectedItemBrush}" />
+                            <Setter TargetName="Bar" Property="Visibility" Value="Visible" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource FocusStrokeBrush}" />
+                            <Setter TargetName="Bg" Property="BorderThickness" Value="1" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="TabStrip" TargetType="ListBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ItemContainerStyle" Value="{StaticResource TabStripItem}" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBox">
+                    <ItemsPresenter />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Цифры статистики: моноширинные, чтобы значения не «прыгали» при обновлении -->
+    <Style x:Key="StatText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
+    </Style>
+
+    <!-- Небольшая кнопка-иконка без рамки (действия под сообщением, удаление строк) -->
+    <Style x:Key="IconButton" TargetType="Button">
+        <Setter Property="Width" Value="28" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" CornerRadius="6" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleHoverBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtlePressedBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource FocusStrokeBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Плашка-предупреждение внутри страницы (офлайн-режим, нужен перезапуск и т. п.) -->
+    <Style x:Key="NoticeCard" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SelectedItemBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,10" />
         <Setter Property="Margin" Value="0,0,0,8" />
     </Style>
 

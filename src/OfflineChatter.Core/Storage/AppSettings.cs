@@ -10,8 +10,15 @@ public sealed class AppSettings
     /// <summary>"auto", "ru" или "en".</summary>
     public string Language { get; set; } = "auto";
 
-    /// <summary>Репозиторий программы на GitHub (owner/repo) для проверки обновлений; пусто — не проверять.</summary>
-    public string UpdateRepo { get; set; } = string.Empty;
+    public const string DefaultUpdateRepo = "fhnb16/offline-chatter";
+
+    /// <summary>Репозиторий программы на GitHub (owner/repo): обновления и Win7-сборки llama.cpp.</summary>
+    public string UpdateRepo { get; set; } = DefaultUpdateRepo;
+
+    /// <summary>Id выбранного по умолчанию пресета системного промпта для новых чатов.</summary>
+    public string? DefaultPromptPresetId { get; set; }
+
+    public AttachmentSettings Attachments { get; set; } = new();
 
     public AppearanceSettings Appearance { get; set; } = new();
 
@@ -53,7 +60,7 @@ public sealed class NetworkSettings
 {
     public ProxyMode ProxyMode { get; set; } = ProxyMode.System;
 
-    /// <summary>http://host:port для ручного прокси.</summary>
+    /// <summary>Ручной прокси: http://host:port, socks5://host:port, socks5h://user@host:port.</summary>
     public string ProxyAddress { get; set; } = string.Empty;
     public string ProxyUser { get; set; } = string.Empty;
 
@@ -61,6 +68,15 @@ public sealed class NetworkSettings
     public string ProxyPasswordProtected { get; set; } = string.Empty;
 
     public TlsMode TlsMode { get; set; } = TlsMode.Auto;
+
+    /// <summary>Офлайн-режим: приложение не выходит в сеть (локальный llama-server работает).</summary>
+    public bool OfflineMode { get; set; }
+
+    /// <summary>Id сетевого интерфейса (адаптера) для внешних запросов; пусто — маршрут Windows по умолчанию.</summary>
+    public string NetworkInterface { get; set; } = string.Empty;
+
+    /// <summary>Проверять обновления программы при запуске.</summary>
+    public bool CheckUpdates { get; set; } = true;
 
     /// <summary>Hugging Face или зеркало (например, https://hf-mirror.com).</summary>
     public string HfEndpoint { get; set; } = "https://huggingface.co";
@@ -150,6 +166,25 @@ public sealed class WindowPlacementSettings
 
     /// <summary>Мастер первого запуска пройден или пропущен.</summary>
     public bool FirstRunDone { get; set; }
+
+    /// <summary>Разделы, убранные из боковой панели (имена PageKind). Они остаются доступны из настроек.</summary>
+    public System.Collections.Generic.List<string> HiddenPages { get; set; } = new() { "Benchmarks", "Logs" };
+
+    /// <summary>Отправка сообщения: Enter (false) или Ctrl+Enter (true).</summary>
+    public bool SendWithCtrlEnter { get; set; }
+}
+
+/// <summary>Подготовка вложений перед отправкой модели.</summary>
+public sealed class AttachmentSettings
+{
+    /// <summary>Длинная сторона изображения после уменьшения, пикселей (0 — не уменьшать).</summary>
+    public int ImageMaxSide { get; set; } = 1536;
+
+    /// <summary>Качество JPEG, 40–100.</summary>
+    public int ImageQuality { get; set; } = 85;
+
+    /// <summary>Сохранять PNG для небольших картинок с прозрачностью (скриншоты интерфейса), иначе всегда JPEG.</summary>
+    public bool KeepPngWithAlpha { get; set; } = true;
 }
 
 public sealed class LoggingSettings

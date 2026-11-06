@@ -34,6 +34,9 @@ public sealed class AppServices : IDisposable
         Providers = new ProviderStore(paths.ProvidersFile);
         Tools = new Core.Tools.ToolRegistry(settings.Current.Tools, Http);
         Mcp = new Core.Mcp.McpConfigStore(paths.McpFile);
+        if (Mcp.SeedBuiltin(settings.Current.Tools)) settings.Save();
+        Prompts = new PromptPresetStore(paths.PromptsFile);
+        Prompts.SeedIfEmpty(Localization.L.IsRussian);
         LocalHttp = new System.Net.Http.HttpClient(new System.Net.Http.HttpClientHandler { UseProxy = false }) { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
 
         // Вывод llama-server — в отдельный журнал engine.jsonl
@@ -58,6 +61,53 @@ public sealed class AppServices : IDisposable
     public ProviderStore Providers { get; }
     public Core.Tools.ToolRegistry Tools { get; }
     public Core.Mcp.McpConfigStore Mcp { get; }
+    public PromptPresetStore Prompts { get; }
+
+    /// <summary>Есть доступная к установке новая версия (проверка при запуске).</summary>
+    public UpdateInfo? PendingUpdate { get; set; }
+
+    public event EventHandler? UpdateFound;
+
+    /// <summary>Проверка обновлений при запуске: тихо, без сообщений об ошибках.</summary>
+    public async System.Threading.Tasks.Task CheckUpdatesInBackgroundAsync()
+    {
+        var s = Settings.Current;
+        if (!s.Network.CheckUpdates || s.Network.OfflineMode || string.IsNullOrWhiteSpace(s.UpdateRepo)) return;
+        try
+        {
+            using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var info = await UpdateChecker.CheckAsync(Http, s.UpdateRepo, CurrentVersion, cts.Token).ConfigureAwait(false);
+            if (!info.Available) return;
+            PendingUpdate = info;
+            Log.Info("Update", "Update available", new { info.LatestTag });
+            UpdateFound?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or OperationCanceledException or System.IO.IOException or Newtonsoft.Json.JsonException or InvalidCastException)
+        {
+            Log.Info("Update", "Update check failed: " + ex.GetBaseException().Message);
+        }
+    }
+
+    public static Version CurrentVersion => Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0);
+
+    /// <summary>Подпись настроек публичного API: при их смене сервер перезапускается.</summary>
+    private string ApiSignature
+    {
+        get
+        {
+            var e = Settings.Current.Engine;
+            return e.ExposeApi ? $"api:{e.Port}:{e.AllowLan}:{e.ApiKeyProtected.GetHashCode()}" : "api:off";
+        }
+    }
+
+    /// <summary>Публичный API включён — поднять сервер с активной моделью (при запуске программы и по кнопке).</summary>
+    public async System.Threading.Tasks.Task<string?> StartPublicApiAsync(System.Threading.CancellationToken ct)
+    {
+        var model = ActiveModel;
+        if (model == null) return Localization.L.Get("Chat_NoModel");
+        if (Engine.Registry.Active == null) return Localization.L.Get("Chat_NoEngine");
+        return await EnsureServerAsync(model, ct).ConfigureAwait(false) ? null : Engine.Server.LastError ?? "?";
+    }
 
     /// <summary>Последние ошибки подключения MCP по имени сервера (для UI).</summary>
     public System.Collections.Concurrent.ConcurrentDictionary<string, string> McpErrors { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -142,7 +192,7 @@ public sealed class AppServices : IDisposable
         try
         {
             var profile = ProfileFor(model);
-            var signature = model.Path + "|" + model.MmprojPath + "|" + Newtonsoft.Json.JsonConvert.SerializeObject(profile) + "|" + Engine.Registry.Active?.Id;
+            var signature = model.Path + "|" + model.MmprojPath + "|" + Newtonsoft.Json.JsonConvert.SerializeObject(profile) + "|" + Engine.Registry.Active?.Id + "|" + ApiSignature;
             if (Engine.Server.State == ServerState.Ready && signature == _runningSignature) return true;
 
             var resolved = await ResolveLaunchAsync(model, profile).ConfigureAwait(false);
@@ -177,6 +227,7 @@ public sealed class AppServices : IDisposable
         var s = Settings.Current;
         s.Network.ProxyPasswordProtected = Secrets.Reprotect(s.Network.ProxyPasswordProtected);
         s.Models.HfTokenProtected = Secrets.Reprotect(s.Models.HfTokenProtected);
+        s.Engine.ApiKeyProtected = Secrets.Reprotect(s.Engine.ApiKeyProtected);
         foreach (var p in Providers.Items) p.ApiKeyProtected = Secrets.Reprotect(p.ApiKeyProtected);
         Providers.Save();
         Settings.Save();

@@ -6,7 +6,7 @@
     <UserControl.Resources>
         <DataTemplate x:Key="ToolRow" DataType="{x:Type vm:ToolItem}">
             <DockPanel Margin="0,3">
-                <ComboBox DockPanel.Dock="Right" Width="170" ItemsSource="{Binding DataContext.ConsentOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                <ComboBox DockPanel.Dock="Right" MinWidth="150" ItemsSource="{Binding DataContext.ConsentOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
                           SelectedItem="{Binding Mode}" DisplayMemberPath="Title" VerticalAlignment="Center" />
                 <StackPanel Margin="0,0,10,0">
                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontFamily="{DynamicResource MonoFontFamily}" />
@@ -17,7 +17,7 @@
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="32,24,32,32" MaxWidth="900" HorizontalAlignment="Left">
+        <StackPanel Margin="24,20,24,32">
             <TextBlock Text="{l:Loc Nav_Mcp}" Style="{StaticResource PageTitleText}" />
             <TextBlock Text="{l:Loc Mcp_Hint}" Style="{StaticResource CaptionText}" Margin="0,0,0,12" />
 
@@ -107,7 +107,7 @@
             <Border Style="{StaticResource SettingCard}">
                 <StackPanel>
                     <TextBlock Text="{l:Loc Mcp_Name}" Style="{StaticResource CaptionText}" />
-                    <TextBox Text="{Binding NewName}" Width="260" HorizontalAlignment="Left" />
+                    <TextBox Text="{Binding NewName}" MinWidth="260" HorizontalAlignment="Stretch" />
                     <TextBlock Text="{l:Loc Mcp_Command}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />
                     <TextBox Text="{Binding NewCommand}" FontFamily="{DynamicResource MonoFontFamily}" ToolTip="npx -y @modelcontextprotocol/server-filesystem C:\Docs" />
                     <TextBlock Text="{l:Loc Mcp_Url}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />

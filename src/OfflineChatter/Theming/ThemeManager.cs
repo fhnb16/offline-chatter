@@ -50,7 +50,11 @@ public static class ThemeManager
     public static void Attach(Window window)
     {
         AttachedWindows.Add(new WeakReference<Window>(window));
-        window.Closed += (_, _) => AttachedWindows.RemoveAll(w => !w.TryGetTarget(out var t) || ReferenceEquals(t, window));
+        window.Closed += (_, _) =>
+        {
+            AttachedWindows.RemoveAll(w => !w.TryGetTarget(out var t) || ReferenceEquals(t, window));
+            WindowBackdrop.Forget(new WindowInteropHelper(window).Handle);
+        };
 
         var hwnd = new WindowInteropHelper(window).Handle;
         if (hwnd != IntPtr.Zero)
@@ -63,7 +67,15 @@ public static class ThemeManager
         void OnRendered(object? s, EventArgs e)
         {
             window.ContentRendered -= OnRendered;
-            ApplyToWindow(window);
+            ApplyToWindow(window, force: true);
+            // Система может переписать атрибуты ещё раз чуть позже первого кадра — повторяем после паузы
+            var timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(400) };
+            timer.Tick += (_, _) =>
+            {
+                timer.Stop();
+                ApplyToWindow(window, force: true);
+            };
+            timer.Start();
         }
         window.ContentRendered += OnRendered;
     }
@@ -75,11 +87,11 @@ public static class ThemeManager
         ApplyToWindow(window);
     }
 
-    private static void ApplyToWindow(Window window)
+    private static void ApplyToWindow(Window window, bool force = false)
     {
         if (Current == null) return;
         var extended = ShellChrome.Update(window);
-        WindowBackdrop.Apply(new WindowInteropHelper(window).Handle, Current, extended);
+        WindowBackdrop.Apply(new WindowInteropHelper(window).Handle, Current, extended, force);
     }
 
     private static void Apply()
@@ -269,7 +281,21 @@ public static class ThemeManager
     /// </summary>
     private static void AddNativeKeyedStyles(ResourceDictionary target, ResourceDictionary? native)
     {
-        var buttonBase = native?[typeof(Button)] as Style;
+        // Системные скины рисуют контролы ниже (23 px против 32 px во Fluent): выравниваем минимальную высоту,
+        // чтобы при смене скина вёрстка не прыгала и поля ввода не обрезались.
+        foreach (var type in new[] { typeof(Button), typeof(System.Windows.Controls.Primitives.ToggleButton), typeof(ComboBox), typeof(TextBox), typeof(PasswordBox) })
+        {
+            var style = new Style(type, native?[type] as Style);
+            style.Setters.Add(new Setter(FrameworkElement.MinHeightProperty, 30.0));
+            style.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
+            if (type == typeof(Button) || type == typeof(System.Windows.Controls.Primitives.ToggleButton))
+                style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(12, 2, 12, 2)));
+            else if (type != typeof(ComboBox))
+                style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(6, 2, 6, 2)));
+            target[type] = style;
+        }
+
+        var buttonBase = target[typeof(Button)] as Style;
         target["AccentButtonStyle"] = new Style(typeof(Button), buttonBase);
 
         var toolbarButton = native != null && native.Contains(ToolBar.ButtonStyleKey) ? native[ToolBar.ButtonStyleKey] as Style : null;
@@ -294,6 +320,10 @@ public static class ThemeManager
                 var area = lParam != IntPtr.Zero ? Marshal.PtrToStringUni(lParam) : null;
                 if (area is null or "ImmersiveColorSet" or "WindowsThemeElement")
                     ScheduleReapply();
+                break;
+
+            case User32.WM_ACTIVATE:
+                if (Current != null && wParam != IntPtr.Zero) WindowBackdrop.ReapplyCaption(hwnd, Current);
                 break;
 
             case User32.WM_ENTERSIZEMOVE:

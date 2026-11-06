@@ -98,7 +98,8 @@ internal static class ThemeTokens
             // Стекло Win7: «изморозь», чтобы тёмный текст читался на любой раскраске DWM
             BackdropKind.AeroGlass => B(d ? 0x8C1E1E1Eu : 0x8CFFFFFFu),
             BackdropKind.None => B(d ? 0xFF1C1C1Cu : native ? 0xFFF5F7FAu : 0xFFEEEEEEu),
-            _ => Brushes.Transparent,
+            // Светлая Mica/Acrylic на тёмных обоях бывает серой — лёгкая светлая вуаль сохраняет контраст текста
+            _ => d ? Brushes.Transparent : B(0x59F7F7F7u),
         };
 
         r[ThemeKeys.ContentBackground] = bd switch
@@ -129,8 +130,11 @@ internal static class ThemeTokens
         r[ThemeKeys.AccentPressed] = B(AccentPalette.WithAlpha(fill, 0xCC));
         r[ThemeKeys.AccentText] = B(t.AccentText);
         r[ThemeKeys.TextOnAccent] = B(AccentPalette.ContrastText(fill));
-        r[ThemeKeys.UserBubble] = B(fill);
-        r[ThemeKeys.UserBubbleText] = B(AccentPalette.ContrastText(fill));
+        // Пузырь пользователя — нейтральная поверхность с лёгким оттенком акцента: акцент остаётся
+        // для действий и выделения, а лента не превращается в цветные плашки.
+        var bubble = AccentPalette.Mix(d ? C(0xFF2E2E2E) : C(0xFFF4F5F7), t.Palette.Accent, d ? 0.16 : 0.10);
+        r[ThemeKeys.UserBubble] = B(bubble);
+        r[ThemeKeys.UserBubbleText] = B(d ? 0xFFFFFFFFu : 0xE4000000u);
         r[ThemeKeys.Selection] = B(AccentPalette.WithAlpha(t.Palette.Accent, 0x66));
 
         // --- Контролы (Fluent-скин и наши собственные элементы) ---

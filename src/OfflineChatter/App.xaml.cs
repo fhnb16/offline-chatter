@@ -98,7 +98,19 @@ public partial class App : Application
         }
 
         Services = new AppServices(Paths, Settings);
-        Services.ConnectMcpServers();
+        Rendering.ImageAttachments.Settings = Settings.Current.Attachments;
+        UpdateChecker.CleanupOld(ExePath);
+        if (!Settings.Current.Network.OfflineMode) Services.ConnectMcpServers();
+        _ = Services.CheckUpdatesInBackgroundAsync();
+        if (Settings.Current.Engine.ExposeApi)
+        {
+            // Публичный API: сервер поднимается вместе с программой, чтобы другие приложения могли к нему обращаться
+            _ = System.Threading.Tasks.Task.Run(async () =>
+            {
+                var error = await Services.StartPublicApiAsync(System.Threading.CancellationToken.None).ConfigureAwait(false);
+                if (error != null) Log.Warn("App", "Public API not started: " + error);
+            });
+        }
         _mainVm = new MainViewModel(Services);
 
         // Первый запуск: мастер (если ещё нет ни движка, ни моделей)
@@ -166,6 +178,8 @@ public partial class App : Application
         if (fromOtherInstance) ShowMainWindow();
 
         if (Value("--page") is { } page && Enum.TryParse<PageKind>(page, true, out var kind)) _mainVm.Navigate(kind);
+        if (Value("--section") is { } section && Enum.TryParse<SettingsSection>(section, true, out var sec))
+            _mainVm.GetPage<SettingsViewModel>()?.Show(sec);
         if (Value("--chat") is { } chatId && _mainVm.Chat.Chats.FirstOrDefault(c => c.Session.Id == chatId) is { } chat)
         {
             _mainVm.Chat.SelectedChat = chat;
@@ -178,6 +192,25 @@ public partial class App : Application
             _mainVm.Chat.InputText = prompt;
             if (_mainVm.Chat.SendCommand.CanExecute(null)) _mainVm.Chat.SendCommand.Execute(null);
         }
+    }
+
+    public static string ExePath => Assembly.GetExecutingAssembly().Location;
+
+    /// <summary>Перезапуск программы (новый процесс дождётся, пока этот освободит мьютекс единственного экземпляра).</summary>
+    public static void Restart(string? extraArgs = null)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(ExePath, ("--restarted " + extraArgs).Trim()) { UseShellExecute = false });
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            Log.Error("App", "Restart failed", ex);
+            return;
+        }
+        if (Current is App app) app._exiting = true;
+        Current.MainWindow?.Close();
+        Current.Shutdown();
     }
 
     public static void ShowMainWindow()

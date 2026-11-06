@@ -40,6 +40,12 @@ public sealed class SingleInstance : IDisposable
     {
         var key = Key();
         var mutex = new Mutex(true, @"Local\" + key, out var created);
+        if (!created && args.Contains("--restarted", StringComparer.OrdinalIgnoreCase))
+        {
+            // Перезапуск (смена языка, восстановление копии, обновление): ждём, пока старый процесс отпустит мьютекс
+            try { created = mutex.WaitOne(TimeSpan.FromSeconds(20)); }
+            catch (AbandonedMutexException) { created = true; }
+        }
         if (!created)
         {
             try

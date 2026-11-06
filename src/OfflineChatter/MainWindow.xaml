@@ -99,8 +99,7 @@
         <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}">
             <DockPanel Margin="10,8,8,10">
                 <StackPanel DockPanel.Dock="Top">
-                    <Button Style="{DynamicResource AccentButtonStyle}" Command="{Binding NewChatCommand}"
-                            HorizontalContentAlignment="Left" Padding="10,6" ToolTip="Ctrl+N">
+                    <Button Command="{Binding NewChatCommand}" HorizontalContentAlignment="Left" Padding="10,6" ToolTip="Ctrl+N">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconPlus}" Style="{StaticResource IconPath}" />
                             <TextBlock Text="{l:Loc Chat_New}" Margin="8,0,0,0" VerticalAlignment="Center" />
@@ -132,6 +131,26 @@
                 </ListBox>
                 <Border DockPanel.Dock="Bottom" Height="1" Background="{DynamicResource DividerBrush}" Margin="4,8,4,0" />
 
+                <!-- Состояние: офлайн-режим и доступное обновление (тихие строки, без цветных плашек) -->
+                <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                    <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Command="{Binding OpenPrivacyCommand}" Visibility="{Binding IsOffline, Converter={StaticResource BoolToVisibility}}"
+                            ToolTip="{l:Loc Net_OfflineHint}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconOffline}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource TextSecondaryBrush}" />
+                            <TextBlock Text="{l:Loc Net_OfflineBadge}" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Command="{Binding OpenUpdatesCommand}" Visibility="{Binding UpdateBadge, Converter={StaticResource NullToCollapsed}}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconDownload}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource AccentTextBrush}" />
+                            <TextBlock Text="{Binding UpdateBadge}" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource AccentTextBrush}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
                 <ListBox ItemsSource="{Binding Chat.FilteredChats}" SelectedItem="{Binding Chat.SelectedChat}"
                          Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          VirtualizingPanel.IsVirtualizing="True">
@@ -147,8 +166,9 @@
                                 <DockPanel.Tag>
                                     <Binding Path="DataContext.Chat" RelativeSource="{RelativeSource AncestorType=Window}" />
                                 </DockPanel.Tag>
-                                <TextBlock DockPanel.Dock="Right" Text="📌" FontSize="10" VerticalAlignment="Center"
-                                           Visibility="{Binding Pinned, Converter={StaticResource BoolToVisibility}}" />
+                                <Path DockPanel.Dock="Right" Data="{StaticResource IconPin}" Style="{StaticResource IconPath}" Width="14" Height="14"
+                                      TextElement.Foreground="{DynamicResource TextTertiaryBrush}"
+                                      Visibility="{Binding Pinned, Converter={StaticResource BoolToVisibility}}" />
                                 <Path Data="{StaticResource IconChat}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource TextSecondaryBrush}" />
                                 <TextBlock Text="{Binding Title}" Margin="10,0,4,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                             </DockPanel>
