@@ -621,3 +621,36 @@ Models_HfTitle	Hugging Face	Hugging Face
 Models_Readme	Model card (README)	Карточка модели (README)
 Bench_FlashAttention	Flash Attention	Flash Attention
 Chat_InputPlaceholderCtrl	Message… (Ctrl+Enter to send)	Сообщение… (Ctrl+Enter — отправить)
+Engine_UpdateBadge	llama.cpp {0} is available	Доступна llama.cpp {0}
+Engine_UpdateTitle	New llama.cpp build	Новая сборка llama.cpp
+Engine_UpdateText	Now: {0}. Available: {1}, {2}, {3}. The current build stays installed until you clean up old ones	Сейчас: {0}. Доступна: {1}, {2}, {3}. Текущая сборка останется установленной, пока вы не очистите старые
+Engine_UpdateInstall	Download and switch	Скачать и переключиться
+Engine_UpdateSkip	Skip this version	Пропустить эту версию
+Engine_UpdateSkipped	Version {0} skipped. Only newer builds will be offered	Версия {0} пропущена. Будут предлагаться только более новые
+Engine_UpToDate	The active engine is up to date	Активный движок — последней версии
+Engine_UpdateNotApplicable	Updates are checked only for downloaded engines, not for your own folders	Обновления проверяются только для скачанных движков, не для своих папок
+Engine_CheckUpdate	Check for updates	Проверить обновления
+Engine_CheckUpdatesOnStart	Check for new llama.cpp builds at startup	Проверять новые сборки llama.cpp при запуске
+Engine_Cleanup	Clean up old builds	Очистить старые сборки
+Engine_CleanupHint	Keeps the two latest downloaded builds and the active one. Your own folders are not touched	Остаются две последние скачанные сборки и активная. Свои папки не затрагиваются
+Engine_CleanupConfirm	Delete {0} old builds ({1})?\n\n{2}\n\nThe two latest builds and the active one stay	Удалить старые сборки: {0} ({1})?\n\n{2}\n\nДве последние сборки и активная останутся
+Engine_CleanupDone	Deleted builds: {0}, freed {1}	Удалено сборок: {0}, освобождено {1}
+Compact_BackToChat	Back to chat	К чату
+Compact_Exit	Exit compact mode	Выйти из компактного режима
+Sidebar_Expand	Expand sidebar (Ctrl+B)	Развернуть панель (Ctrl+B)
+Sidebar_Collapse	Collapse to icons (Ctrl+B)	Свернуть до иконок (Ctrl+B)
+Settings_Layout	Layout	Компоновка
+Settings_Compact	Compact mode	Компактный режим
+Settings_CompactHint	Only the chat with new chat and settings buttons. Chats are switched with Ctrl+K. Ctrl+Shift+M toggles it	Только чат с кнопками «Новый чат» и «Настройки». Чаты переключаются через Ctrl+K. Ctrl+Shift+M — включить или выключить
+Settings_SidebarCollapsed	Collapse the sidebar to icons	Свернуть боковую панель до иконок
+Settings_SidebarCollapsedHint	Names appear on hover. Ctrl+B toggles it	Названия появляются при наведении. Ctrl+B — свернуть или развернуть
+Move_Offer	Offline Chatter is running from {0}.\n\nMove it to {1} and add it to the Start menu? Settings, chats and models are copied too.\n\nYes — move. No — keep it here and don't ask again. Cancel — ask next time	Offline Chatter запущен из папки {0}.\n\nПеренести его в {1} и добавить в меню «Пуск»? Настройки, чаты и модели скопируются вместе с ним.\n\nДа — перенести. Нет — оставить здесь и больше не спрашивать. Отмена — спросить в следующий раз
+Move_OfferTemp	Offline Chatter is running straight from the archive (temporary folder {0}). Everything it downloads here will be lost when the archiver closes.\n\nMove it to {1} and add it to the Start menu?\n\nYes — move. No — keep it here and don't ask again. Cancel — ask next time	Offline Chatter запущен прямо из архива (временная папка {0}). Всё, что он скачает сюда, пропадёт, когда архиватор закроется.\n\nПеренести его в {1} и добавить в меню «Пуск»?\n\nДа — перенести. Нет — оставить здесь и больше не спрашивать. Отмена — спросить в следующий раз
+Move_Done	The program is copied to {0} and added to the Start menu. It will now restart from there.\n\nThe old folder can be deleted: {1}	Программа скопирована в {0} и добавлена в меню «Пуск». Сейчас она перезапустится оттуда.\n\nСтарую папку можно удалить: {1}
+Move_Failed	Could not move the program: {0}	Не удалось перенести программу: {0}
+Move_Title	Program location	Расположение программы
+Move_Hint	The standard place for the program without administrator rights is {0} (the installer uses it too)	Стандартное место для программы без прав администратора — {0} (туда же ставит установщик)
+Move_Button	Move to the standard folder	Перенести в стандартную папку
+Move_Shortcut	Add to the Start menu	Добавить в меню «Пуск»
+Move_ShortcutDone	Shortcut added to the Start menu	Ярлык добавлен в меню «Пуск»
+Move_Confirm	Copy the program with settings, chats and models from {0} to {1} and restart from there?	Скопировать программу с настройками, чатами и моделями из {0} в {1} и перезапустить её оттуда?

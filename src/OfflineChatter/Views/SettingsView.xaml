@@ -71,6 +71,24 @@
                         </CheckBox>
                     </Border>
 
+                    <TextBlock Text="{l:Loc Settings_Layout}" Style="{StaticResource GroupTitle}" />
+                    <Border Style="{StaticResource SettingCard}">
+                        <CheckBox IsChecked="{Binding IsCompact}">
+                            <StackPanel>
+                                <TextBlock Text="{l:Loc Settings_Compact}" Style="{StaticResource SettingLabel}" />
+                                <TextBlock Text="{l:Loc Settings_CompactHint}" Style="{StaticResource CaptionText}" />
+                            </StackPanel>
+                        </CheckBox>
+                    </Border>
+                    <Border Style="{StaticResource SettingCard}">
+                        <CheckBox IsChecked="{Binding IsSidebarCollapsed}">
+                            <StackPanel>
+                                <TextBlock Text="{l:Loc Settings_SidebarCollapsed}" Style="{StaticResource SettingLabel}" />
+                                <TextBlock Text="{l:Loc Settings_SidebarCollapsedHint}" Style="{StaticResource CaptionText}" />
+                            </StackPanel>
+                        </CheckBox>
+                    </Border>
+
                     <TextBlock Text="{l:Loc Settings_Sidebar}" Style="{StaticResource GroupTitle}" />
                     <TextBlock Text="{l:Loc Settings_SidebarHint}" Style="{StaticResource CaptionText}" Margin="0,-4,0,8" />
                     <Border Style="{StaticResource SettingCard}" Padding="8,4">
@@ -589,6 +607,18 @@
                     <ProgressBar IsIndeterminate="True" Margin="0,4,0,4" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
                     <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" Margin="4,0,0,8"
                                Visibility="{Binding Status, Converter={StaticResource NullToCollapsed}}" />
+
+                    <TextBlock Text="{l:Loc Move_Title}" Style="{StaticResource GroupTitle}" />
+                    <Border Style="{StaticResource SettingCard}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding RelocateHint}" Style="{StaticResource CaptionText}" Margin="0,0,0,10" />
+                            <WrapPanel>
+                                <Button Command="{Binding RelocateCommand}" Content="{l:Loc Move_Button}" Margin="0,0,8,4"
+                                        Visibility="{Binding CanRelocate, Converter={StaticResource BoolToVisibility}}" />
+                                <Button Command="{Binding CreateShortcutCommand}" Content="{l:Loc Move_Shortcut}" Margin="0,0,8,4" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
 
                     <TextBlock Text="{l:Loc Data_Folders}" Style="{StaticResource GroupTitle}" />
                     <Border Style="{StaticResource SettingCard}">

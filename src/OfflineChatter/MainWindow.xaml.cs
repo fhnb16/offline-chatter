@@ -19,6 +19,11 @@ public partial class MainWindow : Window
         DataContext = _vm = vm;
 
         RestorePlacement(vm.Services.Settings.Current.Window);
+        ApplyCompact();
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(MainViewModel.IsCompact) or nameof(MainViewModel.IsSidebarCollapsed)) ApplyCompact();
+        };
         ThemeManager.Attach(this);
         PreviewKeyDown += OnShortcut;
     }
@@ -34,6 +39,13 @@ public partial class MainWindow : Window
         }
         else if (e.Key == System.Windows.Input.Key.F)
         {
+            if (_vm.IsCompact) return;
+            if (_vm.IsSidebarCollapsed)
+            {
+                OnRailSearch(this, new RoutedEventArgs());
+                e.Handled = true;
+                return;
+            }
             SearchBox.Focus();
             SearchBox.SelectAll();
             e.Handled = true;
@@ -103,6 +115,46 @@ public partial class MainWindow : Window
         base.OnClosing(e);
     }
 
-    private void OnSidebarResized(object sender, DragCompletedEventArgs e) =>
-        _vm.Services.Settings.Current.Window.SidebarWidth = SidebarColumn.ActualWidth;
+    /// <summary>Ширина колонки иконок в свёрнутой боковой панели.</summary>
+    private const double RailWidth = 56;
+
+    /// <summary>
+    /// Компактный режим — колонка боковой панели схлопывается полностью, свёрнутая панель — до колонки иконок.
+    /// Ширина из настроек возвращается при разворачивании.
+    /// </summary>
+    private void ApplyCompact()
+    {
+        SidebarSplitter.Visibility = _vm.IsCompact || _vm.IsSidebarCollapsed ? Visibility.Collapsed : Visibility.Visible;
+        if (_vm.IsCompact)
+        {
+            SidebarColumn.MinWidth = 0;
+            SidebarColumn.Width = new GridLength(0);
+        }
+        else if (_vm.IsSidebarCollapsed)
+        {
+            SidebarColumn.MinWidth = RailWidth;
+            SidebarColumn.Width = new GridLength(RailWidth);
+        }
+        else
+        {
+            SidebarColumn.MinWidth = 200;
+            SidebarColumn.Width = new GridLength(_vm.Services.Settings.Current.Window.SidebarWidth);
+        }
+    }
+
+    private void OnSidebarResized(object sender, DragCompletedEventArgs e)
+    {
+        if (!_vm.IsSidebarCollapsed && !_vm.IsCompact) _vm.Services.Settings.Current.Window.SidebarWidth = SidebarColumn.ActualWidth;
+    }
+
+    /// <summary>Поиск в свёрнутой панели: разворачиваем её и ставим курсор в поле поиска.</summary>
+    private void OnRailSearch(object sender, RoutedEventArgs e)
+    {
+        _vm.IsSidebarCollapsed = false;
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            SearchBox.Focus();
+            SearchBox.SelectAll();
+        }), System.Windows.Threading.DispatcherPriority.Input);
+    }
 }

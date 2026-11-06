@@ -81,3 +81,7 @@ secrets.json
 # Дампы
 *.dmp
 crash-*.log
+
+# Поставка (tools/package.ps1, installer/OfflineChatter.iss)
+/out/
+/release/

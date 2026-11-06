@@ -3,8 +3,10 @@
 # push в master/main → Release-сборка (один exe через Costura) → тесты → релиз vX.Y.N на GitHub.
 # Тег создаётся автоматически (gh release create --target <commit>): без тега GitHub релиз не публикует.
 # Версия: X.Y — из <Version> в Directory.Build.props, N — номер запуска workflow.
-# Программа сама находит этот релиз (настройки → «О программе»), качает OfflineChatter.exe и сверяет SHA-256
-# с полем digest ассета.
+# В релизе: OfflineChatter-X.Y.N.zip и .rar (папка OfflineChatter\ с exe и готовой структурой models\, engine\, chats\),
+# установщик OfflineChatter-X.Y.N-Setup.exe и SHA256SUMS.txt. Голого exe нет.
+# Программа сама находит релиз (настройки → «О программе»), качает zip, сверяет SHA-256 с полем digest ассета
+# и берёт exe из архива.
 #
 # Не публиковать конкретный коммит: добавьте [skip release] в сообщение коммита.
 # Pull request: только сборка и тесты.
@@ -63,22 +65,34 @@ jobs:
       - name: Test (offline tests only)
         run: dotnet test OfflineChatter.sln -c Release --no-build -nologo
 
-      - name: Collect files
+      - name: Install packaging tools (WinRAR, Inno Setup)
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force out | Out-Null
-          Copy-Item src/OfflineChatter/bin/Release/net48/OfflineChatter.exe out/
-          Copy-Item src/OfflineChatter/bin/Release/net48/OfflineChatter.exe.config out/
-          $lines = Get-ChildItem out -File | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)" }
-          $lines | Set-Content out/SHA256SUMS.txt -Encoding ascii
-          Get-ChildItem out | Format-Table Name, Length
-          Get-Content out/SHA256SUMS.txt
+          # RAR создаётся консольным Rar.exe из WinRAR (у 7-Zip нет записи в RAR); установщик — Inno Setup 6
+          choco install winrar innosetup -y --no-progress
+          if ($LASTEXITCODE -ne 0) { Write-Warning "choco exited with $LASTEXITCODE" }
+
+      - name: Package (zip, rar, installer)
+        shell: pwsh
+        run: |
+          $v = '${{ steps.ver.outputs.version }}'
+          pwsh -NoProfile -File tools/package.ps1 -BinDir src/OfflineChatter/bin/Release/net48 -Version $v -Out out
+          $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { throw 'ISCC.exe not found' }
+          & $iscc /Qp "/DAppVersion=$v" "/DStageDir=$PWD\out\stage\OfflineChatter" "/DOutDir=$PWD\out" installer/OfflineChatter.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed with $LASTEXITCODE" }
+          # Только архивы и установщик: голый exe в релиз не кладём (Windows 11 и антивирусы агрессивнее к скачанным exe)
+          New-Item -ItemType Directory -Force release | Out-Null
+          Get-ChildItem out -File | Where-Object { $_.Extension -in '.zip', '.rar', '.exe' } | Copy-Item -Destination release
+          $lines = Get-ChildItem release -File | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)" }
+          $lines | Set-Content release/SHA256SUMS.txt -Encoding ascii
+          Get-ChildItem release | Format-Table Name, Length
+          Get-Content release/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
           name: OfflineChatter-${{ steps.ver.outputs.version }}
-          path: out/
-
+          path: release/
       - name: Publish release (creates the tag)
         if: github.event_name != 'pull_request' && !contains(github.event.head_commit.message, '[skip release]')
         shell: pwsh
@@ -91,8 +105,8 @@ jobs:
           gh release view $tag 2>$null
           if ($LASTEXITCODE -eq 0) {
             Write-Host "Release $tag already exists — uploading assets"
-            gh release upload $tag out/OfflineChatter.exe out/OfflineChatter.exe.config out/SHA256SUMS.txt --clobber
+            gh release upload $tag (Get-ChildItem release -File).FullName --clobber
           } else {
-            gh release create $tag out/OfflineChatter.exe out/OfflineChatter.exe.config out/SHA256SUMS.txt @flags
+            gh release create $tag (Get-ChildItem release -File).FullName @flags
           }
           if ($LASTEXITCODE -ne 0) { throw "gh release failed" }

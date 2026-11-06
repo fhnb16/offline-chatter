@@ -170,6 +170,15 @@ public sealed class WindowPlacementSettings
     /// <summary>Разделы, убранные из боковой панели (имена PageKind). Они остаются доступны из настроек.</summary>
     public System.Collections.Generic.List<string> HiddenPages { get; set; } = new() { "Benchmarks", "Logs" };
 
+    /// <summary>Пользователь отказался переносить программу в %LOCALAPPDATA%\Programs — больше не спрашиваем.</summary>
+    public bool MoveOfferDismissed { get; set; }
+
+    /// <summary>Боковая панель свёрнута до иконок.</summary>
+    public bool SidebarCollapsed { get; set; }
+
+    /// <summary>Компактный режим: только чат и кнопка настроек, без боковой и правой панелей.</summary>
+    public bool CompactMode { get; set; }
+
     /// <summary>Отправка сообщения: Enter (false) или Ctrl+Enter (true).</summary>
     public bool SendWithCtrlEnter { get; set; }
 }

@@ -608,4 +608,51 @@ The app will now restart.</value></data>
   <data name="Models_Readme" xml:space="preserve"><value>Model card (README)</value></data>
   <data name="Bench_FlashAttention" xml:space="preserve"><value>Flash Attention</value></data>
   <data name="Chat_InputPlaceholderCtrl" xml:space="preserve"><value>Message… (Ctrl+Enter to send)</value></data>
+  <data name="Engine_UpdateBadge" xml:space="preserve"><value>llama.cpp {0} is available</value></data>
+  <data name="Engine_UpdateTitle" xml:space="preserve"><value>New llama.cpp build</value></data>
+  <data name="Engine_UpdateText" xml:space="preserve"><value>Now: {0}. Available: {1}, {2}, {3}. The current build stays installed until you clean up old ones</value></data>
+  <data name="Engine_UpdateInstall" xml:space="preserve"><value>Download and switch</value></data>
+  <data name="Engine_UpdateSkip" xml:space="preserve"><value>Skip this version</value></data>
+  <data name="Engine_UpdateSkipped" xml:space="preserve"><value>Version {0} skipped. Only newer builds will be offered</value></data>
+  <data name="Engine_UpToDate" xml:space="preserve"><value>The active engine is up to date</value></data>
+  <data name="Engine_UpdateNotApplicable" xml:space="preserve"><value>Updates are checked only for downloaded engines, not for your own folders</value></data>
+  <data name="Engine_CheckUpdate" xml:space="preserve"><value>Check for updates</value></data>
+  <data name="Engine_CheckUpdatesOnStart" xml:space="preserve"><value>Check for new llama.cpp builds at startup</value></data>
+  <data name="Engine_Cleanup" xml:space="preserve"><value>Clean up old builds</value></data>
+  <data name="Engine_CleanupHint" xml:space="preserve"><value>Keeps the two latest downloaded builds and the active one. Your own folders are not touched</value></data>
+  <data name="Engine_CleanupConfirm" xml:space="preserve"><value>Delete {0} old builds ({1})?
+
+{2}
+
+The two latest builds and the active one stay</value></data>
+  <data name="Engine_CleanupDone" xml:space="preserve"><value>Deleted builds: {0}, freed {1}</value></data>
+  <data name="Compact_BackToChat" xml:space="preserve"><value>Back to chat</value></data>
+  <data name="Compact_Exit" xml:space="preserve"><value>Exit compact mode</value></data>
+  <data name="Sidebar_Expand" xml:space="preserve"><value>Expand sidebar (Ctrl+B)</value></data>
+  <data name="Sidebar_Collapse" xml:space="preserve"><value>Collapse to icons (Ctrl+B)</value></data>
+  <data name="Settings_Layout" xml:space="preserve"><value>Layout</value></data>
+  <data name="Settings_Compact" xml:space="preserve"><value>Compact mode</value></data>
+  <data name="Settings_CompactHint" xml:space="preserve"><value>Only the chat with new chat and settings buttons. Chats are switched with Ctrl+K. Ctrl+Shift+M toggles it</value></data>
+  <data name="Settings_SidebarCollapsed" xml:space="preserve"><value>Collapse the sidebar to icons</value></data>
+  <data name="Settings_SidebarCollapsedHint" xml:space="preserve"><value>Names appear on hover. Ctrl+B toggles it</value></data>
+  <data name="Move_Offer" xml:space="preserve"><value>Offline Chatter is running from {0}.
+
+Move it to {1} and add it to the Start menu? Settings, chats and models are copied too.
+
+Yes — move. No — keep it here and don&apos;t ask again. Cancel — ask next time</value></data>
+  <data name="Move_OfferTemp" xml:space="preserve"><value>Offline Chatter is running straight from the archive (temporary folder {0}). Everything it downloads here will be lost when the archiver closes.
+
+Move it to {1} and add it to the Start menu?
+
+Yes — move. No — keep it here and don&apos;t ask again. Cancel — ask next time</value></data>
+  <data name="Move_Done" xml:space="preserve"><value>The program is copied to {0} and added to the Start menu. It will now restart from there.
+
+The old folder can be deleted: {1}</value></data>
+  <data name="Move_Failed" xml:space="preserve"><value>Could not move the program: {0}</value></data>
+  <data name="Move_Title" xml:space="preserve"><value>Program location</value></data>
+  <data name="Move_Hint" xml:space="preserve"><value>The standard place for the program without administrator rights is {0} (the installer uses it too)</value></data>
+  <data name="Move_Button" xml:space="preserve"><value>Move to the standard folder</value></data>
+  <data name="Move_Shortcut" xml:space="preserve"><value>Add to the Start menu</value></data>
+  <data name="Move_ShortcutDone" xml:space="preserve"><value>Shortcut added to the Start menu</value></data>
+  <data name="Move_Confirm" xml:space="preserve"><value>Copy the program with settings, chats and models from {0} to {1} and restart from there?</value></data>
 </root>

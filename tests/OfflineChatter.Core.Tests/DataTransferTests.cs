@@ -161,6 +161,32 @@ public sealed class DataTransferTests : IDisposable
     }
 
     [Fact]
+    public void Update_Prefers_Zip_Package_And_Extracts_Exe()
+    {
+        var releases = JArray.Parse(@"[
+          {""tag_name"":""v0.3.1"",""draft"":false,""assets"":[
+             {""name"":""OfflineChatter-0.3.1-Setup.exe"",""size"":10,""browser_download_url"":""https://x/s.exe"",""digest"":""sha256:11""},
+             {""name"":""OfflineChatter-0.3.1.rar"",""size"":10,""browser_download_url"":""https://x/a.rar"",""digest"":""sha256:22""},
+             {""name"":""OfflineChatter-0.3.1.zip"",""size"":10,""browser_download_url"":""https://x/a.zip"",""digest"":""sha256:33""}]}
+        ]");
+        var info = UpdateChecker.Pick(releases, "r", new Version(0, 3, 0));
+        Assert.True(info.CanInstall);
+        Assert.Null(info.Exe);
+        Assert.Equal("OfflineChatter-0.3.1.zip", info.Package!.Name);
+
+        var zip = Path.Combine(_dir, "pkg.zip");
+        using (var z = ZipFile.Open(zip, ZipArchiveMode.Create))
+        {
+            using (var w = new StreamWriter(z.CreateEntry("OfflineChatter/OfflineChatter.exe").Open())) w.Write("new-exe");
+            using (var w = new StreamWriter(z.CreateEntry("OfflineChatter/OfflineChatter.exe.config").Open())) w.Write("cfg");
+            using (var w = new StreamWriter(z.CreateEntry("OfflineChatter/models/README.txt").Open())) w.Write("put models here");
+        }
+        var (exe, config) = UpdateChecker.ExtractPackage(zip, Path.Combine(_dir, "x"));
+        Assert.Equal("new-exe", File.ReadAllText(exe));
+        Assert.Equal("cfg", File.ReadAllText(config!));
+    }
+
+    [Fact]
     public void Update_Swap_Replaces_Exe_And_Keeps_Old()
     {
         var exe = Path.Combine(_dir, "app.exe");

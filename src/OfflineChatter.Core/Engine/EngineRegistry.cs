@@ -74,6 +74,12 @@ public sealed class EngineSettings
 
     /// <summary>Секрет (Bearer-ключ) публичного API, зашифрован через Secrets.</summary>
     public string ApiKeyProtected { get; set; } = string.Empty;
+
+    /// <summary>Проверять при запуске, нет ли новой сборки llama.cpp для активного движка.</summary>
+    public bool CheckUpdates { get; set; } = true;
+
+    /// <summary>Версия, которую пользователь решил пропустить (предложим только более новую).</summary>
+    public string? IgnoredUpdateTag { get; set; }
 }
 
 /// <summary>Реестр движков: папки engine/* с engine.json + внешние папки из настроек.</summary>

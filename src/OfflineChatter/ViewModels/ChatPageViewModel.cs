@@ -243,7 +243,16 @@ public sealed partial class ChatPageViewModel : PageViewModel
     private string _inputText = string.Empty;
 
     [ObservableProperty] private string _searchText = string.Empty;
-    [ObservableProperty] private bool _isInspectorVisible;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowInspector))]
+    private bool _isInspectorVisible;
+
+    /// <summary>Компактный режим: правая панель и второстепенные кнопки скрыты.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowInspector))]
+    private bool _isCompact;
+
+    public bool ShowInspector => IsInspectorVisible && !IsCompact;
     [ObservableProperty] private ModelOption? _selectedModel;
 
     [ObservableProperty]

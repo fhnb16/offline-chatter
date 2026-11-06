@@ -50,6 +50,34 @@
         <DataTemplate DataType="{x:Type vm:PlaceholderPageViewModel}">
             <views:PlaceholderView />
         </DataTemplate>
+        <!-- Подпись в боковой панели: скрыта, когда панель свёрнута до иконок -->
+        <Style x:Key="SidebarLabel" TargetType="TextBlock">
+            <Setter Property="Margin" Value="10,0,0,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsSidebarCollapsed, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Элемент свёрнутой панели: подсказка с подписью (текст — в Tag) -->
+        <Style x:Key="RailTip" TargetType="FrameworkElement">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsSidebarCollapsed, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                    <Setter Property="ToolTip" Value="{Binding Tag, RelativeSource={RelativeSource Self}}" />
+                    <Setter Property="ToolTipService.Placement" Value="Right" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Видно только в развёрнутой / только в свёрнутой панели -->
+        <Style x:Key="ExpandedOnly" TargetType="FrameworkElement">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsSidebarCollapsed, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <!-- Прогресс загрузок на кнопке в панели задач (Win7+) -->
@@ -60,6 +88,8 @@
 
     <Window.InputBindings>
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewChatCommand}" />
+        <KeyBinding Key="M" Modifiers="Control+Shift" Command="{Binding ToggleCompactCommand}" />
+        <KeyBinding Key="B" Modifiers="Control" Command="{Binding ToggleSidebarCommand}" />
     </Window.InputBindings>
 
     <Grid x:Name="RootGrid">
@@ -86,7 +116,8 @@
                     <Image Source="pack://application:,,,/OfflineChatter;component/Assets/app.ico" Width="16" Height="16"
                            RenderOptions.BitmapScalingMode="HighQuality" />
                     <TextBlock Text="Offline Chatter" Margin="8,0,0,0" FontSize="12" Style="{StaticResource GlassText}"
-                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"
+                               Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisibility}}" />
                 </StackPanel>
                 <TextBlock Grid.Column="1" Text="{Binding CurrentPage.Title}" FontSize="12" Margin="16,0,0,0"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Style="{StaticResource GlassText}"
@@ -96,17 +127,36 @@
         </Border>
 
         <!-- ================= Боковая панель ================= -->
-        <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}">
+        <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}"
+                Visibility="{Binding IsCompact, Converter={StaticResource InverseBoolToVisibility}}">
             <DockPanel Margin="10,8,8,10">
                 <StackPanel DockPanel.Dock="Top">
-                    <Button Command="{Binding NewChatCommand}" HorizontalContentAlignment="Left" Padding="10,6" ToolTip="Ctrl+N">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconPlus}" Style="{StaticResource IconPath}" />
-                            <TextBlock Text="{l:Loc Chat_New}" Margin="8,0,0,0" VerticalAlignment="Center" />
-                        </StackPanel>
+                    <!-- Свёрнутая панель: «развернуть» над «новым чатом» -->
+                    <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalContentAlignment="Left" Padding="10,6" Margin="0,0,0,6"
+                            Command="{Binding ToggleSidebarCommand}" ToolTip="{l:Loc Sidebar_Expand}" ToolTipService.Placement="Right"
+                            Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisibility}}">
+                        <Path Data="{StaticResource IconChevronRight}" Style="{StaticResource IconPath}" />
+                    </Button>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Margin="6,0,0,0" Padding="8,6"
+                                Command="{Binding ToggleSidebarCommand}" ToolTip="{l:Loc Sidebar_Collapse}"
+                                Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisibility}}">
+                            <Path Data="{StaticResource IconChevronLeft}" Style="{StaticResource IconPath}" />
+                        </Button>
+                        <Button Command="{Binding NewChatCommand}" HorizontalContentAlignment="Left" Padding="10,6" ToolTip="Ctrl+N">
+                            <StackPanel Orientation="Horizontal" Style="{StaticResource RailTip}" Tag="{l:Loc Chat_New}">
+                                <Path Data="{StaticResource IconPlus}" Style="{StaticResource IconPath}" />
+                                <TextBlock Text="{l:Loc Chat_New}" Style="{StaticResource SidebarLabel}" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Button>
+                    </DockPanel>
+                    <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalContentAlignment="Left" Padding="10,6" Margin="0,6,0,0"
+                            Click="OnRailSearch" ToolTip="{l:Loc Chat_Search}" ToolTipService.Placement="Right"
+                            Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisibility}}">
+                        <Path Data="{StaticResource IconSearch}" Style="{StaticResource IconPath}" />
                     </Button>
 
-                    <Grid Margin="0,10,0,6">
+                    <Grid Margin="0,10,0,6" Style="{StaticResource ExpandedOnly}">
                         <TextBox x:Name="SearchBox" Text="{Binding Chat.SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="30,5,9,5" />
                         <Path Data="{StaticResource IconSearch}" Style="{StaticResource IconPath}" Margin="9,0,0,0"
                               HorizontalAlignment="Left" IsHitTestVisible="False"
@@ -119,12 +169,12 @@
 
                 <!-- Навигация по разделам -->
                 <ListBox DockPanel.Dock="Bottom" Margin="0,8,0,0" ItemsSource="{Binding NavItems}" SelectedItem="{Binding SelectedNav}"
-                         Background="Transparent" BorderThickness="0">
+                         Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:NavItem}">
-                            <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal" Style="{StaticResource RailTip}" Tag="{Binding Title}">
                                 <Path Style="{StaticResource IconPath}" Data="{Binding IconKey, Converter={StaticResource ResourceKeyToGeometry}}" />
-                                <TextBlock Text="{Binding Title}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Title}" Style="{StaticResource SidebarLabel}" />
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
@@ -138,20 +188,26 @@
                             ToolTip="{l:Loc Net_OfflineHint}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconOffline}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource TextSecondaryBrush}" />
-                            <TextBlock Text="{l:Loc Net_OfflineBadge}" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                            <TextBlock Text="{l:Loc Net_OfflineBadge}" Style="{StaticResource SidebarLabel}" Foreground="{DynamicResource TextSecondaryBrush}" />
                         </StackPanel>
                     </Button>
                     <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                             Command="{Binding OpenUpdatesCommand}" Visibility="{Binding UpdateBadge, Converter={StaticResource NullToCollapsed}}">
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" Style="{StaticResource RailTip}" Tag="{Binding UpdateBadge}">
                             <Path Data="{StaticResource IconDownload}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource AccentTextBrush}" />
-                            <TextBlock Text="{Binding UpdateBadge}" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource AccentTextBrush}"
-                                       TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding UpdateBadge}" Style="{StaticResource SidebarLabel}" Foreground="{DynamicResource AccentTextBrush}" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Command="{Binding OpenEngineUpdateCommand}" Visibility="{Binding EngineUpdateBadge, Converter={StaticResource NullToCollapsed}}">
+                        <StackPanel Orientation="Horizontal" Style="{StaticResource RailTip}" Tag="{Binding EngineUpdateBadge}">
+                            <Path Data="{StaticResource IconChip}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource TextSecondaryBrush}" />
+                            <TextBlock Text="{Binding EngineUpdateBadge}" Style="{StaticResource SidebarLabel}" Foreground="{DynamicResource TextSecondaryBrush}" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
 
-                <ListBox ItemsSource="{Binding Chat.FilteredChats}" SelectedItem="{Binding Chat.SelectedChat}"
+                <ListBox ItemsSource="{Binding Chat.FilteredChats}" SelectedItem="{Binding Chat.SelectedChat}" Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisibility}}"
                          Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          VirtualizingPanel.IsVirtualizing="True">
                     <ListBox.ItemTemplate>
@@ -178,14 +234,27 @@
             </DockPanel>
         </Border>
 
-        <GridSplitter Grid.Row="1" Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch"
+        <GridSplitter x:Name="SidebarSplitter" Grid.Row="1" Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch"
                       ResizeBehavior="CurrentAndNext" Background="Transparent" Focusable="False"
                       DragCompleted="OnSidebarResized" />
 
         <!-- ================= Текущая страница ================= -->
         <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource ContentBackgroundBrush}"
                 BorderBrush="{DynamicResource ContentBorderBrush}" BorderThickness="1,1,0,0" CornerRadius="8,0,0,0">
-            <ContentControl Content="{Binding CurrentPage}" Focusable="False" />
+            <DockPanel>
+                <!-- Компактный режим: с любой страницы обратно к чату -->
+                <DockPanel DockPanel.Dock="Top" Margin="16,10,16,0" Visibility="{Binding ShowBackToChat, Converter={StaticResource BoolToVisibility}}">
+                    <Button DockPanel.Dock="Left" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding BackToChatCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconChevronLeft}" Style="{StaticResource IconPath}" />
+                            <TextBlock Text="{l:Loc Compact_BackToChat}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button DockPanel.Dock="Right" HorizontalAlignment="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding ToggleCompactCommand}"
+                            Content="{l:Loc Compact_Exit}" ToolTip="Ctrl+Shift+M" />
+                </DockPanel>
+                <ContentControl Content="{Binding CurrentPage}" Focusable="False" />
+            </DockPanel>
         </Border>
     </Grid>
 </Window>

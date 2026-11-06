@@ -88,6 +88,48 @@ public sealed class AppServices : IDisposable
         }
     }
 
+    /// <summary>Новая сборка llama.cpp для активного движка (проверка при запуске).</summary>
+    public EngineUpdate? PendingEngineUpdate { get; private set; }
+
+    public event EventHandler? EngineUpdateChanged;
+
+    public void SetEngineUpdate(EngineUpdate? update)
+    {
+        PendingEngineUpdate = update;
+        EngineUpdateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Есть ли новая сборка llama.cpp того же бэкенда, что у активного движка.
+    /// Сборки канала Win7-compat проверяются по репозиторию программы, свои папки не проверяются.
+    /// </summary>
+    public async System.Threading.Tasks.Task<EngineUpdate?> CheckEngineUpdateAsync(bool respectIgnored, System.Threading.CancellationToken ct)
+    {
+        var s = Settings.Current;
+        var active = Engine.Registry.Active;
+        if (s.Network.OfflineMode || active == null || active.IsExternal) return null;
+        var repo = EngineUpdates.IsCompatBuild(active) ? s.UpdateRepo : null;
+        var releases = await Releases.ListAsync(10, ct, repo).ConfigureAwait(false);
+        var update = EngineUpdates.Find(active, releases, respectIgnored ? s.Engine.IgnoredUpdateTag : null);
+        SetEngineUpdate(update);
+        if (update != null) Log.Info("Engine", "Engine update available", new { current = active.Manifest.Tag, update.Tag, variant = update.Variant.Key });
+        return update;
+    }
+
+    public async System.Threading.Tasks.Task CheckEngineUpdateInBackgroundAsync()
+    {
+        if (!Settings.Current.Engine.CheckUpdates) return;
+        try
+        {
+            using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
+            await CheckEngineUpdateAsync(respectIgnored: true, cts.Token).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or OperationCanceledException or System.IO.IOException or Newtonsoft.Json.JsonException or InvalidCastException)
+        {
+            Log.Info("Engine", "Engine update check failed: " + ex.GetBaseException().Message);
+        }
+    }
+
     public static Version CurrentVersion => Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0);
 
     /// <summary>Подпись настроек публичного API: при их смене сервер перезапускается.</summary>

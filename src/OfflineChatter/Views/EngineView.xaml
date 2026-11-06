@@ -3,10 +3,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:OfflineChatter.ViewModels"
              xmlns:views="clr-namespace:OfflineChatter.Views"
-             xmlns:l="clr-namespace:OfflineChatter.Localization">
+             xmlns:l="clr-namespace:OfflineChatter.Localization"
+             xmlns:c="clr-namespace:OfflineChatter.Controls">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="24,20,24,32">
             <TextBlock Text="{l:Loc Nav_Engine}" Style="{StaticResource PageTitleText}" />
+
+            <!-- ===== Обновление llama.cpp ===== -->
+            <Border Style="{StaticResource SettingCard}" Visibility="{Binding HasEngineUpdate, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel>
+                    <TextBlock Text="{l:Loc Engine_UpdateTitle}" Style="{StaticResource SubtitleText}" />
+                    <TextBlock Text="{Binding EngineUpdateText}" Style="{StaticResource CaptionText}" Margin="0,2,0,10" />
+                    <WrapPanel>
+                        <Button Style="{DynamicResource AccentButtonStyle}" Command="{Binding UpdateEngineCommand}" Margin="0,0,8,4">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconDownload}" Style="{StaticResource IconPath}" />
+                                <TextBlock Text="{l:Loc Engine_UpdateInstall}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{DynamicResource SubtleButtonStyle}" Command="{Binding SkipEngineUpdateCommand}" Content="{l:Loc Engine_UpdateSkip}" Margin="0,0,8,4" />
+                    </WrapPanel>
+                    <TextBlock Text="{Binding InstallStatus}" Style="{StaticResource CaptionText}" Margin="0,4,0,0"
+                               Visibility="{Binding IsInstalling, Converter={StaticResource BoolToVisibility}}" />
+                </StackPanel>
+            </Border>
 
             <!-- ===== Сервер ===== -->
             <Border Style="{StaticResource SettingCard}">
@@ -53,15 +73,37 @@
             </Border>
 
             <!-- ===== Установленные ===== -->
-            <DockPanel Margin="0,16,0,8">
-                <Button DockPanel.Dock="Right" Command="{Binding AddExternalCommand}">
-                    <StackPanel Orientation="Horizontal">
-                        <Path Data="{StaticResource IconFolder}" Style="{StaticResource IconPath}" />
-                        <TextBlock Text="{l:Loc Engine_AddExternal}" Margin="8,0,0,0" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-                <TextBlock Text="{l:Loc Engine_InstalledTitle}" Style="{StaticResource SubtitleText}" VerticalAlignment="Center" />
-            </DockPanel>
+            <c:AdaptiveRow Margin="0,16,0,8" Breakpoint="640">
+                <TextBlock Text="{l:Loc Engine_InstalledTitle}" Style="{StaticResource SubtitleText}" />
+                <WrapPanel HorizontalAlignment="Right">
+                    <Button Command="{Binding CheckEngineUpdateCommand}" Margin="0,0,6,4">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconRefresh}" Style="{StaticResource IconPath}" />
+                            <TextBlock Text="{l:Loc Engine_CheckUpdate}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding CleanupCommand}" Margin="0,0,6,4" ToolTip="{l:Loc Engine_CleanupHint}"
+                            Visibility="{Binding CanCleanup, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconTrash}" Style="{StaticResource IconPath}" />
+                            <TextBlock Text="{l:Loc Engine_Cleanup}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding AddExternalCommand}" Margin="0,0,0,4">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconFolder}" Style="{StaticResource IconPath}" />
+                            <TextBlock Text="{l:Loc Engine_AddExternal}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </WrapPanel>
+            </c:AdaptiveRow>
+            <CheckBox IsChecked="{Binding CheckEngineUpdates}" Margin="0,0,0,8">
+                <TextBlock Text="{l:Loc Engine_CheckUpdatesOnStart}" Style="{StaticResource BodyText}" />
+            </CheckBox>
+            <TextBlock Text="{Binding EngineUpdateStatus}" Style="{StaticResource CaptionText}" Margin="0,0,0,8"
+                       Visibility="{Binding EngineUpdateStatus, Converter={StaticResource NullToCollapsed}}" />
+            <TextBlock Text="{Binding CleanupStatus}" Style="{StaticResource CaptionText}" Margin="0,0,0,8"
+                       Visibility="{Binding CleanupStatus, Converter={StaticResource NullToCollapsed}}" />
             <TextBlock Text="{l:Loc Engine_NoneInstalled}" Style="{StaticResource CaptionText}" Margin="0,0,0,8"
                        Visibility="{Binding HasInstalled, Converter={StaticResource InverseBoolToVisibility}}" />
             <ItemsControl ItemsSource="{Binding Installed}">

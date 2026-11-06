@@ -51,7 +51,11 @@ src/OfflineChatter/           WPF exe
   Skins/        словари ресурсов скинов
   Controls/  Views/  ViewModels/
 tests/OfflineChatter.Core.Tests/
+tools/          gen-strings.ps1, screenshot.ps1, package.ps1 (zip/rar поставки)
+installer/      OfflineChatter.iss (Inno Setup 6)
 ```
+
+Поставка: в релизе только архивы (zip, rar) и установщик, без голого exe. Обновление внутри программы скачивает zip — менять формат или имена (`OfflineChatter-X.Y.N.zip`, папка `OfflineChatter\` внутри) можно только вместе с `UpdateChecker.IsPackage` / `ExtractPackage` и их тестами.
 
 - **Core не зависит от WPF.** Всё, что можно протестировать без UI, кладётся в Core.
 - Весь P/Invoke находится в `Interop/`, в классах `NativeMethods` по DLL. Для каждой функции указана минимальная версия ОС.

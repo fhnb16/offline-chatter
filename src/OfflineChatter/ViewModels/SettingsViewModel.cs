@@ -74,6 +74,10 @@ public sealed partial class SettingsViewModel : PageViewModel
         _language = _initialLanguage;
         _logMessageContent = services.Settings.Current.Logging.LogMessageContent;
 
+        main.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(MainViewModel.IsCompact) or nameof(MainViewModel.IsSidebarCollapsed)) OnPropertyChanged(e.PropertyName);
+        };
         SidebarItems = main.AllNavItems.Where(n => n.Kind != PageKind.Settings).Select(n => new NavToggle(main, n)).ToList();
 
         var a = services.Settings.Current.Attachments;
@@ -156,6 +160,18 @@ public sealed partial class SettingsViewModel : PageViewModel
 
     [RelayCommand]
     private void RunWizard() => _main.Navigate(PageKind.Welcome);
+
+    public bool IsCompact
+    {
+        get => _main.IsCompact;
+        set => _main.IsCompact = value;
+    }
+
+    public bool IsSidebarCollapsed
+    {
+        get => _main.IsSidebarCollapsed;
+        set => _main.IsSidebarCollapsed = value;
+    }
 
     // ---------- Чат: вложения ----------
     public IReadOnlyList<SizeOption> ImageSizeOptions { get; } = new[]
@@ -313,7 +329,7 @@ public sealed partial class SettingsViewModel : PageViewModel
             UpdateChecker.Swap(App.ExePath, exe, config);
             App.Restart("--page Settings");
         }
-        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or InvalidOperationException or System.Net.Http.HttpRequestException)
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or InvalidOperationException or System.Net.Http.HttpRequestException or System.IO.InvalidDataException)
         {
             // Нет прав на запись в папку программы (Program Files) — предлагаем скачать вручную
             UpdateStatus = L.F("Update_Failed", ex.GetBaseException().Message);

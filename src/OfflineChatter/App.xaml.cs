@@ -102,6 +102,7 @@ public partial class App : Application
         UpdateChecker.CleanupOld(ExePath);
         if (!Settings.Current.Network.OfflineMode) Services.ConnectMcpServers();
         _ = Services.CheckUpdatesInBackgroundAsync();
+        _ = Services.CheckEngineUpdateInBackgroundAsync();
         if (Settings.Current.Engine.ExposeApi)
         {
             // Публичный API: сервер поднимается вместе с программой, чтобы другие приложения могли к нему обращаться
@@ -153,7 +154,12 @@ public partial class App : Application
         _single.ArgumentsReceived += args => Dispatcher.BeginInvoke(new Action(() => HandleArgs(args, fromOtherInstance: true)));
 
         UpdateJumpList();
-        window.ContentRendered += (_, _) => HandleArgs(e.Args, fromOtherInstance: false);
+        window.ContentRendered += (_, _) =>
+        {
+            HandleArgs(e.Args, fromOtherInstance: false);
+            // Запуск из «Загрузок», с рабочего стола или из временной папки архиватора — предложить перенос
+            Dispatcher.BeginInvoke(new Action(() => _ = Relocation.OfferIfNeededAsync(Services)), DispatcherPriority.ApplicationIdle);
+        };
     }
 
     /// <summary>

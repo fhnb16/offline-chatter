@@ -80,7 +80,121 @@ public sealed partial class EngineViewModel : PageViewModel
             _ = Profiles.UpdatePreviewAsync();
         };
         _s.Engine.Server.StateChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(OnServerChanged));
+        _s.EngineUpdateChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(OnEngineUpdateChanged));
         RefreshInstalled();
+    }
+
+    // ---------- Обновление движка ----------
+
+    public EngineUpdate? EngineUpdate => _s.PendingEngineUpdate;
+    public bool HasEngineUpdate => EngineUpdate != null;
+
+    public string? EngineUpdateText => EngineUpdate is { } u
+        ? L.F("Engine_UpdateText", u.Current.DisplayName, u.Tag, L.Get("Enum_EngineBackend_" + u.Variant.Backend) + (u.Variant.BackendVersion != null ? " " + u.Variant.BackendVersion : string.Empty), Units.FormatBytes(u.Variant.TotalSize))
+        : null;
+
+    [ObservableProperty] private string? _engineUpdateStatus;
+
+    public bool CheckEngineUpdates
+    {
+        get => _s.Settings.Current.Engine.CheckUpdates;
+        set { _s.Settings.Current.Engine.CheckUpdates = value; _s.Settings.Save(); OnPropertyChanged(); }
+    }
+
+    private void OnEngineUpdateChanged()
+    {
+        OnPropertyChanged(nameof(EngineUpdate));
+        OnPropertyChanged(nameof(HasEngineUpdate));
+        OnPropertyChanged(nameof(EngineUpdateText));
+        UpdateEngineCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand]
+    private async Task CheckEngineUpdateAsync()
+    {
+        EngineUpdateStatus = L.Get("Update_Checking");
+        try
+        {
+            var u = await _s.CheckEngineUpdateAsync(respectIgnored: false, CancellationToken.None);
+            EngineUpdateStatus = u == null ? L.Get(_s.Engine.Registry.Active is { IsExternal: false } ? "Engine_UpToDate" : "Engine_UpdateNotApplicable") : null;
+        }
+        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or OperationCanceledException or IOException or Newtonsoft.Json.JsonException or InvalidCastException)
+        {
+            EngineUpdateStatus = L.F("Engine_ReleasesError", ex.GetBaseException().Message);
+        }
+    }
+
+    private bool CanUpdateEngine() => EngineUpdate != null && !IsInstalling;
+
+    /// <summary>Скачать новую сборку того же бэкенда и сделать её активной (старая остаётся, её уберёт «Очистка»).</summary>
+    [RelayCommand(CanExecute = nameof(CanUpdateEngine))]
+    private async Task UpdateEngineAsync()
+    {
+        if (EngineUpdate is not { } u) return;
+        if (await InstallVariantAsync(u.Release, u.Variant))
+        {
+            _s.SetEngineUpdate(null);
+            EngineUpdateStatus = InstallStatus;
+        }
+    }
+
+    [RelayCommand]
+    private void SkipEngineUpdate()
+    {
+        if (EngineUpdate is not { } u) return;
+        _s.Settings.Current.Engine.IgnoredUpdateTag = u.Tag;
+        _s.Settings.Save();
+        _s.SetEngineUpdate(null);
+        EngineUpdateStatus = L.F("Engine_UpdateSkipped", u.Tag);
+    }
+
+    // ---------- Очистка старых сборок ----------
+
+    private IReadOnlyList<EngineInstall> CleanupCandidates() =>
+        EngineUpdates.CleanupCandidates(_s.Engine.Registry.List(), _s.Engine.Registry.Active?.Id);
+
+    public bool CanCleanup => CleanupCandidates().Count > 0;
+
+    [ObservableProperty] private string? _cleanupStatus;
+
+    /// <summary>Удалить старые скачанные сборки: остаются две последние и активная; свои папки не трогаются.</summary>
+    [RelayCommand]
+    private void Cleanup()
+    {
+        var victims = CleanupCandidates();
+        if (victims.Count == 0) return;
+        long size = 0;
+        foreach (var v in victims) size += FolderSize(v.Directory);
+        var list = string.Join(Environment.NewLine, victims.Select(v => "• " + v.DisplayName));
+        if (MessageBox.Show(L.F("Engine_CleanupConfirm", victims.Count, Units.FormatBytes(size), list), "Offline Chatter",
+                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+
+        var removed = 0;
+        foreach (var v in victims)
+        {
+            try
+            {
+                _s.Engine.Remove(v);
+                removed++;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Log.Warn("Engine", "Cleanup: cannot delete " + v.Directory, ex);
+            }
+        }
+        CleanupStatus = L.F("Engine_CleanupDone", removed, Units.FormatBytes(size));
+    }
+
+    private static long FolderSize(string dir)
+    {
+        try
+        {
+            return Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return 0;
+        }
     }
 
     public override PageKind Kind => PageKind.Engine;
@@ -193,6 +307,7 @@ public sealed partial class EngineViewModel : PageViewModel
         foreach (var e in _s.Engine.Registry.List())
             Installed.Add(new EngineItemViewModel(e, active?.Id == e.Id));
         OnPropertyChanged(nameof(HasInstalled));
+        OnPropertyChanged(nameof(CanCleanup));
         _ = CheckHealthAsync();
     }
 
@@ -264,17 +379,26 @@ public sealed partial class EngineViewModel : PageViewModel
     private async Task InstallAsync()
     {
         if (SelectedRelease == null || SelectedVariant == null) return;
+        await InstallVariantAsync(SelectedRelease, SelectedVariant.Variant);
+    }
+
+    /// <summary>Установленная сборка, прошедшая самопроверку, становится активной.</summary>
+    /// <returns>true — установлено и проходит самопроверку.</returns>
+    private async Task<bool> InstallVariantAsync(EngineRelease release, EngineVariant variant)
+    {
         IsInstalling = true;
+        UpdateEngineCommand.NotifyCanExecuteChanged();
         _installCts = new CancellationTokenSource();
         try
         {
             var progress = new Progress<InstallStage>(s => InstallStatus = L.Get("Enum_InstallStage_" + s));
-            var (install, smoke) = await _s.EngineInstaller.InstallAsync(SelectedRelease, SelectedVariant.Variant, progress, _installCts.Token);
+            var (install, smoke) = await _s.EngineInstaller.InstallAsync(release, variant, progress, _installCts.Token);
             if (_s.Engine.Registry.Active == null || smoke.Ok) _s.Engine.SetActive(install);
             else _s.Engine.NotifyChanged();
             InstallStatus = smoke.Ok
                 ? L.F("Engine_Installed", install.DisplayName)
                 : L.F("Engine_InstalledButBroken", L.Get("Enum_EngineHealth_" + smoke.Health));
+            return smoke.Ok;
         }
         catch (OperationCanceledException)
         {
@@ -288,9 +412,11 @@ public sealed partial class EngineViewModel : PageViewModel
         finally
         {
             IsInstalling = false;
-            _installCts.Dispose();
+            UpdateEngineCommand.NotifyCanExecuteChanged();
+            _installCts?.Dispose();
             _installCts = null;
         }
+        return false;
     }
 
     [RelayCommand]

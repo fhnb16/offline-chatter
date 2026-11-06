@@ -175,16 +175,31 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <Border DockPanel.Dock="Left" Style="{StaticResource StatusPill}" Margin="10,0,0,0">
+            <Border DockPanel.Dock="Left" Style="{StaticResource StatusPill}" Margin="10,0,0,0"
+                    Visibility="{Binding IsCompact, Converter={StaticResource InverseBoolToVisibility}}">
                 <TextBlock Text="{Binding EngineStatus}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
             </Border>
-            <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding ToggleInspectorCommand}" ToolTip="{l:Loc Chat_ToggleInspector}">
+            <!-- Компактный режим: вместо боковой панели — только «Настройки» и «Новый чат» -->
+            <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" ToolTip="{l:Loc Nav_Settings}"
+                    Command="{Binding DataContext.OpenSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    Visibility="{Binding IsCompact, Converter={StaticResource BoolToVisibility}}">
+                <Path Data="{StaticResource IconSettings}" Style="{StaticResource IconPath}" />
+            </Button>
+            <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" ToolTip="{l:Loc Chat_New}"
+                    Command="{Binding DataContext.NewChatCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    Visibility="{Binding IsCompact, Converter={StaticResource BoolToVisibility}}">
+                <Path Data="{StaticResource IconPlus}" Style="{StaticResource IconPath}" />
+            </Button>
+            <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding ToggleInspectorCommand}" ToolTip="{l:Loc Chat_ToggleInspector}"
+                    Visibility="{Binding IsCompact, Converter={StaticResource InverseBoolToVisibility}}">
                 <Path Data="{StaticResource IconPanel}" Style="{StaticResource IconPath}" />
             </Button>
-            <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding PrintCommand}" ToolTip="{l:Loc Export_Print}">
+            <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding PrintCommand}" ToolTip="{l:Loc Export_Print}"
+                    Visibility="{Binding IsCompact, Converter={StaticResource InverseBoolToVisibility}}">
                 <Path Data="M4,6 V2.5 H12 V6 M4,11.5 H2.5 V6 H13.5 V11.5 H12 M4,9 H12 V14 H4 Z" Style="{StaticResource IconPath}" />
             </Button>
-            <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding ExportChatCommand}" ToolTip="{l:Loc Export_Chat}">
+            <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding ExportChatCommand}" ToolTip="{l:Loc Export_Chat}"
+                    Visibility="{Binding IsCompact, Converter={StaticResource InverseBoolToVisibility}}">
                 <Path Data="{StaticResource IconExport}" Style="{StaticResource IconPath}" />
             </Button>
         </DockPanel>
@@ -276,7 +291,7 @@
 
         <!-- Правая панель: параметры беседы -->
         <Border x:Name="Inspector" Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" Width="300" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1,0,0,0"
-                Visibility="{Binding IsInspectorVisible, Converter={StaticResource BoolToVisibility}}">
+                Visibility="{Binding ShowInspector, Converter={StaticResource BoolToVisibility}}">
             <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16,12,16,16">
                 <StackPanel>
                     <TextBlock Text="{l:Loc Inspector_Title}" Style="{StaticResource SubtitleText}" />

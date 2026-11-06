@@ -124,6 +124,26 @@ public sealed partial class DataViewModel : ObservableObject
         App.Restart();
     }
 
+    /// <summary>Программа уже в %LOCALAPPDATA%\Programs\OfflineChatter.</summary>
+    public bool CanRelocate => !Shell.Relocation.IsInStandardLocation;
+
+    public string RelocateHint => L.F("Move_Hint", Shell.Relocation.Target);
+
+    [RelayCommand]
+    private async Task RelocateAsync()
+    {
+        if (MessageBox.Show(L.F("Move_Confirm", Shell.Relocation.ExeDir, Shell.Relocation.Target), "Offline Chatter",
+                MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) return;
+        await Shell.Relocation.MoveAsync(_s);
+    }
+
+    [RelayCommand]
+    private void CreateShortcut()
+    {
+        Shell.Relocation.CreateStartMenuShortcut(App.ExePath);
+        Status = L.Get("Move_ShortcutDone");
+    }
+
     [RelayCommand]
     private void OpenDataFolder() => SettingsViewModel.OpenFolder(_s.Paths.Root);
 

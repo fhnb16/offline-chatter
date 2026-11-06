@@ -41,6 +41,7 @@ public sealed partial class MainViewModel : ObservableObject
         Register(new CompareViewModel(services, this));
 
         services.UpdateFound += (_, _) => System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() => OnPropertyChanged(nameof(UpdateBadge))));
+        services.EngineUpdateChanged += (_, _) => System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() => OnPropertyChanged(nameof(EngineUpdateBadge))));
 
         Chat.PropertyChanged += (_, e) =>
         {
@@ -50,6 +51,7 @@ public sealed partial class MainViewModel : ObservableObject
         };
 
         _currentPage = Chat;
+        Chat.IsCompact = IsCompact;
     }
 
     public AppServices Services { get; }
@@ -67,6 +69,61 @@ public sealed partial class MainViewModel : ObservableObject
 
     /// <summary>Текст значка «есть обновление» в боковой панели.</summary>
     public string? UpdateBadge => Services.PendingUpdate is { } u ? Localization.L.F("Update_Available", u.LatestTag) : null;
+
+    /// <summary>Текст значка «есть новая сборка llama.cpp».</summary>
+    public string? EngineUpdateBadge => Services.PendingEngineUpdate is { } u ? Localization.L.F("Engine_UpdateBadge", u.Tag) : null;
+
+    [RelayCommand]
+    private void OpenEngineUpdate() => Navigate(PageKind.Engine);
+
+    // ---------- Боковая панель ----------
+
+    /// <summary>Боковая панель свёрнута до колонки иконок (подписи — во всплывающих подсказках).</summary>
+    public bool IsSidebarCollapsed
+    {
+        get => Services.Settings.Current.Window.SidebarCollapsed;
+        set
+        {
+            if (Services.Settings.Current.Window.SidebarCollapsed == value) return;
+            Services.Settings.Current.Window.SidebarCollapsed = value;
+            Services.Settings.Save();
+            OnPropertyChanged();
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleSidebar() => IsSidebarCollapsed = !IsSidebarCollapsed;
+
+    // ---------- Компактный режим ----------
+
+    /// <summary>Только чат и кнопка настроек: боковая панель, правая панель и лишние кнопки скрыты.</summary>
+    public bool IsCompact
+    {
+        get => Services.Settings.Current.Window.CompactMode;
+        set
+        {
+            if (Services.Settings.Current.Window.CompactMode == value) return;
+            Services.Settings.Current.Window.CompactMode = value;
+            Services.Settings.Save();
+            Chat.IsCompact = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ShowBackToChat));
+        }
+    }
+
+    /// <summary>В компактном режиме на страницах кроме чата нужна дорога обратно.</summary>
+    public bool ShowBackToChat => IsCompact && CurrentPage is not ChatPageViewModel;
+
+    partial void OnCurrentPageChanged(PageViewModel value) => OnPropertyChanged(nameof(ShowBackToChat));
+
+    [RelayCommand]
+    private void ToggleCompact() => IsCompact = !IsCompact;
+
+    [RelayCommand]
+    private void OpenSettings() => Navigate(PageKind.Settings);
+
+    [RelayCommand]
+    private void BackToChat() => Navigate(PageKind.Chat);
 
     public bool IsOffline => Services.Settings.Current.Network.OfflineMode;
 

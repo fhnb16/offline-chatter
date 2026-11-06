@@ -608,4 +608,51 @@
   <data name="Models_Readme" xml:space="preserve"><value>Карточка модели (README)</value></data>
   <data name="Bench_FlashAttention" xml:space="preserve"><value>Flash Attention</value></data>
   <data name="Chat_InputPlaceholderCtrl" xml:space="preserve"><value>Сообщение… (Ctrl+Enter — отправить)</value></data>
+  <data name="Engine_UpdateBadge" xml:space="preserve"><value>Доступна llama.cpp {0}</value></data>
+  <data name="Engine_UpdateTitle" xml:space="preserve"><value>Новая сборка llama.cpp</value></data>
+  <data name="Engine_UpdateText" xml:space="preserve"><value>Сейчас: {0}. Доступна: {1}, {2}, {3}. Текущая сборка останется установленной, пока вы не очистите старые</value></data>
+  <data name="Engine_UpdateInstall" xml:space="preserve"><value>Скачать и переключиться</value></data>
+  <data name="Engine_UpdateSkip" xml:space="preserve"><value>Пропустить эту версию</value></data>
+  <data name="Engine_UpdateSkipped" xml:space="preserve"><value>Версия {0} пропущена. Будут предлагаться только более новые</value></data>
+  <data name="Engine_UpToDate" xml:space="preserve"><value>Активный движок — последней версии</value></data>
+  <data name="Engine_UpdateNotApplicable" xml:space="preserve"><value>Обновления проверяются только для скачанных движков, не для своих папок</value></data>
+  <data name="Engine_CheckUpdate" xml:space="preserve"><value>Проверить обновления</value></data>
+  <data name="Engine_CheckUpdatesOnStart" xml:space="preserve"><value>Проверять новые сборки llama.cpp при запуске</value></data>
+  <data name="Engine_Cleanup" xml:space="preserve"><value>Очистить старые сборки</value></data>
+  <data name="Engine_CleanupHint" xml:space="preserve"><value>Остаются две последние скачанные сборки и активная. Свои папки не затрагиваются</value></data>
+  <data name="Engine_CleanupConfirm" xml:space="preserve"><value>Удалить старые сборки: {0} ({1})?
+
+{2}
+
+Две последние сборки и активная останутся</value></data>
+  <data name="Engine_CleanupDone" xml:space="preserve"><value>Удалено сборок: {0}, освобождено {1}</value></data>
+  <data name="Compact_BackToChat" xml:space="preserve"><value>К чату</value></data>
+  <data name="Compact_Exit" xml:space="preserve"><value>Выйти из компактного режима</value></data>
+  <data name="Sidebar_Expand" xml:space="preserve"><value>Развернуть панель (Ctrl+B)</value></data>
+  <data name="Sidebar_Collapse" xml:space="preserve"><value>Свернуть до иконок (Ctrl+B)</value></data>
+  <data name="Settings_Layout" xml:space="preserve"><value>Компоновка</value></data>
+  <data name="Settings_Compact" xml:space="preserve"><value>Компактный режим</value></data>
+  <data name="Settings_CompactHint" xml:space="preserve"><value>Только чат с кнопками «Новый чат» и «Настройки». Чаты переключаются через Ctrl+K. Ctrl+Shift+M — включить или выключить</value></data>
+  <data name="Settings_SidebarCollapsed" xml:space="preserve"><value>Свернуть боковую панель до иконок</value></data>
+  <data name="Settings_SidebarCollapsedHint" xml:space="preserve"><value>Названия появляются при наведении. Ctrl+B — свернуть или развернуть</value></data>
+  <data name="Move_Offer" xml:space="preserve"><value>Offline Chatter запущен из папки {0}.
+
+Перенести его в {1} и добавить в меню «Пуск»? Настройки, чаты и модели скопируются вместе с ним.
+
+Да — перенести. Нет — оставить здесь и больше не спрашивать. Отмена — спросить в следующий раз</value></data>
+  <data name="Move_OfferTemp" xml:space="preserve"><value>Offline Chatter запущен прямо из архива (временная папка {0}). Всё, что он скачает сюда, пропадёт, когда архиватор закроется.
+
+Перенести его в {1} и добавить в меню «Пуск»?
+
+Да — перенести. Нет — оставить здесь и больше не спрашивать. Отмена — спросить в следующий раз</value></data>
+  <data name="Move_Done" xml:space="preserve"><value>Программа скопирована в {0} и добавлена в меню «Пуск». Сейчас она перезапустится оттуда.
+
+Старую папку можно удалить: {1}</value></data>
+  <data name="Move_Failed" xml:space="preserve"><value>Не удалось перенести программу: {0}</value></data>
+  <data name="Move_Title" xml:space="preserve"><value>Расположение программы</value></data>
+  <data name="Move_Hint" xml:space="preserve"><value>Стандартное место для программы без прав администратора — {0} (туда же ставит установщик)</value></data>
+  <data name="Move_Button" xml:space="preserve"><value>Перенести в стандартную папку</value></data>
+  <data name="Move_Shortcut" xml:space="preserve"><value>Добавить в меню «Пуск»</value></data>
+  <data name="Move_ShortcutDone" xml:space="preserve"><value>Ярлык добавлен в меню «Пуск»</value></data>
+  <data name="Move_Confirm" xml:space="preserve"><value>Скопировать программу с настройками, чатами и моделями из {0} в {1} и перезапустить её оттуда?</value></data>
 </root>
