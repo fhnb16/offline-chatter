@@ -654,3 +654,7 @@ Move_Button	Move to the standard folder	Перенести в стандартн
 Move_Shortcut	Add to the Start menu	Добавить в меню «Пуск»
 Move_ShortcutDone	Shortcut added to the Start menu	Ярлык добавлен в меню «Пуск»
 Move_Confirm	Copy the program with settings, chats and models from {0} to {1} and restart from there?	Скопировать программу с настройками, чатами и моделями из {0} в {1} и перезапустить её оттуда?
+Update_NoWriteAccess	Offline Chatter is installed in {0}, which needs administrator rights to change.\n\nYes — download {1} and install it with administrator rights (Windows will ask for permission; the program restarts by itself).\nNo — open the release page and download it manually.\nCancel — not now	Offline Chatter установлен в {0}, а изменять эту папку можно только с правами администратора.\n\nДа — скачать {1} и установить с правами администратора (Windows спросит разрешение, программа перезапустится сама).\nНет — открыть страницу релиза и скачать вручную.\nОтмена — не сейчас
+Update_ManualHint	Download the installer or the archive from the release page and replace the program	Скачайте установщик или архив со страницы релиза и замените программу
+Update_ElevationCancelled	Administrator rights were not granted. The update is downloaded — try again or install it manually	Права администратора не получены. Обновление скачано — повторите попытку или установите вручную
+Update_DoneStartManually	The update is installed. Start Offline Chatter again	Обновление установлено. Запустите Offline Chatter снова

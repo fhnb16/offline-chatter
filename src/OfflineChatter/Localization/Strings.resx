@@ -655,4 +655,12 @@ The old folder can be deleted: {1}</value></data>
   <data name="Move_Shortcut" xml:space="preserve"><value>Add to the Start menu</value></data>
   <data name="Move_ShortcutDone" xml:space="preserve"><value>Shortcut added to the Start menu</value></data>
   <data name="Move_Confirm" xml:space="preserve"><value>Copy the program with settings, chats and models from {0} to {1} and restart from there?</value></data>
+  <data name="Update_NoWriteAccess" xml:space="preserve"><value>Offline Chatter is installed in {0}, which needs administrator rights to change.
+
+Yes — download {1} and install it with administrator rights (Windows will ask for permission; the program restarts by itself).
+No — open the release page and download it manually.
+Cancel — not now</value></data>
+  <data name="Update_ManualHint" xml:space="preserve"><value>Download the installer or the archive from the release page and replace the program</value></data>
+  <data name="Update_ElevationCancelled" xml:space="preserve"><value>Administrator rights were not granted. The update is downloaded — try again or install it manually</value></data>
+  <data name="Update_DoneStartManually" xml:space="preserve"><value>The update is installed. Start Offline Chatter again</value></data>
 </root>

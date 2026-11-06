@@ -18,6 +18,9 @@ public static class InstallLocation
     /// <summary>Папки данных, которые переносятся вместе с программой (логи и кэш создаются заново).</summary>
     public static readonly IReadOnlyList<string> DataFolders = new[] { "config", "chats", "models", "engine", "reports" };
 
+    /// <summary>Можно ли писать в папку (Program Files без прав администратора — нельзя).</summary>
+    public static bool CanWriteTo(string dir) => AppPaths.CanWrite(dir);
+
     public static string DefaultTarget(string? localAppData = null) =>
         Path.Combine(localAppData ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", ProgramFolderName);
 

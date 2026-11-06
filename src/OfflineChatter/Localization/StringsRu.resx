@@ -655,4 +655,12 @@
   <data name="Move_Shortcut" xml:space="preserve"><value>Добавить в меню «Пуск»</value></data>
   <data name="Move_ShortcutDone" xml:space="preserve"><value>Ярлык добавлен в меню «Пуск»</value></data>
   <data name="Move_Confirm" xml:space="preserve"><value>Скопировать программу с настройками, чатами и моделями из {0} в {1} и перезапустить её оттуда?</value></data>
+  <data name="Update_NoWriteAccess" xml:space="preserve"><value>Offline Chatter установлен в {0}, а изменять эту папку можно только с правами администратора.
+
+Да — скачать {1} и установить с правами администратора (Windows спросит разрешение, программа перезапустится сама).
+Нет — открыть страницу релиза и скачать вручную.
+Отмена — не сейчас</value></data>
+  <data name="Update_ManualHint" xml:space="preserve"><value>Скачайте установщик или архив со страницы релиза и замените программу</value></data>
+  <data name="Update_ElevationCancelled" xml:space="preserve"><value>Права администратора не получены. Обновление скачано — повторите попытку или установите вручную</value></data>
+  <data name="Update_DoneStartManually" xml:space="preserve"><value>Обновление установлено. Запустите Offline Chatter снова</value></data>
 </root>

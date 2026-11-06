@@ -39,6 +39,14 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Повышенный процесс обновления (Program Files): подменить exe и выйти, без окон и без единственного экземпляра
+        if (e.Args.Length > 0 && e.Args[0] == ElevatedUpdate.Switch)
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            Shutdown(ElevatedUpdate.Run(e.Args));
+            return;
+        }
+
         // Один экземпляр на папку: повторный запуск передаёт аргументы работающему окну
         _single = SingleInstance.TryStart(e.Args);
         if (_single == null)

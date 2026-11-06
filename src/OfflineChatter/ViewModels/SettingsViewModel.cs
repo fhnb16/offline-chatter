@@ -321,11 +321,41 @@ public sealed partial class SettingsViewModel : PageViewModel
     private async Task InstallUpdateAsync()
     {
         if (Update == null) return;
+
+        // Программа стоит в Program Files (или другой защищённой папке): либо права администратора, либо вручную
+        var exeDir = System.IO.Path.GetDirectoryName(App.ExePath)!;
+        var elevate = false;
+        if (!Core.Storage.InstallLocation.CanWriteTo(exeDir))
+        {
+            var answer = System.Windows.MessageBox.Show(L.F("Update_NoWriteAccess", exeDir, Update.LatestTag), "Offline Chatter",
+                System.Windows.MessageBoxButton.YesNoCancel, System.Windows.MessageBoxImage.Question);
+            if (answer == System.Windows.MessageBoxResult.Cancel) return;
+            if (answer == System.Windows.MessageBoxResult.No)
+            {
+                EngineViewModel.OpenUrl(Update.PageUrl);
+                UpdateStatus = L.Get("Update_ManualHint");
+                return;
+            }
+            elevate = true;
+        }
+
         IsUpdating = true;
         UpdateStatus = L.F("Update_Downloading", Update.LatestTag);
         try
         {
             var (exe, config) = await UpdateChecker.DownloadAsync(_services.Downloads, Update, _services.Paths.Cache, _services.Releases.MirrorUrl);
+            if (elevate)
+            {
+                _services.Engine.Server.Stop();
+                _services.Settings.Save();
+                if (Shell.ElevatedUpdate.TryStart(App.ExePath, exe, config))
+                {
+                    System.Windows.Application.Current.Shutdown();
+                    return;
+                }
+                UpdateStatus = L.Get("Update_ElevationCancelled");
+                return;
+            }
             UpdateChecker.Swap(App.ExePath, exe, config);
             App.Restart("--page Settings");
         }
