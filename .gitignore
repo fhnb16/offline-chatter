@@ -1,0 +1,81 @@
+# ---------- Build output ----------
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]64/
+[Ll]og/
+artifacts/
+publish/
+*.nupkg
+*.snupkg
+packages/
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+
+# Costura / Fody
+FodyWeavers.xsd
+
+# ---------- IDE ----------
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.DotSettings.user
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# ---------- Tests / coverage ----------
+TestResults/
+[Tt]est[Rr]esult*/
+coverage*.json
+coverage*.xml
+*.coverage
+*.trx
+
+# ---------- OS ----------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# ---------- Runtime data (лежит рядом с exe, в репозиторий не попадает) ----------
+engine/
+models/
+chats/
+logs/
+reports/
+cache/
+config/
+!src/**/config/
+portable.flag
+
+# Скачивание и временные файлы
+*.part
+*.tmp
+*.bak
+
+# Секреты
+*.secret
+*.secret.json
+secrets.json
+*.pfx
+*.snk
+.env
+.env.*
+
+# Дампы
+*.dmp
+crash-*.log
