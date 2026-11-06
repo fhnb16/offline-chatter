@@ -28,6 +28,7 @@ public sealed partial class LocalApiViewModel : ObservableObject
     {
         _s = services;
         _e = services.Settings.Current.Engine;
+        services.EnsureApiKey();
         _exposeApi = _e.ExposeApi;
         _port = (_e.Port > 0 ? _e.Port : DefaultPort).ToString(System.Globalization.CultureInfo.InvariantCulture);
         _allowLan = _e.AllowLan;
@@ -55,8 +56,31 @@ public sealed partial class LocalApiViewModel : ObservableObject
     /// <summary>Адрес для других устройств в сети (первый IPv4 активного адаптера с шлюзом).</summary>
     public string? LanUrl => AllowLan && LanAddress() is { } ip ? $"http://{ip}:{PortValue}/v1" : null;
 
+    /// <summary>
+    /// Идентификатор модели для клиентов: так её отдаёт /v1/models и так её указывают в поле "model".
+    /// Это имя файла GGUF без расширения (--alias); при смене модели сервер перезапускается с новым именем.
+    /// </summary>
+    public string ModelId
+    {
+        get
+        {
+            var srv = _s.Engine.Server;
+            if (srv.State == ServerState.Ready && !string.IsNullOrEmpty(srv.Options?.Alias)) return srv.Options!.Alias!;
+            return _s.ActiveModel is { } m ? System.IO.Path.GetFileNameWithoutExtension(m.Path) : "—";
+        }
+    }
+
     public string Example =>
-        $"curl {LocalUrl}/chat/completions -H \"Authorization: Bearer {(ApiKey.Length > 0 ? "<key>" : "-")}\" -H \"Content-Type: application/json\" -d \"{{\\\"messages\\\":[{{\\\"role\\\":\\\"user\\\",\\\"content\\\":\\\"Hi\\\"}}]}}\"";
+        $"curl {LocalUrl}/chat/completions -H \"Authorization: Bearer {(ApiKey.Length > 0 ? "<key>" : "-")}\" -H \"Content-Type: application/json\" -d \"{{\\\"model\\\":\\\"{ModelId}\\\",\\\"messages\\\":[{{\\\"role\\\":\\\"user\\\",\\\"content\\\":\\\"Hi\\\"}}]}}\"";
+
+    /// <summary>Список моделей (текущая модель сервера). Как и остальные пути, требует ключ.</summary>
+    public string ModelsExample => $"curl {LocalUrl}/models -H \"Authorization: Bearer {(ApiKey.Length > 0 ? "<key>" : "-")}\"";
+
+    [RelayCommand]
+    private void CopyModelId() => Copy(ModelId);
+
+    [RelayCommand]
+    private void CopyModelsExample() => Copy(ModelsExample.Replace("<key>", ApiKey));
 
     public string ServerStatus
     {
@@ -78,6 +102,9 @@ public sealed partial class LocalApiViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(ServerStatus));
         OnPropertyChanged(nameof(ModelHint));
+        OnPropertyChanged(nameof(ModelId));
+        OnPropertyChanged(nameof(Example));
+        OnPropertyChanged(nameof(ModelsExample));
     }
 
     partial void OnExposeApiChanged(bool value)
@@ -93,7 +120,15 @@ public sealed partial class LocalApiViewModel : ObservableObject
 
     partial void OnPortChanged(string value) => Commit();
     partial void OnAllowLanChanged(bool value) => Commit();
-    partial void OnApiKeyChanged(string value) => Commit();
+    partial void OnApiKeyChanged(string value)
+    {
+        if (ExposeApi && string.IsNullOrWhiteSpace(value))
+        {
+            ApiKey = EngineProcess.NewKey();
+            return;
+        }
+        Commit();
+    }
     partial void OnIsKeyVisibleChanged(bool value) => OnPropertyChanged(nameof(DisplayKey));
 
     private void Commit()
@@ -106,7 +141,6 @@ public sealed partial class LocalApiViewModel : ObservableObject
         OnPropertyChanged(nameof(DisplayKey));
         OnPropertyChanged(nameof(LocalUrl));
         OnPropertyChanged(nameof(LanUrl));
-        OnPropertyChanged(nameof(Example));
         RaiseStatus();
     }
 

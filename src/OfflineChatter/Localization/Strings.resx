@@ -671,4 +671,7 @@ Cancel — not now</value></data>
   <data name="Appearance_MfeText" xml:space="preserve"><value>It applies its own title bar and backdrop to every window on each event, while Offline Chatter restores the chosen theme — so the window flickers and can become dark in the light theme. Add an exception for Offline Chatter (the same kind as for Notepad in its default settings); a backup of its rules is saved next to them</value></data>
   <data name="Appearance_MfeAdd" xml:space="preserve"><value>Add an exception for Offline Chatter</value></data>
   <data name="Appearance_MfeAdded" xml:space="preserve"><value>Exception added. Restart Mica For Everyone so it reads the new rule</value></data>
+  <data name="Api_ModelId" xml:space="preserve"><value>Model for clients (the &quot;model&quot; field)</value></data>
+  <data name="Api_ModelIdHint" xml:space="preserve"><value>The same name is returned by /v1/models. It changes when you pick another model in the chat — the server restarts with it</value></data>
+  <data name="Api_ModelsExample" xml:space="preserve"><value>List of models (needs the key like every other path)</value></data>
 </root>

@@ -488,6 +488,25 @@
                                              Visibility="{Binding LanUrl, Converter={StaticResource NullToCollapsed}}" />
                                 </StackPanel>
                             </DockPanel>
+                            <TextBlock Text="{l:Loc Api_ModelId}" Style="{StaticResource CaptionText}" Margin="0,12,0,4" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Command="{Binding CopyModelIdCommand}" ToolTip="{l:Loc Api_Copy}">
+                                    <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
+                                </Button>
+                                <TextBox Text="{Binding ModelId, Mode=OneWay}" IsReadOnly="True" FontFamily="{DynamicResource MonoFontFamily}" />
+                            </DockPanel>
+                            <TextBlock Text="{l:Loc Api_ModelIdHint}" Style="{StaticResource CaptionText}" Margin="0,4,0,0" />
+                            <TextBlock Text="{l:Loc Api_ModelsExample}" Style="{StaticResource CaptionText}" Margin="0,12,0,4" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Command="{Binding CopyModelsExampleCommand}" ToolTip="{l:Loc Api_Copy}"
+                                        VerticalAlignment="Top">
+                                    <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
+                                </Button>
+                                <Border Background="{DynamicResource CodeBackgroundBrush}" CornerRadius="6" Padding="10,8">
+                                    <TextBlock Text="{Binding ModelsExample}" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" TextWrapping="Wrap"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                                </Border>
+                            </DockPanel>
                             <TextBlock Text="{l:Loc Api_Example}" Style="{StaticResource CaptionText}" Margin="0,12,0,4" />
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Command="{Binding CopyExampleCommand}" ToolTip="{l:Loc Api_Copy}"

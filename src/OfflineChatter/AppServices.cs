@@ -143,8 +143,22 @@ public sealed class AppServices : IDisposable
     }
 
     /// <summary>Публичный API включён — поднять сервер с активной моделью (при запуске программы и по кнопке).</summary>
+    /// <summary>
+    /// Публичному API нужен постоянный ключ: без него сервер получал бы случайный ключ при каждом запуске,
+    /// и сторонний клиент не смог бы подключиться. Если ключа нет (включили правкой файла, очистили поле) — создаём.
+    /// </summary>
+    public void EnsureApiKey()
+    {
+        var e = Settings.Current.Engine;
+        if (!e.ExposeApi || Secrets.UnprotectOrEmpty(e.ApiKeyProtected).Length > 0) return;
+        e.ApiKeyProtected = Secrets.Protect(EngineProcess.NewKey());
+        Settings.Save();
+        Log.Info("Engine", "Public API key generated");
+    }
+
     public async System.Threading.Tasks.Task<string?> StartPublicApiAsync(System.Threading.CancellationToken ct)
     {
+        EnsureApiKey();
         var model = ActiveModel;
         if (model == null) return Localization.L.Get("Chat_NoModel");
         if (Engine.Registry.Active == null) return Localization.L.Get("Chat_NoEngine");
