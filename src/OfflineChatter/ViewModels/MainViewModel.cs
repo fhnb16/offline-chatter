@@ -76,6 +76,10 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void OpenEngineUpdate() => Navigate(PageKind.Engine);
 
+    /// <summary>Загрузки показываются наверху раздела «Модели».</summary>
+    [RelayCommand]
+    private void OpenDownloads() => Navigate(PageKind.Models);
+
     // ---------- Боковая панель ----------
 
     /// <summary>Боковая панель свёрнута до колонки иконок (подписи — во всплывающих подсказках).</summary>

@@ -118,9 +118,9 @@ internal static class WindowBackdrop
     }
 
     /// <summary>
-    /// Сверка фактических атрибутов DWM с темой. Windows 11 25H2 сама выставляет окну «системные» тёмный заголовок
-    /// и подложку (Mica Alt) при первом показе и после смены шаблона окна (это происходит при смене скина WPF),
-    /// уже после нашего применения. Возвращает true, если пришлось применить заново.
+    /// Сверка фактических атрибутов DWM с темой: их может переписать система или сторонняя утилита
+    /// (Mica For Everyone ставит всем окнам свой заголовок и подложку при показе, смене шаблона, событиях окна).
+    /// Возвращает true, если пришлось применить заново.
     /// </summary>
     public static bool Verify(IntPtr hwnd, ResolvedTheme theme, bool extendedChrome)
     {
@@ -142,6 +142,27 @@ internal static class WindowBackdrop
         }
     }
 
+    /// <summary>
+    /// Быстрое исправление без сброса подложки (без мигания): вернуть тёмный режим и тип подложки, если их переписали
+    /// извне (утилиты вроде Mica For Everyone делают это сразу после запроса заголовка окна — WM_GETTEXT).
+    /// </summary>
+    public static void QuickFix(IntPtr hwnd, ResolvedTheme theme)
+    {
+        if (!OsInfo.SupportsImmersiveDarkMode) return;
+        try
+        {
+            var darkAttr = OsInfo.Build >= 18985 ? DwmApi.DWMWA_USE_IMMERSIVE_DARK_MODE : DwmApi.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1;
+            if (DwmApi.DwmGetWindowAttributeInt(hwnd, darkAttr, out var dark, sizeof(int)) == 0 && (dark != 0) != theme.IsDark)
+                SetAttr(hwnd, darkAttr, theme.IsDark ? 1 : 0);
+            if (OsInfo.SupportsSystemBackdrop && DwmApi.DwmGetWindowAttributeInt(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE, out var type, sizeof(int)) == 0)
+            {
+                var expected = ExpectedSystemBackdrop(theme);
+                if (type != expected) SetAttr(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE, expected);
+            }
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException) { }
+    }
+
     /// <summary>Какое значение DWMWA_SYSTEMBACKDROP_TYPE должно стоять для темы (Win11 22H2+).</summary>
     private static int ExpectedSystemBackdrop(ResolvedTheme theme) => theme.Backdrop switch
     {
@@ -150,6 +171,24 @@ internal static class WindowBackdrop
         BackdropKind.Acrylic => DwmApi.DWMSBT_TRANSIENTWINDOW,
         _ => DwmApi.DWMSBT_NONE,
     };
+
+    /// <summary>
+    /// Сообщить Windows тему приложения (светлая или тёмная), чтобы система не перекрашивала окна по теме ОС.
+    /// Win10 1903+; на старых системах ничего не делает.
+    /// </summary>
+    public static void SetAppMode(bool dark)
+    {
+        if (!OsInfo.IsWin10OrNewer || OsInfo.Build < 18362) return;
+        try
+        {
+            UxThemeDark.SetPreferredAppMode(dark ? UxThemeDark.AppModeForceDark : UxThemeDark.AppModeForceLight);
+            UxThemeDark.FlushMenuThemes();
+        }
+        catch (Exception ex) when (ex is EntryPointNotFoundException or DllNotFoundException)
+        {
+            Log.Debug("Theme", "SetPreferredAppMode is not available: " + ex.Message);
+        }
+    }
 
     /// <summary>Окно закрыто — забываем его состояние.</summary>
     public static void Forget(IntPtr hwnd) => Applied.Remove(hwnd);

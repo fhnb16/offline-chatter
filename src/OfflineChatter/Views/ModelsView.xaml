@@ -17,6 +17,9 @@
         <StackPanel Margin="24,20,24,32">
             <TextBlock Text="{l:Loc Nav_Models}" Style="{StaticResource PageTitleText}" />
 
+            <!-- Загрузки — наверху: раньше список был в самом низу страницы, и прогресса не было видно -->
+            <views:DownloadsView DataContext="{Binding Downloads}" Margin="0,0,0,16" />
+
             <!-- ===== Мои модели ===== -->
             <c:AdaptiveRow Margin="0,0,0,8" Breakpoint="640">
                 <TextBlock Text="{l:Loc Models_Mine}" Style="{StaticResource SubtitleText}" />
@@ -106,18 +109,12 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Grid>
-                    <TextBox x:Name="Query" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="30,5,9,5">
-                        <TextBox.InputBindings>
-                            <KeyBinding Key="Enter" Command="{Binding SearchCommand}" />
-                        </TextBox.InputBindings>
-                    </TextBox>
-                    <Path Data="{StaticResource IconSearch}" Style="{StaticResource IconPath}" Margin="9,0,0,0" HorizontalAlignment="Left"
-                          IsHitTestVisible="False" TextElement.Foreground="{DynamicResource TextTertiaryBrush}" />
-                    <TextBlock Text="{l:Loc Models_SearchHint}" Margin="31,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
-                               Foreground="{DynamicResource TextTertiaryBrush}"
-                               Visibility="{Binding Text, ElementName=Query, Converter={StaticResource EmptyToVisible}}" />
-                </Grid>
+                <TextBox x:Name="Query" Style="{StaticResource SearchBox}" Tag="{l:Loc Models_SearchHint}"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding SearchCommand}" />
+                    </TextBox.InputBindings>
+                </TextBox>
                 <ComboBox Grid.Column="1" MinWidth="150" Margin="8,0,0,0" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding Sort}"
                           ItemTemplate="{StaticResource EnumItemTemplate}" />
                 <Button Grid.Column="2" Margin="8,0,0,0" Command="{Binding SearchCommand}" Content="{l:Loc Models_Search}" />
@@ -206,12 +203,33 @@
                                 <TextBlock Text="{Binding MmprojInfo}" TextWrapping="Wrap" />
                             </CheckBox>
 
-                            <Button Style="{DynamicResource AccentButtonStyle}" Command="{Binding DownloadCommand}" HorizontalAlignment="Left" Margin="0,12,0,0">
+                            <Button Style="{DynamicResource AccentButtonStyle}" Command="{Binding DownloadCommand}" HorizontalAlignment="Left" Margin="0,12,0,0"
+                                    AutomationProperties.Name="{l:Loc Models_Download}">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource IconDownload}" Style="{StaticResource IconPath}" />
                                     <TextBlock Text="{l:Loc Models_Download}" Margin="8,0,0,0" VerticalAlignment="Center" />
                                 </StackPanel>
                             </Button>
+
+                            <!-- Ход загрузки этой модели: все шарды и mmproj одной полосой -->
+                            <StackPanel Margin="0,12,0,0" Visibility="{Binding SelectedDownload, Converter={StaticResource NullToCollapsed}}">
+                                <ProgressBar Value="{Binding SelectedDownload.Percent, Mode=OneWay}" Maximum="100" Height="6"
+                                             IsIndeterminate="{Binding SelectedDownload.Indeterminate, Mode=OneWay, FallbackValue=False}" />
+                                <DockPanel Margin="0,6,0,0">
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="8,0,0,0"
+                                                Visibility="{Binding IsSelectedDownloading, Converter={StaticResource BoolToVisibility}}">
+                                        <Button Style="{StaticResource IconButton}" Command="{Binding PauseSelectedDownloadCommand}" ToolTip="{l:Loc Download_PauseResume}">
+                                            <Path Data="M5,3 V13 M11,3 V13" Style="{StaticResource IconPath}" />
+                                        </Button>
+                                        <Button Style="{StaticResource IconButton}" Command="{Binding CancelSelectedDownloadCommand}" ToolTip="{l:Loc Common_Cancel}">
+                                            <Path Data="{StaticResource IconClose}" Style="{StaticResource IconPath}" />
+                                        </Button>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding SelectedDownload.Text}" Style="{StaticResource StatText}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <TextBlock Text="{Binding SelectedDownload.Error}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
+                                           Visibility="{Binding SelectedDownload.Error, Converter={StaticResource NullToCollapsed}, FallbackValue=Collapsed}" Margin="0,4,0,0" />
+                            </StackPanel>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -250,7 +268,6 @@
                 </c:AdaptiveRow>
             </Border>
 
-            <views:DownloadsView DataContext="{Binding Downloads}" Margin="0,16,0,0" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>

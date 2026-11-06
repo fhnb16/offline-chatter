@@ -89,6 +89,8 @@ public static class ThemeManager
     /// </summary>
     private static void ScheduleVerify()
     {
+        // Первая сверка — сразу после ближайшей отрисовки (смена шаблона окна уже прошла), без заметной вспышки
+        Application.Current?.Dispatcher.BeginInvoke(new Action(VerifyAll), DispatcherPriority.ContextIdle);
         _verifyRounds = 0;
         if (_verifyTimer == null)
         {
@@ -132,6 +134,9 @@ public static class ThemeManager
 
         var skinChanged = Current == null || Current.Skin != resolved.Skin || Current.HighContrast != resolved.HighContrast;
         Current = resolved;
+
+        // До применения к окнам: тема приложения для Windows (иначе Win11 25H2 перекрашивает окна по теме ОС)
+        WindowBackdrop.SetAppMode(resolved.IsDark);
 
         if (skinChanged) ApplySkin(app, resolved);
 
@@ -344,10 +349,30 @@ public static class ThemeManager
 
     // ---------------- Системные события ----------------
 
+    private static readonly HashSet<IntPtr> QuickFixQueued = new();
+
+    private static void QueueQuickFix(IntPtr hwnd)
+    {
+        if (!QuickFixQueued.Add(hwnd)) return; // запросы заголовка идут пачками — одной правки достаточно
+        Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+        {
+            QuickFixQueued.Remove(hwnd);
+            if (Current != null) WindowBackdrop.QuickFix(hwnd, Current);
+        }), DispatcherPriority.Send);
+    }
+
     private static IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         switch (msg)
         {
+            // Утилиты вроде Mica For Everyone следят за окнами (запрашивают заголовок — WM_GETTEXT) и сразу после этого
+            // ставят свои тёмный режим и подложку. Исправляем сразу после выхода из сообщения, с наивысшим приоритетом
+            // диспетчера и без сброса подложки. Полностью убирает моргание только исключение в самой утилите
+            // (настройки → «Оформление» предлагают его добавить).
+            case User32.WM_GETTEXT when Current != null && OsInfo.IsWin11OrNewer:
+                QueueQuickFix(hwnd);
+                break;
+
             case User32.WM_DWMCOMPOSITIONCHANGED:
             case User32.WM_DWMCOLORIZATIONCOLORCHANGED:
             case User32.WM_THEMECHANGED:
@@ -365,6 +390,8 @@ public static class ThemeManager
                 {
                     var win = HwndSource.FromHwnd(hwnd)?.RootVisual as Window;
                     WindowBackdrop.Verify(hwnd, Current, win != null && ShellChrome.GetIsExtended(win));
+                    // Система перекрашивает окно уже после WM_ACTIVATE — сверяем ещё раз чуть позже
+                    ScheduleVerify();
                 }
                 break;
 

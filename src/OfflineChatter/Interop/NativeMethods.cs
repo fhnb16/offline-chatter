@@ -134,6 +134,11 @@ internal static class User32
     public const int WM_NCHITTEST = 0x0084;
     public const int HTMAXBUTTON = 9;
     public const int WM_ACTIVATE = 0x0006;
+    public const int WM_GETTEXT = 0x000D;
+
+    /// <summary>Win2000+. Стандартная обработка сообщения (нужна, чтобы выполнить её самим и сразу поправить атрибуты DWM).</summary>
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern IntPtr DefWindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam);
 
     public const uint SWP_NOSIZE = 0x0001;
     public const uint SWP_NOMOVE = 0x0002;
@@ -160,6 +165,26 @@ internal static class UxTheme
     [DllImport("uxtheme.dll", PreserveSig = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool IsThemeActive();
+}
+
+/// <summary>
+/// Недокументированные функции тёмного режима uxtheme (по порядковым номерам), Win10 1903 (18362)+.
+/// Через них Windows узнаёт, какую тему хочет приложение: без этого Win11 25H2 сама красит заголовок
+/// и подложку окна по теме системы — при показе, активации и смене шаблона окна.
+/// </summary>
+internal static class UxThemeDark
+{
+    public const int AppModeDefault = 0;
+    public const int AppModeForceDark = 2;
+    public const int AppModeForceLight = 3;
+
+    /// <summary>SetPreferredAppMode, ordinal 135, Win10 1903+.</summary>
+    [DllImport("uxtheme.dll", EntryPoint = "#135", PreserveSig = true)]
+    public static extern int SetPreferredAppMode(int mode);
+
+    /// <summary>FlushMenuThemes, ordinal 136, Win10 1903+.</summary>
+    [DllImport("uxtheme.dll", EntryPoint = "#136", PreserveSig = true)]
+    public static extern void FlushMenuThemes();
 }
 
 internal static class NtDll

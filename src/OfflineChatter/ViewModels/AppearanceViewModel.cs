@@ -53,6 +53,49 @@ public sealed partial class AppearanceViewModel : ObservableObject
 
     public bool IsCustomAccent => Accent == AccentSource.Custom;
 
+    // ---------- Сторонние утилиты оформления ----------
+
+    private static string ProcessName => System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+    /// <summary>Запущена Mica For Everyone, и для программы в ней ещё нет правила — окно будет «моргать».</summary>
+    public bool ShowMicaForEveryoneNotice
+    {
+        get
+        {
+            if (!Core.Diagnostics.ExternalThemeTools.IsMicaForEveryoneRunning()) return false;
+            var path = Core.Diagnostics.ExternalThemeTools.MicaForEveryoneSettingsPath();
+            try
+            {
+                return path == null || !Core.Diagnostics.ExternalThemeTools.HasProcessRule(System.IO.File.ReadAllText(path), ProcessName);
+            }
+            catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or Newtonsoft.Json.JsonException)
+            {
+                return true;
+            }
+        }
+    }
+
+    public bool CanAddMicaForEveryoneExclusion => Core.Diagnostics.ExternalThemeTools.MicaForEveryoneSettingsPath() != null;
+
+    [ObservableProperty] private string? _externalToolStatus;
+
+    [RelayCommand]
+    private void AddMicaForEveryoneExclusion()
+    {
+        var path = Core.Diagnostics.ExternalThemeTools.MicaForEveryoneSettingsPath();
+        if (path == null) return;
+        try
+        {
+            Core.Diagnostics.ExternalThemeTools.AddExclusionToFile(path, ProcessName);
+            ExternalToolStatus = L.Get("Appearance_MfeAdded");
+        }
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or Newtonsoft.Json.JsonException)
+        {
+            ExternalToolStatus = L.F("Data_Failed", ex.Message);
+        }
+        OnPropertyChanged(nameof(ShowMicaForEveryoneNotice));
+    }
+
     /// <summary>Перечитать значения из настроек, не применяя их заново.</summary>
     private void Reload()
     {

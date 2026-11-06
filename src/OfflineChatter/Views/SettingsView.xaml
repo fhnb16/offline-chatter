@@ -119,6 +119,17 @@
                 <StackPanel DataContext="{Binding Appearance}"
                             Visibility="{Binding DataContext.SelectedSection, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource EqualsToVisibility}, ConverterParameter=Appearance}">
                     <TextBlock Text="{Binding ResolvedSummary}" Style="{StaticResource CaptionText}" Margin="0,8,0,8" />
+                    <!-- Mica For Everyone и подобные утилиты перекрашивают все окна — без исключения окно «моргает» -->
+                    <Border Style="{StaticResource NoticeCard}" Visibility="{Binding ShowMicaForEveryoneNotice, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Appearance_MfeTitle}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
+                            <TextBlock Text="{l:Loc Appearance_MfeText}" Style="{StaticResource CaptionText}" Margin="0,2,0,8" />
+                            <Button Content="{l:Loc Appearance_MfeAdd}" Command="{Binding AddMicaForEveryoneExclusionCommand}" HorizontalAlignment="Left"
+                                    Visibility="{Binding CanAddMicaForEveryoneExclusion, Converter={StaticResource BoolToVisibility}}" />
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Text="{Binding ExternalToolStatus}" Style="{StaticResource CaptionText}" Margin="0,0,0,8"
+                               Visibility="{Binding ExternalToolStatus, Converter={StaticResource NullToCollapsed}}" />
                     <Border Style="{StaticResource SettingCard}">
                         <c:AdaptiveRow Style="{StaticResource Row}">
                             <StackPanel>

@@ -663,4 +663,12 @@
   <data name="Update_ManualHint" xml:space="preserve"><value>Скачайте установщик или архив со страницы релиза и замените программу</value></data>
   <data name="Update_ElevationCancelled" xml:space="preserve"><value>Права администратора не получены. Обновление скачано — повторите попытку или установите вручную</value></data>
   <data name="Update_DoneStartManually" xml:space="preserve"><value>Обновление установлено. Запустите Offline Chatter снова</value></data>
+  <data name="Download_SidebarSummary" xml:space="preserve"><value>Загрузка {0} % · {1}</value></data>
+  <data name="Download_FilesCount" xml:space="preserve"><value>{0} и ещё {1}</value></data>
+  <data name="Download_GroupDone" xml:space="preserve"><value>Скачано</value></data>
+  <data name="Download_PauseResume" xml:space="preserve"><value>Пауза или продолжить</value></data>
+  <data name="Appearance_MfeTitle" xml:space="preserve"><value>Mica For Everyone перекрашивает это окно</value></data>
+  <data name="Appearance_MfeText" xml:space="preserve"><value>Она ставит всем окнам свой заголовок и подложку на каждое событие, а Offline Chatter возвращает выбранную тему — поэтому окно моргает и в светлой теме может становиться тёмным. Добавьте исключение для Offline Chatter (такое же, как для Блокнота в её настройках по умолчанию); копия её правил сохранится рядом</value></data>
+  <data name="Appearance_MfeAdd" xml:space="preserve"><value>Добавить исключение для Offline Chatter</value></data>
+  <data name="Appearance_MfeAdded" xml:space="preserve"><value>Исключение добавлено. Перезапустите Mica For Everyone, чтобы она прочитала новое правило</value></data>
 </root>

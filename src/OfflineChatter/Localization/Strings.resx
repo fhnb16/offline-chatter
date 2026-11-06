@@ -663,4 +663,12 @@ Cancel — not now</value></data>
   <data name="Update_ManualHint" xml:space="preserve"><value>Download the installer or the archive from the release page and replace the program</value></data>
   <data name="Update_ElevationCancelled" xml:space="preserve"><value>Administrator rights were not granted. The update is downloaded — try again or install it manually</value></data>
   <data name="Update_DoneStartManually" xml:space="preserve"><value>The update is installed. Start Offline Chatter again</value></data>
+  <data name="Download_SidebarSummary" xml:space="preserve"><value>Downloading {0} % · {1}</value></data>
+  <data name="Download_FilesCount" xml:space="preserve"><value>{0} and {1} more</value></data>
+  <data name="Download_GroupDone" xml:space="preserve"><value>Downloaded</value></data>
+  <data name="Download_PauseResume" xml:space="preserve"><value>Pause or resume</value></data>
+  <data name="Appearance_MfeTitle" xml:space="preserve"><value>Mica For Everyone is changing this window</value></data>
+  <data name="Appearance_MfeText" xml:space="preserve"><value>It applies its own title bar and backdrop to every window on each event, while Offline Chatter restores the chosen theme — so the window flickers and can become dark in the light theme. Add an exception for Offline Chatter (the same kind as for Notepad in its default settings); a backup of its rules is saved next to them</value></data>
+  <data name="Appearance_MfeAdd" xml:space="preserve"><value>Add an exception for Offline Chatter</value></data>
+  <data name="Appearance_MfeAdded" xml:space="preserve"><value>Exception added. Restart Mica For Everyone so it reads the new rule</value></data>
 </root>

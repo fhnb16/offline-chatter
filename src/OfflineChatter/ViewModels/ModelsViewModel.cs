@@ -81,6 +81,7 @@ public sealed partial class ModelsViewModel : PageViewModel
     {
         _s = services;
         _main = main;
+        main.Downloads.Updated += (_, _) => RefreshSelectedDownload();
         _s.Models.Changed += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(RefreshLocal));
         RefreshLocal();
     }
@@ -88,6 +89,36 @@ public sealed partial class ModelsViewModel : PageViewModel
     public override PageKind Kind => PageKind.Models;
 
     public DownloadsViewModel Downloads => _main.Downloads;
+
+    // ---------- Загрузка выбранной модели (полоса прямо под кнопкой «Скачать») ----------
+
+    private string? SelectedGroup => SelectedResult == null ? null : "model:" + SelectedResult.Id;
+
+    [ObservableProperty] private DownloadSummary? _selectedDownload;
+
+    public bool IsSelectedDownloading => SelectedDownload is { Active: true };
+
+    partial void OnSelectedDownloadChanged(DownloadSummary? value)
+    {
+        OnPropertyChanged(nameof(IsSelectedDownloading));
+        DownloadCommand.NotifyCanExecuteChanged();
+    }
+
+    private void RefreshSelectedDownload() => SelectedDownload = SelectedGroup is { } g ? Downloads.Summarize(g) : null;
+
+    [RelayCommand]
+    private void CancelSelectedDownload()
+    {
+        if (SelectedGroup is { } g) Downloads.CancelGroup(g);
+        RefreshSelectedDownload();
+    }
+
+    [RelayCommand]
+    private void PauseSelectedDownload()
+    {
+        if (SelectedGroup is { } g) Downloads.PauseOrResumeGroup(g);
+        RefreshSelectedDownload();
+    }
 
     public ObservableCollection<LocalModelItem> LocalModels { get; } = new();
     public ObservableCollection<HfModelSummary> Results { get; } = new();
@@ -249,7 +280,11 @@ public sealed partial class ModelsViewModel : PageViewModel
     partial void OnVisionOnlyChanged(bool value) => _ = SearchAsync();
     partial void OnFitsOnlyChanged(bool value) => _ = SearchAsync();
     partial void OnSortChanged(HfSort value) => _ = SearchAsync();
-    partial void OnSelectedResultChanged(HfModelSummary? value) => _ = LoadDetailsAsync(value);
+    partial void OnSelectedResultChanged(HfModelSummary? value)
+    {
+        RefreshSelectedDownload();
+        _ = LoadDetailsAsync(value);
+    }
 
     [RelayCommand]
     private async Task SearchAsync()
@@ -394,7 +429,7 @@ public sealed partial class ModelsViewModel : PageViewModel
         SelectedQuant = best ?? Quants.FirstOrDefault();
     }
 
-    private bool CanDownload() => SelectedQuant != null;
+    private bool CanDownload() => SelectedQuant != null && !IsSelectedDownloading;
 
     /// <summary>Скачать выбранный квант (все шарды) и mmproj в папку моделей: models/автор/репозиторий/.</summary>
     [RelayCommand(CanExecute = nameof(CanDownload))]
@@ -414,6 +449,7 @@ public sealed partial class ModelsViewModel : PageViewModel
         }, headers));
 
         var jobs = SelectedQuant.Group.Files.Select(Enqueue).ToList();
+        RefreshSelectedDownload();
         DownloadJob? mmJob = IncludeMmproj && _files?.PreferredMmproj is { } mm ? Enqueue(mm) : null;
         var primaryPath = jobs[0].TargetPath;
 
