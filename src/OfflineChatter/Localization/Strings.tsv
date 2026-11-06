@@ -1,0 +1,499 @@
+# key	English	Русский
+# Источник строк интерфейса. После правки: pwsh tools/gen-strings.ps1
+
+# ---------- Навигация ----------
+Nav_Chat	Chat	Чат
+Nav_Models	Models	Модели
+Nav_Engine	Engine	Движок
+Nav_Providers	API providers	API-провайдеры
+Nav_Mcp	Tools (MCP)	Инструменты (MCP)
+Nav_Benchmarks	Benchmarks	Бенчмарки
+Nav_Logs	Logs	Журнал
+Nav_Settings	Settings	Настройки
+Page_InProgress	This section is under construction.	Раздел в разработке.
+
+# ---------- Общие ----------
+App_UnexpectedError	An unexpected error occurred. Details were written to the log:\n{0}\n\n{1}	Произошла непредвиденная ошибка. Подробности записаны в журнал:\n{0}\n\n{1}
+Units_Bytes	B|KB|MB|GB|TB	Б|КБ|МБ|ГБ|ТБ
+Common_Cancel	Cancel	Отмена
+Common_Retry	Retry	Повторить
+Common_Browse	Browse…	Обзор…
+Common_Remove	Remove	Удалить
+Common_Refresh	Refresh	Обновить
+Common_Close	Close	Закрыть
+Common_Save	Save	Сохранить
+Common_Yes	Yes	Да
+Common_No	No	Нет
+Common_Unknown	unknown	неизвестно
+
+# ---------- Чат ----------
+Chat_New	New chat	Новый чат
+Chat_NewTitle	New chat	Новый чат
+Chat_Search	Search chats	Поиск по чатам
+Chat_ToggleInspector	Show or hide the side panel	Показать или скрыть панель справа
+Chat_EmptyTitle	How can I help?	Чем могу помочь?
+Chat_EmptySubtitle	Local GGUF models via llama.cpp or any OpenAI-compatible API.	Локальные GGUF-модели через llama.cpp или любой OpenAI-совместимый API.
+Chat_Suggest1	Explain Euler's identity	Объясни формулу Эйлера
+Chat_Suggest1Prompt	Explain Euler's identity $e^{i\pi} + 1 = 0$	Объясни формулу Эйлера $e^{i\pi} + 1 = 0$
+Chat_Suggest2	Quicksort in C#	Быстрая сортировка на C#
+Chat_Suggest2Prompt	Write a quicksort function in C#	Напиши функцию быстрой сортировки на C#
+Chat_Suggest3	Describe an image	Описать картинку
+Chat_Suggest3Prompt	Describe what is shown in the image	Опиши, что изображено на картинке
+Chat_Attach	Attach a file or image	Прикрепить файл или изображение
+Chat_InputPlaceholder	Message… (Enter to send, Shift+Enter for a new line)	Сообщение… (Enter — отправить, Shift+Enter — новая строка)
+Chat_Send	Send (Enter)	Отправить (Enter)
+Chat_StatsEmpty	Generation: — tok/s  ·  Prompt: — tok/s  ·  First token: —  ·  Context: — / —	Генерация: — ток/с  ·  Промпт: — ток/с  ·  Первый токен: —  ·  Контекст: — / —
+Chat_EngineStub	The engine is not connected yet.	Движок ещё не подключён.
+Inspector_Title	Generation	Генерация
+Inspector_Empty	Generation parameters and live statistics will appear here.	Здесь появятся параметры генерации и живая статистика.
+Engine_NotInstalled	Engine not installed	Движок не установлен
+Model_NotSelected	No model selected	Модель не выбрана
+
+# ---------- Настройки ----------
+Settings_Appearance	Appearance	Оформление
+Settings_General	General	Общие
+Settings_Language	Interface language	Язык интерфейса
+Settings_LanguageAuto	As in Windows	Как в Windows
+Settings_RestartRequired	Restart the app to apply	Перезапустите приложение, чтобы применить
+Settings_LogContent	Write message text to the log	Записывать текст сообщений в журнал
+Settings_LogContentHint	Off by default: the log contains only technical events.	По умолчанию выключено: в журнале только технические события.
+Settings_System	System	Система
+Settings_Runtime	.NET Framework CLR {0}, {1} process	.NET Framework CLR {0}, процесс {1}
+Settings_DataPortable	Portable mode: {0}	Портативный режим: {0}
+Settings_DataLocal	Data folder: {0}	Папка данных: {0}
+Settings_OpenData	Open data folder	Открыть папку данных
+Settings_OpenLogs	Open logs folder	Открыть папку журналов
+
+Appearance_Skin	Control style	Стиль элементов
+Appearance_SkinHint	Native WPF themes of different Windows versions work on any OS.	Родные темы WPF разных версий Windows работают на любой ОС.
+Appearance_Mode	Theme	Тема
+Appearance_Backdrop	Window backdrop	Подложка окна
+Appearance_BackdropHint	Only effects supported by this Windows version are listed.	Показаны только эффекты, которые поддерживает эта версия Windows.
+Appearance_Accent	Accent color	Акцентный цвет
+Appearance_Now	Now: {0}	Сейчас: {0}
+Appearance_NowHighContrast	Now: high contrast mode	Сейчас: режим высокой контрастности
+Appearance_Dark	dark	тёмная
+Appearance_Light	light	светлая
+Appearance_DarkUsesFluent	controls use the Fluent style in dark mode	в тёмной теме контролы рисуются Fluent-стилем
+
+Enum_SkinKind_Auto	Auto (by Windows version)	Авто (по версии Windows)
+Enum_SkinKind_Aero	Aero (Windows 7)	Aero (Windows 7)
+Enum_SkinKind_Aero2	Aero2 (Windows 8/10)	Aero2 (Windows 8/10)
+Enum_SkinKind_AeroLite	Aero Lite	Aero Lite
+Enum_SkinKind_Luna	Luna (Windows XP)	Luna (Windows XP)
+Enum_SkinKind_Royale	Royale (Media Center)	Royale (Media Center)
+Enum_SkinKind_Classic	Classic	Классическая
+Enum_SkinKind_Fluent	Fluent (Windows 11)	Fluent (Windows 11)
+Enum_ThemeMode_System	As in Windows	Как в системе
+Enum_ThemeMode_Light	Light	Светлая
+Enum_ThemeMode_Dark	Dark	Тёмная
+Enum_BackdropKind_Auto	Auto	Авто
+Enum_BackdropKind_None	None (solid)	Нет (сплошной фон)
+Enum_BackdropKind_AeroGlass	Aero Glass	Aero Glass
+Enum_BackdropKind_Blur	Blur	Размытие
+Enum_BackdropKind_Acrylic	Acrylic	Acrylic
+Enum_BackdropKind_Mica	Mica	Mica
+Enum_BackdropKind_MicaAlt	Mica Alt	Mica Alt
+Enum_AccentSource_System	System	Системный
+Enum_AccentSource_Custom	Custom	Свой цвет
+
+# ---------- Сеть ----------
+Settings_Network	Network	Сеть
+Net_Proxy	Proxy	Прокси
+Net_ProxyAddress	Proxy address	Адрес прокси
+Net_ProxyUser	User	Пользователь
+Net_ProxyPassword	Password	Пароль
+Net_Tls	TLS mode	Режим TLS
+Net_TlsHint	Auto: system TLS first; on certificate or handshake errors — built-in root certificates, then the built-in TLS 1.2/1.3 stack.	Авто: сначала системный TLS; при ошибке сертификата или рукопожатия — вшитые корневые сертификаты, затем встроенный стек TLS 1.2/1.3.
+Net_RootsInfo	Built-in root certificates: {0}. Extra ones can be put into {1}	Вшитых корневых сертификатов: {0}. Дополнительные можно положить в {1}
+Net_Mirrors	Mirrors	Зеркала
+Net_MirrorsHint	Change only if the original sites are unavailable.	Меняйте, только если исходные сайты недоступны.
+Net_GitHubPrefix	GitHub download prefix (empty — direct)	Префикс для скачивания с GitHub (пусто — напрямую)
+Net_Concurrent	Simultaneous downloads	Одновременных загрузок
+Net_SpeedLimit	Speed limit, KB/s	Ограничение скорости, КБ/с
+Net_SpeedLimitHint	0 — no limit	0 — без ограничения
+Net_CheckTitle	Connection check	Проверка соединения
+Net_Check	Check network	Проверить сеть
+Net_CheckOk	{0} ms · {1} · {2}	{0} мс · {1} · {2}
+Enum_ProxyMode_System	System (as in Windows)	Системный (как в Windows)
+Enum_ProxyMode_None	No proxy	Без прокси
+Enum_ProxyMode_Manual	Manual	Вручную
+Enum_TlsMode_Auto	Auto (recommended)	Авто (рекомендуется)
+Enum_TlsMode_System	System TLS only	Только системный TLS
+Enum_TlsMode_PinnedRoots	System TLS + built-in roots	Системный TLS + вшитые корни
+Enum_TlsMode_Managed	Built-in TLS stack	Встроенный TLS-стек
+Enum_TlsLevel_System	system TLS	системный TLS
+Enum_TlsLevel_PinnedRoots	built-in roots	вшитые корни
+Enum_TlsLevel_Managed	built-in TLS	встроенный TLS
+
+# ---------- Загрузки ----------
+Download_Title	Downloads	Загрузки
+Download_ClearFinished	Clear finished	Убрать завершённые
+Download_Pause	Pause	Пауза
+Download_Resume	Resume	Продолжить
+Download_Eta	{0} left	осталось {0}
+Download_Verifying	Verifying SHA-256	Проверка SHA-256
+Download_Failed	Error	Ошибка
+Enum_DownloadState_Queued	Queued	В очереди
+Enum_DownloadState_Running	Downloading	Загрузка
+Enum_DownloadState_Paused	Paused	Пауза
+Enum_DownloadState_Verifying	Verifying	Проверка
+Enum_DownloadState_Completed	Completed	Готово
+Enum_DownloadState_Failed	Error	Ошибка
+Enum_DownloadState_Canceled	Canceled	Отменено
+
+# ---------- Движок ----------
+Engine_Server	llama-server	llama-server
+Engine_Stop	Stop	Остановить
+Engine_ServerLog	Command line and server output	Командная строка и вывод сервера
+Engine_ServerDetails	{0} · PID {1} · {2} · loaded in {3}	{0} · PID {1} · {2} · загрузка {3}
+Engine_Hardware	Hardware	Железо
+Engine_HardwareProbing	Detecting hardware…	Определяю железо…
+Engine_Cores	{0} cores / {1} threads	{0} ядер / {1} потоков
+Engine_Ram	RAM: {0} (free {1})	ОЗУ: {0} (свободно {1})
+Engine_NoGpu	No GPU found	Видеокарта не найдена
+Engine_Nvidia	NVIDIA driver {0}, CUDA up to {1}	Драйвер NVIDIA {0}, CUDA до {1}
+Engine_VulkanYes	Vulkan: available	Vulkan: доступен
+Engine_VulkanNo	Vulkan: not found (update the GPU driver)	Vulkan: не найден (обновите драйвер видеокарты)
+Engine_NoUcrt	Universal C Runtime (KB2999226) is missing — llama.cpp will not start.	Нет Universal C Runtime (KB2999226) — llama.cpp не запустится.
+Engine_NoVcRuntime	Visual C++ 2015–2022 runtime is missing — llama.cpp needs it.	Нет среды Visual C++ 2015–2022 — она нужна llama.cpp.
+Engine_GetVcRuntime	Download VC++ runtime	Скачать VC++ runtime
+Engine_InstalledTitle	Installed	Установленные
+Engine_NoneInstalled	No engine yet: download one below or connect your own llama.cpp folder.	Движка пока нет: скачайте ниже или подключите свою папку с llama.cpp.
+Engine_AddExternal	Connect existing llama.cpp…	Подключить свою сборку…
+Engine_PickServerExe	Select llama-server.exe of your llama.cpp build	Выберите llama-server.exe вашей сборки llama.cpp
+Engine_NotAnEngine	llama-server.exe was not found in this folder.	В этой папке не найден llama-server.exe.
+Engine_MakeActive	Use	Использовать
+Engine_Active	active	активный
+Engine_External	connected folder	подключённая папка
+Engine_Downloaded	downloaded	скачан
+Engine_ConfirmDelete	Delete {0}?\n{1}	Удалить {0}?\n{1}
+Engine_ConfirmUnlink	Disconnect {0}? The folder itself stays untouched.\n{1}	Отключить {0}? Сама папка останется на месте.\n{1}
+Engine_Download	Download llama.cpp	Скачать llama.cpp
+Engine_DownloadHint	Official portable builds from github.com/ggml-org/llama.cpp. CPU works everywhere; GPU builds are listed only if your hardware supports them.	Официальные портативные сборки с github.com/ggml-org/llama.cpp. CPU работает везде; GPU-сборки показаны, только если их поддерживает ваше железо.
+Engine_ShowAll	Show all builds (including unsupported here)	Показать все сборки (включая неподходящие)
+Engine_Recommended	recommended	рекомендуется
+Engine_InstallButton	Download and install	Скачать и установить
+Engine_Installed	Installed: {0}	Установлено: {0}
+Engine_InstalledButBroken	Installed, but the self-test failed: {0}	Установлено, но самопроверка не прошла: {0}
+Engine_InstallFailed	Installation failed: {0}	Ошибка установки: {0}
+Engine_ReleasesError	Cannot load the release list: {0}	Не удалось получить список релизов: {0}
+Enum_EngineBackend_Cpu	CPU	CPU
+Enum_EngineBackend_Vulkan	Vulkan (any GPU)	Vulkan (любая видеокарта)
+Enum_EngineBackend_Cuda	NVIDIA CUDA	NVIDIA CUDA
+Enum_EngineBackend_Rocm	AMD ROCm	AMD ROCm
+Enum_EngineBackend_Sycl	Intel SYCL	Intel SYCL
+Enum_EngineBackend_OpenVino	Intel OpenVINO	Intel OpenVINO
+Enum_EngineBackend_OpenClAdreno	Qualcomm Adreno (OpenCL)	Qualcomm Adreno (OpenCL)
+Enum_EngineBackend_Custom	Custom	Своя сборка
+Enum_ServerState_Stopped	stopped	остановлен
+Enum_ServerState_Starting	starting	запуск
+Enum_ServerState_Loading	loading the model	загрузка модели
+Enum_ServerState_Ready	ready	готов
+Enum_ServerState_Failed	error	ошибка
+Enum_EngineHealth_Ok	works	работает
+Enum_EngineHealth_MissingFile	llama-server.exe not found	llama-server.exe не найден
+Enum_EngineHealth_MissingDll	a required DLL is missing (VC++ runtime, Vulkan or CUDA driver)	не найдена нужная DLL (VC++ runtime, драйвер Vulkan или CUDA)
+Enum_EngineHealth_OsTooOld	this build needs a newer Windows — try a Win7-compatible build	сборке нужна более новая Windows — попробуйте совместимую с Win7
+Enum_EngineHealth_IllegalInstruction	the CPU does not support this build's instructions	процессор не поддерживает инструкции этой сборки
+Enum_EngineHealth_Timeout	no response from llama-server	llama-server не отвечает
+Enum_EngineHealth_Crashed	llama-server crashed	llama-server аварийно завершился
+Enum_InstallStage_Downloading	Downloading…	Загрузка…
+Enum_InstallStage_Extracting	Extracting…	Распаковка…
+Enum_InstallStage_Testing	Self-test…	Самопроверка…
+Enum_InstallStage_Done	Done	Готово
+
+# ---------- Модели ----------
+Models_Mine	My models	Мои модели
+Models_AddFile	Add GGUF file…	Добавить файл GGUF…
+Models_PickFile	Select a GGUF model (any disk; the file is not copied)	Выберите GGUF-модель (с любого диска; файл не копируется)
+Models_Scan	Find downloaded	Найти скачанные
+Models_PickScanFolder	Folder to search for GGUF models	Папка для поиска GGUF-моделей
+Models_Scanning	Searching: models folder, Hugging Face cache, LM Studio, your folders…	Поиск: папка моделей, кэш Hugging Face, LM Studio, ваши папки…
+Models_ScanDone	Found {0} models, {1} new	Найдено моделей: {0}, новых: {1}
+Models_NoneYet	No models yet. Download the recommended one below, search Hugging Face or add a GGUF file from any disk.	Моделей пока нет. Скачайте рекомендуемую ниже, найдите на Hugging Face или добавьте GGUF-файл с любого диска.
+Models_Use	Use	Использовать
+Models_Missing	File not found — the disk may be disconnected	Файл не найден — возможно, диск отключён
+Models_ConfirmRemove	Remove {0}?\n{1}\n\nYes — delete files from disk\nNo — only remove from the list	Удалить {0}?\n{1}\n\nДа — удалить файлы с диска\nНет — только убрать из списка
+Models_Ctx	ctx {0}	контекст {0}
+Models_Shards	{0} parts	частей: {0}
+Models_DefaultTitle	Recommended starter model (small, vision, runs on any PC)	Рекомендуемая стартовая модель (маленькая, с vision, идёт на любом ПК)
+Models_ShowDefault	Show	Показать
+Models_SearchHint	Search GGUF models (e.g. qwen, gemma, llama)	Поиск GGUF-моделей (например, qwen, gemma, llama)
+Models_Search	Search	Найти
+Models_VisionOnly	Vision (understand images)	Vision (понимают изображения)
+Models_FitsOnly	Fits my memory	Поместится в мою память
+Models_SearchError	Search failed: {0}	Поиск не удался: {0}
+Models_SelectHint	Select a model on the left	Выберите модель слева
+Models_ChooseQuant	Choose a quantization (smaller = faster and less memory, larger = better quality):	Выберите квантование (меньше — быстрее и меньше памяти, больше — качественнее):
+Models_EstimateGpu	≈ {0} VRAM at {1} context — fully on GPU	≈ {0} видеопамяти при контексте {1} — целиком на GPU
+Models_EstimateCpu	≈ {0} memory at {1} context	≈ {0} памяти при контексте {1}
+Models_MmprojInfo	Also download the vision projector {0} ({1}) — needed to understand images	Скачать и проектор изображений {0} ({1}) — нужен для работы с картинками
+Models_Download	Download	Скачать
+Models_Gated	This model requires accepting its license on huggingface.co and an access token (see Options below).	Для этой модели нужно принять лицензию на huggingface.co и указать токен доступа (см. «Параметры» ниже).
+Models_Options	Options	Параметры
+Models_DownloadFolder	Folder for downloaded models	Папка для скачанных моделей
+Models_PickDownloadFolder	Folder for downloaded models (can be on another disk)	Папка для скачанных моделей (можно на другом диске)
+Models_HfToken	Hugging Face token	Токен Hugging Face
+Models_HfTokenHint	Only for gated models. Stored encrypted (DPAPI).	Нужен только для закрытых моделей. Хранится зашифрованным (DPAPI).
+Models_HfTokenSaved	Token saved	Токен сохранён
+Quant_Tier_lossless	lossless	без потерь
+Quant_Tier_high	high quality	высокое качество
+Quant_Tier_balanced	balanced	баланс
+Quant_Tier_small	compact	компактный
+Quant_Tier_tiny	very small, quality loss	очень маленький, потеря качества
+Enum_HfSort_Downloads	Most downloaded	Популярные
+Enum_HfSort_Likes	Most liked	Любимые
+Enum_HfSort_Trending	Trending	В тренде
+Enum_HfSort_Updated	Recently updated	Недавно обновлённые
+
+# ---------- Профили запуска ----------
+Profiles_Title	Launch profile	Профиль запуска
+Profiles_SaveAsNew	Save as new	Сохранить как новый
+Profiles_ResetOrDelete	Reset / delete	Сбросить / удалить
+Profiles_DefaultForAll	Use this profile for models without their own	Использовать для моделей без своего профиля
+Profiles_Name	Name	Название
+Profiles_Context	Context size (empty — auto)	Размер контекста (пусто — авто)
+Profiles_GpuLayers	Layers on GPU (empty — auto, -1 — all, 0 — CPU only)	Слоёв на GPU (пусто — авто, -1 — все, 0 — только CPU)
+Profiles_GpuLayersHint	Auto uses llama.cpp --fit when available, otherwise our VRAM estimate	«Авто» использует --fit из llama.cpp, если есть, иначе нашу оценку VRAM
+Profiles_UseFit	Let llama.cpp fit parameters to memory (--fit)	Автоподбор под память средствами llama.cpp (--fit)
+Profiles_Threads	CPU threads (empty — physical cores)	Потоков CPU (пусто — по физическим ядрам)
+Profiles_AutoHint	Empty — automatic	Пусто — автоматически
+Profiles_Batch	Batch / micro-batch	Batch / micro-batch
+Profiles_Parallel	Parallel slots	Параллельных слотов
+Profiles_KvCache	KV cache type (K / V)	Тип KV-кэша (K / V)
+Profiles_MlockHint	Keep the model in RAM (no swapping)	Держать модель в ОЗУ (без выгрузки в файл подкачки)
+Profiles_Temperature	Temperature	Температура
+Profiles_MaxTokens	Max tokens	Макс. токенов
+Profiles_Reasoning	Reasoning output format	Формат вывода рассуждений
+Profiles_Draft	Draft model for speculative decoding (path to GGUF, optional)	Черновая модель для спекулятивного декодирования (путь к GGUF, необязательно)
+Profiles_Extra	Extra llama-server arguments	Дополнительные аргументы llama-server
+Profiles_Preview	Command line	Командная строка
+Profiles_NoModel	Select a model in «Models» to see the command line.	Выберите модель в разделе «Модели», чтобы увидеть командную строку.
+Profiles_NoEngine	Install or connect an engine first.	Сначала установите или подключите движок.
+Profiles_Skipped	Not supported by this llama.cpp version and skipped: {0}	Не поддерживается этой версией llama.cpp и пропущено: {0}
+Profiles_Estimate	≈ {0} total (weights {1}, KV {2}, on GPU {3}) at context {4}	≈ {0} всего (веса {1}, KV {2}, на GPU {3}) при контексте {4}
+Profiles_Start	Start / restart	Запустить / перезапустить
+Profiles_CopyBat	Copy as .bat	Скопировать как .bat
+Profiles_Compare	Compare with another profile	Сравнить с другим профилем
+Profiles_Copy	copy	копия
+Enum_FitVerdict_Fits	fits	помещается
+Enum_FitVerdict_Tight	tight — may be slow	впритык — может тормозить
+Enum_FitVerdict_DoesNotFit	does not fit — reduce context or pick a smaller quant	не помещается — уменьшите контекст или выберите квант меньше
+
+# ---------- Чат (этап 6) ----------
+Chat_Copy	Copy	Копировать
+Chat_Copied	Copied	Скопировано
+Chat_CopyLatex	Copy LaTeX	Копировать LaTeX
+Chat_Edit	Edit	Изменить
+Chat_Regenerate	Regenerate	Сгенерировать заново
+Chat_Stop	Stop (Esc)	Остановить (Esc)
+Chat_Editing	Editing the message — sending creates a new branch	Редактирование сообщения — отправка создаст новую ветку
+Chat_Thinking	Thinking…	Размышляет…
+Chat_ThoughtFor	Thought for {0}	Размышлял {0}
+Chat_Reasoning	Reasoning	Рассуждения
+Chat_ThinkingMode	Thinking mode	Режим размышлений
+Chat_ThinkingAuto	As the model decides	Как решит модель
+Chat_ThinkingOn	On	Включён
+Chat_ThinkingOff	Off (faster answers)	Выключен (быстрее ответы)
+Chat_SystemPrompt	System prompt	Системный промпт
+Chat_OverrideTemperature	Own temperature for this chat	Своя температура для этого чата
+Chat_InspectorHint	Other sampling parameters come from the launch profile (Engine → Launch profile).	Остальные параметры сэмплинга берутся из профиля запуска (Движок → Профиль запуска).
+Chat_ModelPicker	Model: local GGUF or connected API	Модель: локальная GGUF или подключённый API
+Chat_LocalModels	local	локальная
+Chat_Pin	Pin / unpin	Закрепить / открепить
+Chat_ConfirmDelete	Delete the chat «{0}»?	Удалить чат «{0}»?
+Chat_AttachFilter	Images, text, code, DOCX	Изображения, текст, код, DOCX
+Chat_AttachUnsupported	Unsupported file: {0}	Неподдерживаемый файл: {0}
+Chat_AttachFailed	Cannot attach {0}: {1}	Не удалось прикрепить {0}: {1}
+Chat_NoModel	No model selected — download one in «Models» or connect an API.	Модель не выбрана — скачайте её в разделе «Модели» или подключите API.
+Chat_ModelMissing	Model file not found: {0}	Файл модели не найден: {0}
+Chat_NoEngine	llama.cpp is not installed — open «Engine».	llama.cpp не установлен — откройте раздел «Движок».
+Chat_StartingModel	Loading {0}…	Загрузка {0}…
+Chat_ServerFailed	llama-server did not start: {0}	llama-server не запустился: {0}
+Chat_ProviderMissing	The API provider was removed.	API-провайдер удалён.
+Chat_LiveStats	Generating: {0} tok · {1} tok/s · first token {2}	Генерация: {0} ток · {1} ток/с · первый токен {2}
+Chat_Context	Context {0} / {1}	Контекст {0} / {1}
+Chat_ContextNoLimit	Context {0} tokens	Контекст {0} токенов
+Stats_Gen	{0} tok/s	{0} ток/с
+Stats_Tokens	{0} tok	{0} ток
+Stats_Prompt	prompt {0} tok @ {1} tok/s	промпт {0} ток @ {1} ток/с
+Stats_Ttft	first token {0}	первый токен {0}
+Stats_Draft	draft accepted {0}%	принято черновика {0}%
+Stats_Truncated	cut off by the token limit	обрезано лимитом токенов
+Stats_Stopped	stopped	остановлено
+
+# ---------- Провайдеры ----------
+Providers_Hint	Cloud and local OpenAI-compatible APIs. Keys are stored encrypted (DPAPI). Selected models appear in the chat model picker.	Облачные и локальные OpenAI-совместимые API. Ключи хранятся зашифрованными (DPAPI). Выбранные модели появляются в меню модели в чате.
+Providers_Add	Add	Добавить
+Providers_None	No providers yet — choose a preset above.	Провайдеров пока нет — выберите пресет выше.
+Providers_Enabled	Enabled	Включён
+Providers_ApiKey	API key	Ключ API
+Providers_GetKey	Get a key ↗	Получить ключ ↗
+Providers_KeySaved	Key saved (encrypted)	Ключ сохранён (зашифрован)
+Providers_KeyMissing	A key is required	Нужен ключ
+Providers_KeyOptional	Key is optional for this server	Для этого сервера ключ не обязателен
+Providers_Test	Check and load models	Проверить и загрузить модели
+Providers_Testing	Connecting…	Подключение…
+Providers_TestOk	Connected, models: {0}	Подключено, моделей: {0}
+Providers_Models	Models in the chat picker	Модели в меню чата
+Providers_ModelsHint	Checked models are shown in the chat model picker.	Отмеченные модели показываются в меню выбора модели в чате.
+Providers_Quirks	API specifics	Особенности API
+Providers_MaxTokensField	Max tokens field name	Имя поля лимита токенов
+Providers_Vision	Supports images	Поддерживает изображения
+Providers_Tools	Supports tools (function calling)	Поддерживает инструменты (function calling)
+Providers_LlamaCpp	llama.cpp server extensions (thinking toggle, timings)	Расширения llama.cpp (переключатель размышлений, тайминги)
+
+# ---------- Бенчмарки, журнал, ресурсы ----------
+Bench_LlamaHint	Raw engine speed: prompt processing (pp) and generation (tg). The server is stopped while measuring.	Чистая скорость движка: обработка промпта (pp) и генерация (tg). На время замера сервер останавливается.
+Bench_ChatHint	Real chat requests N times: time to first token and generation speed (median, p95). Works with APIs too.	Реальные запросы чата N раз: время до первого токена и скорость генерации (медиана, p95). Работает и с API.
+Bench_Model	Model:	Модель:
+Bench_Prompt	Prompt tokens	Токенов промпта
+Bench_Gen	Generated tokens	Токенов генерации
+Bench_Reps	Repetitions	Повторов
+Bench_Ngl	GPU layers (empty — all)	Слоёв на GPU (пусто — все)
+Bench_Target	Model or API	Модель или API
+Bench_Runs	Runs	Прогонов
+Bench_Prompts	Prompts (one per line)	Промпты (по одному в строке)
+Bench_Run	Run	Запустить
+Bench_Running	Measuring…	Идёт замер…
+Bench_Done	Done — the report is saved	Готово — отчёт сохранён
+Bench_Failed	Benchmark failed: {0}	Замер не удался: {0}
+Bench_NoBenchExe	llama-bench.exe was not found next to the active engine.	Рядом с активным движком нет llama-bench.exe.
+Bench_Output	Output	Вывод
+Bench_Reports	Reports	Отчёты
+Bench_ReportsHint	Check reports to compare them and to export only them.	Отметьте отчёты, чтобы сравнить их и экспортировать только их.
+Bench_Compare	Comparison	Сравнение
+Bench_Exported	Saved: {0}	Сохранено: {0}
+Logs_LevelAll	All levels	Все уровни
+Logs_Auto	Auto-refresh	Автообновление
+Logs_Copy	Copy	Копировать
+Logs_Bundle	Diagnostics archive…	Архив диагностики…
+Logs_Filter	Filter by text	Фильтр по тексту
+Logs_Count	Shown {0} of {1}	Показано {0} из {1}
+Logs_BundleSaved	Saved (no secrets inside): {0}	Сохранено (секретов внутри нет): {0}
+Res_Title	llama-server resources	Ресурсы llama-server
+Res_ServerStopped	Server is not running	Сервер не запущен
+Res_Cpu	CPU: {0}%	ЦП: {0}%
+Res_Ram	RAM: {0}	ОЗУ: {0}
+Res_Vram	VRAM: {0} of {1}	Видеопамять: {0} из {1}
+
+# ---------- Экспорт ----------
+Export_Title	Export — choose the format in «Save as type»	Экспорт — формат выберите в поле «Тип файла»
+Export_Chat	Export chat (DOCX, DOC, RTF, HTML, Markdown, JSON)	Экспорт чата (DOCX, DOC, RTF, HTML, Markdown, JSON)
+Export_Message	Export this message	Экспорт сообщения
+Export_Print	Print (or «Print to PDF»)	Печать (или «Печать в PDF»)
+Export_User	User	Пользователь
+Export_Assistant	Assistant	Ассистент
+
+# ---------- Инструменты и MCP ----------
+Mcp_Hint	The model can call tools: built-in ones work offline; MCP servers add any external tools (files, Git, databases, browsers…). Small models (~1B) call tools poorly — 4B+ is recommended.	Модель может вызывать инструменты: встроенные работают офлайн, MCP-серверы добавляют любые внешние (файлы, Git, базы данных, браузер…). Маленькие модели (~1B) вызывают инструменты плохо — лучше 4B и больше.
+Tools_EnabledByDefault	Allow tools in new chats	Разрешать инструменты в новых чатах
+Tools_MaxStepsLabel	Max tool steps per answer	Максимум шагов с инструментами на один ответ
+Tools_Builtin	Built-in tools	Встроенные инструменты
+Tools_Sandbox	Folder the read_file tool may read (empty — tool off)	Папка, которую может читать инструмент read_file (пусто — выключен)
+Tools_Searxng	SearXNG address for web_search (empty — tool off)	Адрес SearXNG для web_search (пусто — выключен)
+Tools_ChatToggle	Tools (built-in and MCP)	Инструменты (встроенные и MCP)
+Tools_ConsentTitle	Tool call	Вызов инструмента
+Tools_ConsentHeader	The model wants to call «{0}»	Модель хочет вызвать «{0}»
+Tools_ConsentSource	Source: {0}	Источник: {0}
+Tools_Arguments	Arguments	Аргументы
+Tools_Result	Result	Результат
+Tools_AllowOnce	Allow once	Разрешить один раз
+Tools_AllowAlways	Always allow	Разрешать всегда
+Tools_Deny	Deny	Отклонить
+Tools_ExternalWarning	External MCP servers are programs or services with your rights — connect only those you trust.	Внешние MCP-серверы — это программы и сервисы с вашими правами; подключайте только те, которым доверяете.
+Tools_Running	Running tool {0}…	Выполняется инструмент {0}…
+Tools_MaxSteps	Tool step limit reached	Достигнут лимит шагов с инструментами
+Enum_ConsentMode_Ask	Ask every time	Спрашивать
+Enum_ConsentMode_Always	Always allow	Разрешено всегда
+Enum_ConsentMode_Disabled	Off	Выключен
+Mcp_Servers	MCP servers	Серверы MCP
+Mcp_None	No servers. Add one below, import from Claude Desktop or edit mcp.json (same «mcpServers» format).	Серверов нет. Добавьте ниже, импортируйте из Claude Desktop или отредактируйте mcp.json (тот же формат «mcpServers»).
+Mcp_Import	Import from Claude Desktop	Импорт из Claude Desktop
+Mcp_ImportTitle	Select claude_desktop_config.json	Выберите claude_desktop_config.json
+Mcp_Imported	Imported servers: {0}	Импортировано серверов: {0}
+Mcp_OpenConfig	Open mcp.json	Открыть mcp.json
+Mcp_Connect	Connect	Подключить
+Mcp_Disconnect	Disconnect	Отключить
+Mcp_Connecting	Connecting…	Подключение…
+Mcp_Connected	Connected: {0} · tools {1} · resources {2} · prompts {3}	Подключено: {0} · инструментов {1} · ресурсов {2} · промптов {3}
+Mcp_NotConnected	Not connected	Не подключён
+Mcp_Disabled	Disabled	Выключен
+Mcp_Error	Error: {0}	Ошибка: {0}
+Mcp_Tools	Tools and permissions	Инструменты и разрешения
+Mcp_ConfirmRemove	Remove MCP server «{0}»?	Удалить MCP-сервер «{0}»?
+Mcp_AddTitle	Add a server	Добавить сервер
+Mcp_Name	Name	Имя
+Mcp_Command	Command (stdio), e.g. npx -y @modelcontextprotocol/server-filesystem C:\Docs	Команда (stdio), например npx -y @modelcontextprotocol/server-filesystem C:\Docs
+Mcp_Url	…or URL (Streamable HTTP; an address ending with /sse uses the legacy SSE protocol)	…или URL (Streamable HTTP; адрес на /sse — старый протокол SSE)
+Mcp_AddHint	Enter a name and a command or URL	Укажите имя и команду или URL
+Mcp_Exists	A server named «{0}» already exists	Сервер «{0}» уже есть
+
+# ---------- Этап 10 ----------
+Nav_Welcome	Getting started	Начало работы
+Nav_Compare	Compare models	Сравнение моделей
+Compare_Hint	One prompt — two models side by side (local or API). Two local models run one after another.	Один промпт — две модели рядом (локальные или API). Две локальные модели отвечают по очереди.
+Tray_Open	Open Offline Chatter	Открыть Offline Chatter
+Tray_QuickAsk	Quick question	Быстрый вопрос
+Tray_Exit	Exit	Выход
+Notify_DownloadDone	Download completed	Загрузка завершена
+Notify_DownloadFailed	Download failed	Загрузка не удалась
+Notify_InTray	The app keeps running in the notification area.	Приложение продолжает работать в области уведомлений.
+Jump_Recent	Recent chats	Последние чаты
+QuickAsk_Placeholder	Ask anything… (Enter)	Спросите что угодно… (Enter)
+QuickAsk_OpenInChat	Open in chat	Открыть в чате
+Chat_Speak	Read aloud / stop	Озвучить / остановить
+Palette_Placeholder	Type a command, section or chat…	Команда, раздел или чат…
+Palette_Go	Go to: {0}	Перейти: {0}
+Palette_Section	section	раздел
+Palette_ToggleTheme	Switch light / dark theme	Переключить светлую / тёмную тему
+Palette_StopServer	Stop llama-server	Остановить llama-server
+Settings_CloseToTray	Closing the window keeps the app in the notification area	Закрытие окна оставляет приложение в области уведомлений
+Settings_QuickAskHotkey	Quick question by Ctrl+Alt+Space (after restart)	Быстрый вопрос по Ctrl+Alt+Space (после перезапуска)
+Settings_Security	Security	Безопасность
+Security_ModeDpapi	Keys are encrypted with your Windows account (DPAPI)	Ключи зашифрованы учётной записью Windows (DPAPI)
+Security_ModeMaster	Keys are encrypted with a master password	Ключи зашифрованы мастер-паролем
+Security_Hint	A master password lets you move the portable folder to another PC without re-entering API keys. It is asked at startup.	Мастер-пароль позволяет переносить портативную папку на другой ПК без повторного ввода ключей API. Пароль спрашивается при запуске.
+Security_NewPassword	New master password	Новый мастер-пароль
+Security_Confirm	Repeat	Повторите
+Security_Set	Set password	Задать пароль
+Security_Disable	Switch back to DPAPI	Вернуться к DPAPI
+Security_TooShort	At least 6 characters	Не меньше 6 символов
+Security_Mismatch	Passwords do not match	Пароли не совпадают
+Security_Enabled	Master password set, keys re-encrypted	Мастер-пароль задан, ключи перешифрованы
+Security_Disabled	Keys are encrypted with DPAPI again	Ключи снова зашифрованы DPAPI
+Security_UnlockTitle	Master password	Мастер-пароль
+Security_UnlockHint	Enter the master password to decrypt saved API keys and tokens.	Введите мастер-пароль, чтобы расшифровать сохранённые ключи API и токены.
+Security_WrongPassword	Wrong password	Неверный пароль
+Security_Skip	Skip	Пропустить
+Security_Unlock	Unlock	Разблокировать
+Welcome_Title	Welcome to Offline Chatter	Добро пожаловать в Offline Chatter
+Welcome_Subtitle	Three steps and you can chat with an AI model right on this computer — no internet needed afterwards.	Три шага — и можно общаться с ИИ-моделью прямо на этом компьютере, дальше без интернета.
+Welcome_Loading	Checking…	Проверяю…
+Welcome_Step_Hardware	Your computer	Ваш компьютер
+Welcome_Step_Engine	Engine (llama.cpp)	Движок (llama.cpp)
+Welcome_Step_Model	Model	Модель
+Welcome_EngineCpu	llama.cpp {0} for CPU — works on any PC ({1})	llama.cpp {0} для CPU — работает на любом ПК ({1})
+Welcome_EngineReady	Ready: {0}	Готово: {0}
+Welcome_EngineUnavailable	No suitable build found	Подходящая сборка не найдена
+Welcome_GpuOption	Use the GPU build instead: {0} ({1}) — much faster	Взять сборку для видеокарты: {0} ({1}) — намного быстрее
+Welcome_OwnEngine	I already have llama.cpp…	У меня уже есть llama.cpp…
+Welcome_ModelDefault	{0} · {1} · {2} — small, understands images	{0} · {1} · {2} — маленькая, понимает изображения
+Welcome_ModelReady	Ready: {0}	Готово: {0}
+Welcome_OwnModel	I have a GGUF file…	У меня есть GGUF-файл…
+Welcome_UseApi	Use an online API instead	Подключить онлайн-API
+Welcome_InstallAll	Install everything	Установить всё
+Welcome_Finish	Go to chat	Перейти в чат
+Welcome_AllDone	All set — click «Go to chat».	Всё готово — нажмите «Перейти в чат».
+Welcome_Partial	Not everything is installed — see the messages above.	Установлено не всё — см. сообщения выше.
+Welcome_FirstPrompt	Hi! Briefly tell me what you can do.	Привет! Коротко расскажи, что ты умеешь.
+Update_Title	Updates	Обновления
+Update_RepoHint	GitHub repository of the app (owner/repo) to check for new releases	Репозиторий программы на GitHub (owner/repo) для проверки новых релизов
+Update_Check	Check	Проверить
+Update_Open	Open release page ↗	Открыть страницу релиза ↗
+Update_NoRepo	Enter the repository first	Сначала укажите репозиторий
+Update_Available	New version available: {0}	Доступна новая версия: {0}
+Update_Latest	You have the latest version	У вас последняя версия
+Update_RunWizard	Run the getting-started wizard	Запустить мастер первого запуска
+Engine_CompatChannel	Win7-compatible builds from the app repository (static CRT)	Сборки, совместимые с Win7, из репозитория программы (статический CRT)

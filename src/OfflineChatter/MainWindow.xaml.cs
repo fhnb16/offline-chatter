@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls.Primitives;
@@ -19,12 +18,26 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = _vm = vm;
 
-        RestorePlacement(App.Settings.Current.Window);
+        RestorePlacement(vm.Services.Settings.Current.Window);
         ThemeManager.Attach(this);
+        PreviewKeyDown += OnShortcut;
+    }
 
-        _vm.PropertyChanged += OnViewModelPropertyChanged;
-        HookMessages(_vm.SelectedChat);
-        Loaded += (_, _) => InputBox.Focus();
+    /// <summary>Ctrl+K — палитра команд, Ctrl+F — поиск по чатам.</summary>
+    private void OnShortcut(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (System.Windows.Input.Keyboard.Modifiers != System.Windows.Input.ModifierKeys.Control) return;
+        if (e.Key == System.Windows.Input.Key.K)
+        {
+            new Views.CommandPalette(_vm) { Owner = this }.Show();
+            e.Handled = true;
+        }
+        else if (e.Key == System.Windows.Input.Key.F)
+        {
+            SearchBox.Focus();
+            SearchBox.SelectAll();
+            e.Handled = true;
+        }
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -42,28 +55,6 @@ public partial class MainWindow : Window
     /// <summary>При 100% масштабе Display-режим даёт чёткий текст (особенно на Win7), на HiDPI лучше Ideal.</summary>
     private void UpdateTextFormatting(DpiScale dpi) =>
         TextOptions.SetTextFormattingMode(this, dpi.DpiScaleX <= 1.0 ? TextFormattingMode.Display : TextFormattingMode.Ideal);
-
-    // ---------- Автопрокрутка к последнему сообщению ----------
-
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(MainViewModel.SelectedChat)) HookMessages(_vm.SelectedChat);
-    }
-
-    private ChatListItem? _hookedChat;
-
-    private void HookMessages(ChatListItem? chat)
-    {
-        if (_hookedChat != null) _hookedChat.Messages.CollectionChanged -= OnMessagesChanged;
-        _hookedChat = chat;
-        if (chat != null) chat.Messages.CollectionChanged += OnMessagesChanged;
-    }
-
-    private void OnMessagesChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (e.Action == NotifyCollectionChangedAction.Add)
-            Dispatcher.BeginInvoke(new Action(() => MessagesScroll.ScrollToEnd()), System.Windows.Threading.DispatcherPriority.Background);
-    }
 
     // ---------- Положение окна ----------
 
@@ -99,7 +90,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(CancelEventArgs e)
     {
-        var p = App.Settings.Current.Window;
+        var p = _vm.Services.Settings.Current.Window;
         var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
         if (!bounds.IsEmpty)
         {
@@ -113,5 +104,5 @@ public partial class MainWindow : Window
     }
 
     private void OnSidebarResized(object sender, DragCompletedEventArgs e) =>
-        App.Settings.Current.Window.SidebarWidth = SidebarColumn.ActualWidth;
+        _vm.Services.Settings.Current.Window.SidebarWidth = SidebarColumn.ActualWidth;
 }

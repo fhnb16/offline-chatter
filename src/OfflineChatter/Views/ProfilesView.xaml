@@ -1,0 +1,162 @@
+<UserControl x:Class="OfflineChatter.Views.ProfilesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:OfflineChatter.Localization">
+    <!-- DataContext: ProfilesViewModel -->
+    <UserControl.Resources>
+        <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
+            <Setter Property="Margin" Value="0,8,0,2" />
+        </Style>
+    </UserControl.Resources>
+    <Border Style="{StaticResource SettingCard}">
+        <StackPanel>
+            <!-- Выбор профиля -->
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Command="{Binding SaveAsNewCommand}" Content="{l:Loc Profiles_SaveAsNew}" />
+                    <Button Command="{Binding ResetOrDeleteCommand}" Content="{l:Loc Profiles_ResetOrDelete}" Margin="6,0,0,0" />
+                </StackPanel>
+                <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding Selected}" DisplayMemberPath="Name" Width="220" HorizontalAlignment="Left" />
+            </DockPanel>
+            <CheckBox Content="{l:Loc Profiles_DefaultForAll}" IsChecked="{Binding IsDefaultForAll}" Margin="0,8,0,0" />
+
+            <Grid Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Контекст и GPU -->
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{l:Loc Profiles_Name}" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding Name}" />
+                    <TextBlock Text="{l:Loc Profiles_Context}" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding ContextSize}" ToolTip="4096 · 8192 · 16384 · 32768 · 65536 · 131072" />
+                    <TextBlock Text="{l:Loc Profiles_GpuLayers}" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding GpuLayers}" ToolTip="{l:Loc Profiles_GpuLayersHint}" />
+                    <CheckBox Content="{l:Loc Profiles_UseFit}" IsChecked="{Binding UseFit}" Margin="0,8,0,0" />
+                    <TextBlock Text="{l:Loc Profiles_Threads}" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding Threads}" ToolTip="{l:Loc Profiles_AutoHint}" />
+                </StackPanel>
+
+                <!-- Батчи и кэш -->
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="{l:Loc Profiles_Batch}" Style="{StaticResource FieldLabel}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="6" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding BatchSize}" ToolTip="--batch-size" />
+                        <TextBox Grid.Column="2" Text="{Binding UBatchSize}" ToolTip="--ubatch-size" />
+                    </Grid>
+                    <TextBlock Text="{l:Loc Profiles_Parallel}" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding Parallel}" />
+                    <TextBlock Text="Flash Attention" Style="{StaticResource FieldLabel}" />
+                    <ComboBox ItemsSource="{Binding FlashAttentionOptions}" SelectedItem="{Binding FlashAttention}" />
+                    <TextBlock Text="{l:Loc Profiles_KvCache}" Style="{StaticResource FieldLabel}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="6" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox ItemsSource="{Binding CacheTypes}" SelectedItem="{Binding CacheTypeK}" ToolTip="K" />
+                        <ComboBox Grid.Column="2" ItemsSource="{Binding CacheTypes}" SelectedItem="{Binding CacheTypeV}" ToolTip="V" />
+                    </Grid>
+                    <CheckBox Content="--mlock" IsChecked="{Binding Mlock}" Margin="0,10,0,0" ToolTip="{l:Loc Profiles_MlockHint}" />
+                    <CheckBox Content="--no-mmap" IsChecked="{Binding NoMmap}" Margin="0,6,0,0" />
+                </StackPanel>
+
+                <!-- Сэмплинг -->
+                <StackPanel Grid.Column="4">
+                    <TextBlock Style="{StaticResource FieldLabel}">
+                        <Run Text="{l:Loc Profiles_Temperature}" /><Run Text="{Binding Temperature, StringFormat=' {0:0.00}'}" />
+                    </TextBlock>
+                    <Slider Minimum="0" Maximum="2" Value="{Binding Temperature}" SmallChange="0.05" LargeChange="0.1" />
+                    <TextBlock Style="{StaticResource FieldLabel}">
+                        <Run Text="Top-P" /><Run Text="{Binding TopP, StringFormat=' {0:0.00}'}" />
+                    </TextBlock>
+                    <Slider Minimum="0" Maximum="1" Value="{Binding TopP}" SmallChange="0.01" LargeChange="0.05" />
+                    <TextBlock Style="{StaticResource FieldLabel}">
+                        <Run Text="Min-P" /><Run Text="{Binding MinP, StringFormat=' {0:0.00}'}" />
+                    </TextBlock>
+                    <Slider Minimum="0" Maximum="0.5" Value="{Binding MinP}" SmallChange="0.01" LargeChange="0.05" />
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="6" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="6" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Top-K" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding TopK}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Repeat" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding RepeatPenalty}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="{l:Loc Profiles_MaxTokens}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding MaxTokens}" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Text="{l:Loc Profiles_Reasoning}" Style="{StaticResource FieldLabel}" />
+                    <ComboBox ItemsSource="{Binding ReasoningFormats}" SelectedItem="{Binding ReasoningFormat}" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Text="{l:Loc Profiles_Draft}" Style="{StaticResource FieldLabel}" />
+            <TextBox Text="{Binding DraftModelPath}" />
+            <TextBlock Text="{l:Loc Profiles_Extra}" Style="{StaticResource FieldLabel}" />
+            <TextBox Text="{Binding ExtraArgs}" FontFamily="{DynamicResource MonoFontFamily}" />
+
+            <!-- Превью -->
+            <TextBlock Style="{StaticResource FieldLabel}" Margin="0,14,0,2">
+                <Run Text="{l:Loc Profiles_Preview}" /><Run Text="{Binding ActiveModelName, Mode=OneWay, StringFormat=' — {0}'}" />
+            </TextBlock>
+            <TextBox Text="{Binding Preview, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" />
+            <TextBlock x:Name="Estimate" Text="{Binding EstimateText}" Style="{StaticResource CaptionText}" Margin="0,6,0,0" Foreground="{DynamicResource StatusOkBrush}" />
+            <TextBlock Text="{Binding SkippedText}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}"
+                       Visibility="{Binding SkippedText, Converter={StaticResource NullToCollapsed}}" />
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <Button Style="{DynamicResource AccentButtonStyle}" Command="{Binding StartCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconPlay}" Style="{StaticResource IconPath}" />
+                        <TextBlock Text="{l:Loc Profiles_Start}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding CopyAsBatCommand}" Margin="8,0,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
+                        <TextBlock Text="{l:Loc Profiles_CopyBat}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <!-- Сравнение -->
+            <Expander Header="{l:Loc Profiles_Compare}" Margin="0,12,0,0">
+                <StackPanel>
+                    <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding CompareWith}" DisplayMemberPath="Name" Width="220" HorizontalAlignment="Left" />
+                    <ItemsControl ItemsSource="{Binding Differences}" Margin="0,8,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Style="{StaticResource CaptionText}" FontFamily="{DynamicResource MonoFontFamily}">
+                                    <Run Text="{Binding Field, Mode=OneWay}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <Run Text=": " /><Run Text="{Binding Left, Mode=OneWay, TargetNullValue='—'}" />
+                                    <Run Text=" → " /><Run Text="{Binding Right, Mode=OneWay, TargetNullValue='—'}" />
+                                </TextBlock>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Expander>
+        </StackPanel>
+    </Border>
+</UserControl>

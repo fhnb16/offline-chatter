@@ -1,0 +1,253 @@
+<UserControl x:Class="OfflineChatter.Views.ModelsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:OfflineChatter.ViewModels"
+             xmlns:views="clr-namespace:OfflineChatter.Views"
+             xmlns:models="clr-namespace:OfflineChatter.Core.Models;assembly=OfflineChatter.Core"
+             xmlns:l="clr-namespace:OfflineChatter.Localization">
+    <UserControl.Resources>
+        <DataTemplate x:Key="EnumItemTemplate">
+            <TextBlock Text="{Binding Converter={StaticResource EnumDisplay}}" />
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="32,24,32,32" MaxWidth="1100" HorizontalAlignment="Stretch">
+            <TextBlock Text="{l:Loc Nav_Models}" Style="{StaticResource PageTitleText}" />
+
+            <!-- ===== Мои модели ===== -->
+            <DockPanel Margin="0,0,0,8">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Command="{Binding AddLocalCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconPlus}" Style="{StaticResource IconPath}" />
+                            <TextBlock Text="{l:Loc Models_AddFile}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding ScanCommand}" Margin="6,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconSearch}" Style="{StaticResource IconPath}" />
+                            <TextBlock Text="{l:Loc Models_Scan}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding AddScanFolderCommand}" Margin="6,0,0,0" ToolTip="{l:Loc Models_PickScanFolder}">
+                        <Path Data="{StaticResource IconFolder}" Style="{StaticResource IconPath}" />
+                    </Button>
+                </StackPanel>
+                <TextBlock Text="{l:Loc Models_Mine}" Style="{StaticResource SubtitleText}" VerticalAlignment="Center" />
+            </DockPanel>
+            <TextBlock Text="{Binding ScanStatus}" Style="{StaticResource CaptionText}" Margin="0,0,0,6"
+                       Visibility="{Binding ScanStatus, Converter={StaticResource NullToCollapsed}}" />
+            <TextBlock Text="{l:Loc Models_NoneYet}" Style="{StaticResource CaptionText}" Margin="0,0,0,8"
+                       Visibility="{Binding HasLocalModels, Converter={StaticResource InverseBoolToVisibility}}" />
+            <ItemsControl ItemsSource="{Binding LocalModels}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:LocalModelItem}">
+                        <Border Style="{StaticResource SettingCard}">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Style="{DynamicResource AccentButtonStyle}" Content="{l:Loc Models_Use}" Margin="0,0,6,0"
+                                            Command="{Binding DataContext.UseModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"
+                                            IsEnabled="{Binding Exists}" />
+                                    <Button Style="{DynamicResource SubtleButtonStyle}" ToolTip="{l:Loc Settings_OpenData}"
+                                            Command="{Binding DataContext.OpenModelFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                                        <Path Data="{StaticResource IconFolder}" Style="{StaticResource IconPath}" />
+                                    </Button>
+                                    <Button Style="{DynamicResource SubtleButtonStyle}" ToolTip="{l:Loc Common_Remove}"
+                                            Command="{Binding DataContext.RemoveModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                                        <Path Data="{StaticResource IconTrash}" Style="{StaticResource IconPath}" />
+                                    </Button>
+                                </StackPanel>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Title}" Style="{StaticResource BodyText}" FontWeight="SemiBold" TextWrapping="NoWrap" />
+                                        <Border Style="{StaticResource StatusPill}" Margin="8,0,0,0" Padding="7,1"
+                                                Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock Text="{l:Loc Engine_Active}" FontSize="11" Foreground="{DynamicResource AccentTextBrush}" />
+                                        </Border>
+                                        <Border Style="{StaticResource StatusPill}" Margin="6,0,0,0" Padding="7,1"
+                                                Visibility="{Binding HasVision, Converter={StaticResource BoolToVisibility}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Data="{StaticResource IconImage}" Style="{StaticResource IconPath}" Width="14" Height="14"
+                                                      TextElement.Foreground="{DynamicResource TextSecondaryBrush}" StrokeThickness="1.1" />
+                                                <TextBlock Text="vision" FontSize="11" Margin="4,0,0,0" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Details}" Style="{StaticResource CaptionText}" />
+                                    <TextBlock Text="{Binding Path}" Style="{StaticResource CaptionText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                                               Foreground="{DynamicResource TextTertiaryBrush}" />
+                                    <TextBlock Text="{l:Loc Models_Missing}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
+                                               Visibility="{Binding Exists, Converter={StaticResource InverseBoolToVisibility}}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- ===== Hugging Face ===== -->
+            <TextBlock Text="Hugging Face" Style="{StaticResource SubtitleText}" Margin="0,20,0,8" />
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Style="{DynamicResource AccentButtonStyle}" Command="{Binding ShowDefaultCommand}" Content="{l:Loc Models_ShowDefault}" />
+                    <StackPanel>
+                        <TextBlock Text="{l:Loc Models_DefaultTitle}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding DefaultRepo}" Style="{StaticResource CaptionText}" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <Grid Margin="0,4,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid>
+                    <TextBox x:Name="Query" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="30,5,9,5">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding SearchCommand}" />
+                        </TextBox.InputBindings>
+                    </TextBox>
+                    <Path Data="{StaticResource IconSearch}" Style="{StaticResource IconPath}" Margin="9,0,0,0" HorizontalAlignment="Left"
+                          IsHitTestVisible="False" TextElement.Foreground="{DynamicResource TextTertiaryBrush}" />
+                    <TextBlock Text="{l:Loc Models_SearchHint}" Margin="31,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                               Foreground="{DynamicResource TextTertiaryBrush}"
+                               Visibility="{Binding Text, ElementName=Query, Converter={StaticResource EmptyToVisible}}" />
+                </Grid>
+                <ComboBox Grid.Column="1" Width="170" Margin="8,0,0,0" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding Sort}"
+                          ItemTemplate="{StaticResource EnumItemTemplate}" />
+                <Button Grid.Column="2" Margin="8,0,0,0" Command="{Binding SearchCommand}" Content="{l:Loc Models_Search}" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <CheckBox Content="{l:Loc Models_VisionOnly}" IsChecked="{Binding VisionOnly}" />
+                <CheckBox Content="{l:Loc Models_FitsOnly}" IsChecked="{Binding FitsOnly}" Margin="20,0,0,0" />
+            </StackPanel>
+            <ProgressBar IsIndeterminate="True" Margin="0,0,0,8" Visibility="{Binding IsSearching, Converter={StaticResource BoolToVisibility}}" />
+            <TextBlock Text="{Binding SearchError}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
+                       Visibility="{Binding SearchError, Converter={StaticResource NullToCollapsed}}" Margin="0,0,0,8" />
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*" MinWidth="280" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="6*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Результаты -->
+                <Border Style="{StaticResource Card}" Padding="4">
+                    <ListBox ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedResult}" Height="460"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:HfModelSummary}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Style="{StaticResource CaptionText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
+                                        <Run Text="{Binding Author, Mode=OneWay}" />
+                                        <Run Text="{Binding Downloads, Mode=OneWay, StringFormat=' · ⤓ {0:N0}'}" />
+                                        <Run Text="{Binding Likes, Mode=OneWay, StringFormat=' · ♥ {0:N0}'}" />
+                                        <Run Text="{Binding PipelineTag, Mode=OneWay, StringFormat=' · {0}'}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Border>
+
+                <!-- Детали -->
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <Grid>
+                        <TextBlock Text="{l:Loc Models_SelectHint}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                   Visibility="{Binding HasSelection, Converter={StaticResource InverseBoolToVisibility}}" />
+                        <StackPanel Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding OpenOnHfCommand}" Content="huggingface.co ↗" />
+                                <TextBlock Text="{Binding SelectedResult.Id}" Style="{StaticResource SubtitleText}" TextWrapping="Wrap" />
+                            </DockPanel>
+                            <TextBlock Style="{StaticResource CaptionText}" Margin="0,2,0,8">
+                                <Run Text="{Binding SelectedResult.Architecture, Mode=OneWay}" />
+                                <Run Text="{Binding SelectedResult.ContextLength, Mode=OneWay, StringFormat=' · ctx {0:N0}'}" />
+                                <Run Text="{Binding SelectedResult.LastModified, Mode=OneWay, StringFormat=' · {0:d}'}" />
+                            </TextBlock>
+                            <ProgressBar IsIndeterminate="True" Margin="0,0,0,8" Visibility="{Binding IsLoadingDetails, Converter={StaticResource BoolToVisibility}}" />
+                            <TextBlock Text="{Binding DetailsError}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
+                                       Visibility="{Binding DetailsError, Converter={StaticResource NullToCollapsed}}" />
+
+                            <TextBlock Text="{l:Loc Models_ChooseQuant}" Style="{StaticResource CaptionText}" />
+                            <ListBox ItemsSource="{Binding Quants}" SelectedItem="{Binding SelectedQuant}" MaxHeight="230" Margin="0,4,0,0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:QuantItem}">
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Size}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Tier}" Style="{StaticResource CaptionText}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                                    <Border Style="{StaticResource StatusPill}" Margin="8,0,0,0" Padding="6,0"
+                                                            Visibility="{Binding Recommended, Converter={StaticResource BoolToVisibility}}">
+                                                        <TextBlock Text="{l:Loc Engine_Recommended}" FontSize="11" Foreground="{DynamicResource AccentTextBrush}" />
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock x:Name="Est" Text="{Binding Estimate}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusOkBrush}" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Verdict}" Value="Tight">
+                                                <Setter TargetName="Est" Property="Foreground" Value="{DynamicResource StatusWarnBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Verdict}" Value="DoesNotFit">
+                                                <Setter TargetName="Est" Property="Foreground" Value="{DynamicResource StatusErrorBrush}" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <CheckBox Margin="0,10,0,0" IsChecked="{Binding IncludeMmproj}" Visibility="{Binding HasMmproj, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="{Binding MmprojInfo}" TextWrapping="Wrap" />
+                            </CheckBox>
+
+                            <Button Style="{DynamicResource AccentButtonStyle}" Command="{Binding DownloadCommand}" HorizontalAlignment="Left" Margin="0,12,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource IconDownload}" Style="{StaticResource IconPath}" />
+                                    <TextBlock Text="{l:Loc Models_Download}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Expander Header="README" Margin="0,12,0,0" Visibility="{Binding Readme, Converter={StaticResource NullToCollapsed}}">
+                                <TextBox Text="{Binding Readme, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="300"
+                                         VerticalScrollBarVisibility="Auto" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" VerticalContentAlignment="Top" />
+                            </Expander>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ===== Параметры ===== -->
+            <TextBlock Text="{l:Loc Models_Options}" Style="{StaticResource SubtitleText}" Margin="0,20,0,8" />
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Command="{Binding ChangeDownloadFolderCommand}" Content="{l:Loc Common_Browse}" />
+                    <StackPanel>
+                        <TextBlock Text="{l:Loc Models_DownloadFolder}" Style="{StaticResource BodyText}" />
+                        <TextBlock Text="{Binding DownloadFolder}" Style="{StaticResource CaptionText}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <PasswordBox x:Name="HfToken" DockPanel.Dock="Right" Width="260" MinHeight="32" VerticalContentAlignment="Center" LostFocus="OnHfTokenLostFocus" />
+                    <StackPanel>
+                        <TextBlock Text="{l:Loc Models_HfToken}" Style="{StaticResource BodyText}" />
+                        <TextBlock Text="{l:Loc Models_HfTokenHint}" Style="{StaticResource CaptionText}" />
+                        <TextBlock Text="{l:Loc Models_HfTokenSaved}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusOkBrush}"
+                                   Visibility="{Binding HasHfToken, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <views:DownloadsView DataContext="{Binding Downloads}" Margin="0,16,0,0" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

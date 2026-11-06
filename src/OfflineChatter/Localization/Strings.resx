@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Сгенерировано tools/gen-strings.ps1 из Strings.tsv. Не редактировать вручную. -->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Nav_Chat" xml:space="preserve"><value>Chat</value></data>
+  <data name="Nav_Models" xml:space="preserve"><value>Models</value></data>
+  <data name="Nav_Engine" xml:space="preserve"><value>Engine</value></data>
+  <data name="Nav_Providers" xml:space="preserve"><value>API providers</value></data>
+  <data name="Nav_Mcp" xml:space="preserve"><value>Tools (MCP)</value></data>
+  <data name="Nav_Benchmarks" xml:space="preserve"><value>Benchmarks</value></data>
+  <data name="Nav_Logs" xml:space="preserve"><value>Logs</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Page_InProgress" xml:space="preserve"><value>This section is under construction.</value></data>
+  <data name="App_UnexpectedError" xml:space="preserve"><value>An unexpected error occurred. Details were written to the log:
+{0}
+
+{1}</value></data>
+  <data name="Units_Bytes" xml:space="preserve"><value>B|KB|MB|GB|TB</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="Common_Browse" xml:space="preserve"><value>Browse…</value></data>
+  <data name="Common_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Common_Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Common_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Common_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Common_Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="Common_No" xml:space="preserve"><value>No</value></data>
+  <data name="Common_Unknown" xml:space="preserve"><value>unknown</value></data>
+  <data name="Chat_New" xml:space="preserve"><value>New chat</value></data>
+  <data name="Chat_NewTitle" xml:space="preserve"><value>New chat</value></data>
+  <data name="Chat_Search" xml:space="preserve"><value>Search chats</value></data>
+  <data name="Chat_ToggleInspector" xml:space="preserve"><value>Show or hide the side panel</value></data>
+  <data name="Chat_EmptyTitle" xml:space="preserve"><value>How can I help?</value></data>
+  <data name="Chat_EmptySubtitle" xml:space="preserve"><value>Local GGUF models via llama.cpp or any OpenAI-compatible API.</value></data>
+  <data name="Chat_Suggest1" xml:space="preserve"><value>Explain Euler&apos;s identity</value></data>
+  <data name="Chat_Suggest1Prompt" xml:space="preserve"><value>Explain Euler&apos;s identity $e^{i\pi} + 1 = 0$</value></data>
+  <data name="Chat_Suggest2" xml:space="preserve"><value>Quicksort in C#</value></data>
+  <data name="Chat_Suggest2Prompt" xml:space="preserve"><value>Write a quicksort function in C#</value></data>
+  <data name="Chat_Suggest3" xml:space="preserve"><value>Describe an image</value></data>
+  <data name="Chat_Suggest3Prompt" xml:space="preserve"><value>Describe what is shown in the image</value></data>
+  <data name="Chat_Attach" xml:space="preserve"><value>Attach a file or image</value></data>
+  <data name="Chat_InputPlaceholder" xml:space="preserve"><value>Message… (Enter to send, Shift+Enter for a new line)</value></data>
+  <data name="Chat_Send" xml:space="preserve"><value>Send (Enter)</value></data>
+  <data name="Chat_StatsEmpty" xml:space="preserve"><value>Generation: — tok/s  ·  Prompt: — tok/s  ·  First token: —  ·  Context: — / —</value></data>
+  <data name="Chat_EngineStub" xml:space="preserve"><value>The engine is not connected yet.</value></data>
+  <data name="Inspector_Title" xml:space="preserve"><value>Generation</value></data>
+  <data name="Inspector_Empty" xml:space="preserve"><value>Generation parameters and live statistics will appear here.</value></data>
+  <data name="Engine_NotInstalled" xml:space="preserve"><value>Engine not installed</value></data>
+  <data name="Model_NotSelected" xml:space="preserve"><value>No model selected</value></data>
+  <data name="Settings_Appearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Settings_General" xml:space="preserve"><value>General</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Interface language</value></data>
+  <data name="Settings_LanguageAuto" xml:space="preserve"><value>As in Windows</value></data>
+  <data name="Settings_RestartRequired" xml:space="preserve"><value>Restart the app to apply</value></data>
+  <data name="Settings_LogContent" xml:space="preserve"><value>Write message text to the log</value></data>
+  <data name="Settings_LogContentHint" xml:space="preserve"><value>Off by default: the log contains only technical events.</value></data>
+  <data name="Settings_System" xml:space="preserve"><value>System</value></data>
+  <data name="Settings_Runtime" xml:space="preserve"><value>.NET Framework CLR {0}, {1} process</value></data>
+  <data name="Settings_DataPortable" xml:space="preserve"><value>Portable mode: {0}</value></data>
+  <data name="Settings_DataLocal" xml:space="preserve"><value>Data folder: {0}</value></data>
+  <data name="Settings_OpenData" xml:space="preserve"><value>Open data folder</value></data>
+  <data name="Settings_OpenLogs" xml:space="preserve"><value>Open logs folder</value></data>
+  <data name="Appearance_Skin" xml:space="preserve"><value>Control style</value></data>
+  <data name="Appearance_SkinHint" xml:space="preserve"><value>Native WPF themes of different Windows versions work on any OS.</value></data>
+  <data name="Appearance_Mode" xml:space="preserve"><value>Theme</value></data>
+  <data name="Appearance_Backdrop" xml:space="preserve"><value>Window backdrop</value></data>
+  <data name="Appearance_BackdropHint" xml:space="preserve"><value>Only effects supported by this Windows version are listed.</value></data>
+  <data name="Appearance_Accent" xml:space="preserve"><value>Accent color</value></data>
+  <data name="Appearance_Now" xml:space="preserve"><value>Now: {0}</value></data>
+  <data name="Appearance_NowHighContrast" xml:space="preserve"><value>Now: high contrast mode</value></data>
+  <data name="Appearance_Dark" xml:space="preserve"><value>dark</value></data>
+  <data name="Appearance_Light" xml:space="preserve"><value>light</value></data>
+  <data name="Appearance_DarkUsesFluent" xml:space="preserve"><value>controls use the Fluent style in dark mode</value></data>
+  <data name="Enum_SkinKind_Auto" xml:space="preserve"><value>Auto (by Windows version)</value></data>
+  <data name="Enum_SkinKind_Aero" xml:space="preserve"><value>Aero (Windows 7)</value></data>
+  <data name="Enum_SkinKind_Aero2" xml:space="preserve"><value>Aero2 (Windows 8/10)</value></data>
+  <data name="Enum_SkinKind_AeroLite" xml:space="preserve"><value>Aero Lite</value></data>
+  <data name="Enum_SkinKind_Luna" xml:space="preserve"><value>Luna (Windows XP)</value></data>
+  <data name="Enum_SkinKind_Royale" xml:space="preserve"><value>Royale (Media Center)</value></data>
+  <data name="Enum_SkinKind_Classic" xml:space="preserve"><value>Classic</value></data>
+  <data name="Enum_SkinKind_Fluent" xml:space="preserve"><value>Fluent (Windows 11)</value></data>
+  <data name="Enum_ThemeMode_System" xml:space="preserve"><value>As in Windows</value></data>
+  <data name="Enum_ThemeMode_Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Enum_ThemeMode_Dark" xml:space="preserve"><value>Dark</value></data>
+  <data name="Enum_BackdropKind_Auto" xml:space="preserve"><value>Auto</value></data>
+  <data name="Enum_BackdropKind_None" xml:space="preserve"><value>None (solid)</value></data>
+  <data name="Enum_BackdropKind_AeroGlass" xml:space="preserve"><value>Aero Glass</value></data>
+  <data name="Enum_BackdropKind_Blur" xml:space="preserve"><value>Blur</value></data>
+  <data name="Enum_BackdropKind_Acrylic" xml:space="preserve"><value>Acrylic</value></data>
+  <data name="Enum_BackdropKind_Mica" xml:space="preserve"><value>Mica</value></data>
+  <data name="Enum_BackdropKind_MicaAlt" xml:space="preserve"><value>Mica Alt</value></data>
+  <data name="Enum_AccentSource_System" xml:space="preserve"><value>System</value></data>
+  <data name="Enum_AccentSource_Custom" xml:space="preserve"><value>Custom</value></data>
+  <data name="Settings_Network" xml:space="preserve"><value>Network</value></data>
+  <data name="Net_Proxy" xml:space="preserve"><value>Proxy</value></data>
+  <data name="Net_ProxyAddress" xml:space="preserve"><value>Proxy address</value></data>
+  <data name="Net_ProxyUser" xml:space="preserve"><value>User</value></data>
+  <data name="Net_ProxyPassword" xml:space="preserve"><value>Password</value></data>
+  <data name="Net_Tls" xml:space="preserve"><value>TLS mode</value></data>
+  <data name="Net_TlsHint" xml:space="preserve"><value>Auto: system TLS first; on certificate or handshake errors — built-in root certificates, then the built-in TLS 1.2/1.3 stack.</value></data>
+  <data name="Net_RootsInfo" xml:space="preserve"><value>Built-in root certificates: {0}. Extra ones can be put into {1}</value></data>
+  <data name="Net_Mirrors" xml:space="preserve"><value>Mirrors</value></data>
+  <data name="Net_MirrorsHint" xml:space="preserve"><value>Change only if the original sites are unavailable.</value></data>
+  <data name="Net_GitHubPrefix" xml:space="preserve"><value>GitHub download prefix (empty — direct)</value></data>
+  <data name="Net_Concurrent" xml:space="preserve"><value>Simultaneous downloads</value></data>
+  <data name="Net_SpeedLimit" xml:space="preserve"><value>Speed limit, KB/s</value></data>
+  <data name="Net_SpeedLimitHint" xml:space="preserve"><value>0 — no limit</value></data>
+  <data name="Net_CheckTitle" xml:space="preserve"><value>Connection check</value></data>
+  <data name="Net_Check" xml:space="preserve"><value>Check network</value></data>
+  <data name="Net_CheckOk" xml:space="preserve"><value>{0} ms · {1} · {2}</value></data>
+  <data name="Enum_ProxyMode_System" xml:space="preserve"><value>System (as in Windows)</value></data>
+  <data name="Enum_ProxyMode_None" xml:space="preserve"><value>No proxy</value></data>
+  <data name="Enum_ProxyMode_Manual" xml:space="preserve"><value>Manual</value></data>
+  <data name="Enum_TlsMode_Auto" xml:space="preserve"><value>Auto (recommended)</value></data>
+  <data name="Enum_TlsMode_System" xml:space="preserve"><value>System TLS only</value></data>
+  <data name="Enum_TlsMode_PinnedRoots" xml:space="preserve"><value>System TLS + built-in roots</value></data>
+  <data name="Enum_TlsMode_Managed" xml:space="preserve"><value>Built-in TLS stack</value></data>
+  <data name="Enum_TlsLevel_System" xml:space="preserve"><value>system TLS</value></data>
+  <data name="Enum_TlsLevel_PinnedRoots" xml:space="preserve"><value>built-in roots</value></data>
+  <data name="Enum_TlsLevel_Managed" xml:space="preserve"><value>built-in TLS</value></data>
+  <data name="Download_Title" xml:space="preserve"><value>Downloads</value></data>
+  <data name="Download_ClearFinished" xml:space="preserve"><value>Clear finished</value></data>
+  <data name="Download_Pause" xml:space="preserve"><value>Pause</value></data>
+  <data name="Download_Resume" xml:space="preserve"><value>Resume</value></data>
+  <data name="Download_Eta" xml:space="preserve"><value>{0} left</value></data>
+  <data name="Download_Verifying" xml:space="preserve"><value>Verifying SHA-256</value></data>
+  <data name="Download_Failed" xml:space="preserve"><value>Error</value></data>
+  <data name="Enum_DownloadState_Queued" xml:space="preserve"><value>Queued</value></data>
+  <data name="Enum_DownloadState_Running" xml:space="preserve"><value>Downloading</value></data>
+  <data name="Enum_DownloadState_Paused" xml:space="preserve"><value>Paused</value></data>
+  <data name="Enum_DownloadState_Verifying" xml:space="preserve"><value>Verifying</value></data>
+  <data name="Enum_DownloadState_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="Enum_DownloadState_Failed" xml:space="preserve"><value>Error</value></data>
+  <data name="Enum_DownloadState_Canceled" xml:space="preserve"><value>Canceled</value></data>
+  <data name="Engine_Server" xml:space="preserve"><value>llama-server</value></data>
+  <data name="Engine_Stop" xml:space="preserve"><value>Stop</value></data>
+  <data name="Engine_ServerLog" xml:space="preserve"><value>Command line and server output</value></data>
+  <data name="Engine_ServerDetails" xml:space="preserve"><value>{0} · PID {1} · {2} · loaded in {3}</value></data>
+  <data name="Engine_Hardware" xml:space="preserve"><value>Hardware</value></data>
+  <data name="Engine_HardwareProbing" xml:space="preserve"><value>Detecting hardware…</value></data>
+  <data name="Engine_Cores" xml:space="preserve"><value>{0} cores / {1} threads</value></data>
+  <data name="Engine_Ram" xml:space="preserve"><value>RAM: {0} (free {1})</value></data>
+  <data name="Engine_NoGpu" xml:space="preserve"><value>No GPU found</value></data>
+  <data name="Engine_Nvidia" xml:space="preserve"><value>NVIDIA driver {0}, CUDA up to {1}</value></data>
+  <data name="Engine_VulkanYes" xml:space="preserve"><value>Vulkan: available</value></data>
+  <data name="Engine_VulkanNo" xml:space="preserve"><value>Vulkan: not found (update the GPU driver)</value></data>
+  <data name="Engine_NoUcrt" xml:space="preserve"><value>Universal C Runtime (KB2999226) is missing — llama.cpp will not start.</value></data>
+  <data name="Engine_NoVcRuntime" xml:space="preserve"><value>Visual C++ 2015–2022 runtime is missing — llama.cpp needs it.</value></data>
+  <data name="Engine_GetVcRuntime" xml:space="preserve"><value>Download VC++ runtime</value></data>
+  <data name="Engine_InstalledTitle" xml:space="preserve"><value>Installed</value></data>
+  <data name="Engine_NoneInstalled" xml:space="preserve"><value>No engine yet: download one below or connect your own llama.cpp folder.</value></data>
+  <data name="Engine_AddExternal" xml:space="preserve"><value>Connect existing llama.cpp…</value></data>
+  <data name="Engine_PickServerExe" xml:space="preserve"><value>Select llama-server.exe of your llama.cpp build</value></data>
+  <data name="Engine_NotAnEngine" xml:space="preserve"><value>llama-server.exe was not found in this folder.</value></data>
+  <data name="Engine_MakeActive" xml:space="preserve"><value>Use</value></data>
+  <data name="Engine_Active" xml:space="preserve"><value>active</value></data>
+  <data name="Engine_External" xml:space="preserve"><value>connected folder</value></data>
+  <data name="Engine_Downloaded" xml:space="preserve"><value>downloaded</value></data>
+  <data name="Engine_ConfirmDelete" xml:space="preserve"><value>Delete {0}?
+{1}</value></data>
+  <data name="Engine_ConfirmUnlink" xml:space="preserve"><value>Disconnect {0}? The folder itself stays untouched.
+{1}</value></data>
+  <data name="Engine_Download" xml:space="preserve"><value>Download llama.cpp</value></data>
+  <data name="Engine_DownloadHint" xml:space="preserve"><value>Official portable builds from github.com/ggml-org/llama.cpp. CPU works everywhere; GPU builds are listed only if your hardware supports them.</value></data>
+  <data name="Engine_ShowAll" xml:space="preserve"><value>Show all builds (including unsupported here)</value></data>
+  <data name="Engine_Recommended" xml:space="preserve"><value>recommended</value></data>
+  <data name="Engine_InstallButton" xml:space="preserve"><value>Download and install</value></data>
+  <data name="Engine_Installed" xml:space="preserve"><value>Installed: {0}</value></data>
+  <data name="Engine_InstalledButBroken" xml:space="preserve"><value>Installed, but the self-test failed: {0}</value></data>
+  <data name="Engine_InstallFailed" xml:space="preserve"><value>Installation failed: {0}</value></data>
+  <data name="Engine_ReleasesError" xml:space="preserve"><value>Cannot load the release list: {0}</value></data>
+  <data name="Enum_EngineBackend_Cpu" xml:space="preserve"><value>CPU</value></data>
+  <data name="Enum_EngineBackend_Vulkan" xml:space="preserve"><value>Vulkan (any GPU)</value></data>
+  <data name="Enum_EngineBackend_Cuda" xml:space="preserve"><value>NVIDIA CUDA</value></data>
+  <data name="Enum_EngineBackend_Rocm" xml:space="preserve"><value>AMD ROCm</value></data>
+  <data name="Enum_EngineBackend_Sycl" xml:space="preserve"><value>Intel SYCL</value></data>
+  <data name="Enum_EngineBackend_OpenVino" xml:space="preserve"><value>Intel OpenVINO</value></data>
+  <data name="Enum_EngineBackend_OpenClAdreno" xml:space="preserve"><value>Qualcomm Adreno (OpenCL)</value></data>
+  <data name="Enum_EngineBackend_Custom" xml:space="preserve"><value>Custom</value></data>
+  <data name="Enum_ServerState_Stopped" xml:space="preserve"><value>stopped</value></data>
+  <data name="Enum_ServerState_Starting" xml:space="preserve"><value>starting</value></data>
+  <data name="Enum_ServerState_Loading" xml:space="preserve"><value>loading the model</value></data>
+  <data name="Enum_ServerState_Ready" xml:space="preserve"><value>ready</value></data>
+  <data name="Enum_ServerState_Failed" xml:space="preserve"><value>error</value></data>
+  <data name="Enum_EngineHealth_Ok" xml:space="preserve"><value>works</value></data>
+  <data name="Enum_EngineHealth_MissingFile" xml:space="preserve"><value>llama-server.exe not found</value></data>
+  <data name="Enum_EngineHealth_MissingDll" xml:space="preserve"><value>a required DLL is missing (VC++ runtime, Vulkan or CUDA driver)</value></data>
+  <data name="Enum_EngineHealth_OsTooOld" xml:space="preserve"><value>this build needs a newer Windows — try a Win7-compatible build</value></data>
+  <data name="Enum_EngineHealth_IllegalInstruction" xml:space="preserve"><value>the CPU does not support this build&apos;s instructions</value></data>
+  <data name="Enum_EngineHealth_Timeout" xml:space="preserve"><value>no response from llama-server</value></data>
+  <data name="Enum_EngineHealth_Crashed" xml:space="preserve"><value>llama-server crashed</value></data>
+  <data name="Enum_InstallStage_Downloading" xml:space="preserve"><value>Downloading…</value></data>
+  <data name="Enum_InstallStage_Extracting" xml:space="preserve"><value>Extracting…</value></data>
+  <data name="Enum_InstallStage_Testing" xml:space="preserve"><value>Self-test…</value></data>
+  <data name="Enum_InstallStage_Done" xml:space="preserve"><value>Done</value></data>
+  <data name="Models_Mine" xml:space="preserve"><value>My models</value></data>
+  <data name="Models_AddFile" xml:space="preserve"><value>Add GGUF file…</value></data>
+  <data name="Models_PickFile" xml:space="preserve"><value>Select a GGUF model (any disk; the file is not copied)</value></data>
+  <data name="Models_Scan" xml:space="preserve"><value>Find downloaded</value></data>
+  <data name="Models_PickScanFolder" xml:space="preserve"><value>Folder to search for GGUF models</value></data>
+  <data name="Models_Scanning" xml:space="preserve"><value>Searching: models folder, Hugging Face cache, LM Studio, your folders…</value></data>
+  <data name="Models_ScanDone" xml:space="preserve"><value>Found {0} models, {1} new</value></data>
+  <data name="Models_NoneYet" xml:space="preserve"><value>No models yet. Download the recommended one below, search Hugging Face or add a GGUF file from any disk.</value></data>
+  <data name="Models_Use" xml:space="preserve"><value>Use</value></data>
+  <data name="Models_Missing" xml:space="preserve"><value>File not found — the disk may be disconnected</value></data>
+  <data name="Models_ConfirmRemove" xml:space="preserve"><value>Remove {0}?
+{1}
+
+Yes — delete files from disk
+No — only remove from the list</value></data>
+  <data name="Models_Ctx" xml:space="preserve"><value>ctx {0}</value></data>
+  <data name="Models_Shards" xml:space="preserve"><value>{0} parts</value></data>
+  <data name="Models_DefaultTitle" xml:space="preserve"><value>Recommended starter model (small, vision, runs on any PC)</value></data>
+  <data name="Models_ShowDefault" xml:space="preserve"><value>Show</value></data>
+  <data name="Models_SearchHint" xml:space="preserve"><value>Search GGUF models (e.g. qwen, gemma, llama)</value></data>
+  <data name="Models_Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Models_VisionOnly" xml:space="preserve"><value>Vision (understand images)</value></data>
+  <data name="Models_FitsOnly" xml:space="preserve"><value>Fits my memory</value></data>
+  <data name="Models_SearchError" xml:space="preserve"><value>Search failed: {0}</value></data>
+  <data name="Models_SelectHint" xml:space="preserve"><value>Select a model on the left</value></data>
+  <data name="Models_ChooseQuant" xml:space="preserve"><value>Choose a quantization (smaller = faster and less memory, larger = better quality):</value></data>
+  <data name="Models_EstimateGpu" xml:space="preserve"><value>≈ {0} VRAM at {1} context — fully on GPU</value></data>
+  <data name="Models_EstimateCpu" xml:space="preserve"><value>≈ {0} memory at {1} context</value></data>
+  <data name="Models_MmprojInfo" xml:space="preserve"><value>Also download the vision projector {0} ({1}) — needed to understand images</value></data>
+  <data name="Models_Download" xml:space="preserve"><value>Download</value></data>
+  <data name="Models_Gated" xml:space="preserve"><value>This model requires accepting its license on huggingface.co and an access token (see Options below).</value></data>
+  <data name="Models_Options" xml:space="preserve"><value>Options</value></data>
+  <data name="Models_DownloadFolder" xml:space="preserve"><value>Folder for downloaded models</value></data>
+  <data name="Models_PickDownloadFolder" xml:space="preserve"><value>Folder for downloaded models (can be on another disk)</value></data>
+  <data name="Models_HfToken" xml:space="preserve"><value>Hugging Face token</value></data>
+  <data name="Models_HfTokenHint" xml:space="preserve"><value>Only for gated models. Stored encrypted (DPAPI).</value></data>
+  <data name="Models_HfTokenSaved" xml:space="preserve"><value>Token saved</value></data>
+  <data name="Quant_Tier_lossless" xml:space="preserve"><value>lossless</value></data>
+  <data name="Quant_Tier_high" xml:space="preserve"><value>high quality</value></data>
+  <data name="Quant_Tier_balanced" xml:space="preserve"><value>balanced</value></data>
+  <data name="Quant_Tier_small" xml:space="preserve"><value>compact</value></data>
+  <data name="Quant_Tier_tiny" xml:space="preserve"><value>very small, quality loss</value></data>
+  <data name="Enum_HfSort_Downloads" xml:space="preserve"><value>Most downloaded</value></data>
+  <data name="Enum_HfSort_Likes" xml:space="preserve"><value>Most liked</value></data>
+  <data name="Enum_HfSort_Trending" xml:space="preserve"><value>Trending</value></data>
+  <data name="Enum_HfSort_Updated" xml:space="preserve"><value>Recently updated</value></data>
+  <data name="Profiles_Title" xml:space="preserve"><value>Launch profile</value></data>
+  <data name="Profiles_SaveAsNew" xml:space="preserve"><value>Save as new</value></data>
+  <data name="Profiles_ResetOrDelete" xml:space="preserve"><value>Reset / delete</value></data>
+  <data name="Profiles_DefaultForAll" xml:space="preserve"><value>Use this profile for models without their own</value></data>
+  <data name="Profiles_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Profiles_Context" xml:space="preserve"><value>Context size (empty — auto)</value></data>
+  <data name="Profiles_GpuLayers" xml:space="preserve"><value>Layers on GPU (empty — auto, -1 — all, 0 — CPU only)</value></data>
+  <data name="Profiles_GpuLayersHint" xml:space="preserve"><value>Auto uses llama.cpp --fit when available, otherwise our VRAM estimate</value></data>
+  <data name="Profiles_UseFit" xml:space="preserve"><value>Let llama.cpp fit parameters to memory (--fit)</value></data>
+  <data name="Profiles_Threads" xml:space="preserve"><value>CPU threads (empty — physical cores)</value></data>
+  <data name="Profiles_AutoHint" xml:space="preserve"><value>Empty — automatic</value></data>
+  <data name="Profiles_Batch" xml:space="preserve"><value>Batch / micro-batch</value></data>
+  <data name="Profiles_Parallel" xml:space="preserve"><value>Parallel slots</value></data>
+  <data name="Profiles_KvCache" xml:space="preserve"><value>KV cache type (K / V)</value></data>
+  <data name="Profiles_MlockHint" xml:space="preserve"><value>Keep the model in RAM (no swapping)</value></data>
+  <data name="Profiles_Temperature" xml:space="preserve"><value>Temperature</value></data>
+  <data name="Profiles_MaxTokens" xml:space="preserve"><value>Max tokens</value></data>
+  <data name="Profiles_Reasoning" xml:space="preserve"><value>Reasoning output format</value></data>
+  <data name="Profiles_Draft" xml:space="preserve"><value>Draft model for speculative decoding (path to GGUF, optional)</value></data>
+  <data name="Profiles_Extra" xml:space="preserve"><value>Extra llama-server arguments</value></data>
+  <data name="Profiles_Preview" xml:space="preserve"><value>Command line</value></data>
+  <data name="Profiles_NoModel" xml:space="preserve"><value>Select a model in «Models» to see the command line.</value></data>
+  <data name="Profiles_NoEngine" xml:space="preserve"><value>Install or connect an engine first.</value></data>
+  <data name="Profiles_Skipped" xml:space="preserve"><value>Not supported by this llama.cpp version and skipped: {0}</value></data>
+  <data name="Profiles_Estimate" xml:space="preserve"><value>≈ {0} total (weights {1}, KV {2}, on GPU {3}) at context {4}</value></data>
+  <data name="Profiles_Start" xml:space="preserve"><value>Start / restart</value></data>
+  <data name="Profiles_CopyBat" xml:space="preserve"><value>Copy as .bat</value></data>
+  <data name="Profiles_Compare" xml:space="preserve"><value>Compare with another profile</value></data>
+  <data name="Profiles_Copy" xml:space="preserve"><value>copy</value></data>
+  <data name="Enum_FitVerdict_Fits" xml:space="preserve"><value>fits</value></data>
+  <data name="Enum_FitVerdict_Tight" xml:space="preserve"><value>tight — may be slow</value></data>
+  <data name="Enum_FitVerdict_DoesNotFit" xml:space="preserve"><value>does not fit — reduce context or pick a smaller quant</value></data>
+  <data name="Chat_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Chat_Copied" xml:space="preserve"><value>Copied</value></data>
+  <data name="Chat_CopyLatex" xml:space="preserve"><value>Copy LaTeX</value></data>
+  <data name="Chat_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Chat_Regenerate" xml:space="preserve"><value>Regenerate</value></data>
+  <data name="Chat_Stop" xml:space="preserve"><value>Stop (Esc)</value></data>
+  <data name="Chat_Editing" xml:space="preserve"><value>Editing the message — sending creates a new branch</value></data>
+  <data name="Chat_Thinking" xml:space="preserve"><value>Thinking…</value></data>
+  <data name="Chat_ThoughtFor" xml:space="preserve"><value>Thought for {0}</value></data>
+  <data name="Chat_Reasoning" xml:space="preserve"><value>Reasoning</value></data>
+  <data name="Chat_ThinkingMode" xml:space="preserve"><value>Thinking mode</value></data>
+  <data name="Chat_ThinkingAuto" xml:space="preserve"><value>As the model decides</value></data>
+  <data name="Chat_ThinkingOn" xml:space="preserve"><value>On</value></data>
+  <data name="Chat_ThinkingOff" xml:space="preserve"><value>Off (faster answers)</value></data>
+  <data name="Chat_SystemPrompt" xml:space="preserve"><value>System prompt</value></data>
+  <data name="Chat_OverrideTemperature" xml:space="preserve"><value>Own temperature for this chat</value></data>
+  <data name="Chat_InspectorHint" xml:space="preserve"><value>Other sampling parameters come from the launch profile (Engine → Launch profile).</value></data>
+  <data name="Chat_ModelPicker" xml:space="preserve"><value>Model: local GGUF or connected API</value></data>
+  <data name="Chat_LocalModels" xml:space="preserve"><value>local</value></data>
+  <data name="Chat_Pin" xml:space="preserve"><value>Pin / unpin</value></data>
+  <data name="Chat_ConfirmDelete" xml:space="preserve"><value>Delete the chat «{0}»?</value></data>
+  <data name="Chat_AttachFilter" xml:space="preserve"><value>Images, text, code, DOCX</value></data>
+  <data name="Chat_AttachUnsupported" xml:space="preserve"><value>Unsupported file: {0}</value></data>
+  <data name="Chat_AttachFailed" xml:space="preserve"><value>Cannot attach {0}: {1}</value></data>
+  <data name="Chat_NoModel" xml:space="preserve"><value>No model selected — download one in «Models» or connect an API.</value></data>
+  <data name="Chat_ModelMissing" xml:space="preserve"><value>Model file not found: {0}</value></data>
+  <data name="Chat_NoEngine" xml:space="preserve"><value>llama.cpp is not installed — open «Engine».</value></data>
+  <data name="Chat_StartingModel" xml:space="preserve"><value>Loading {0}…</value></data>
+  <data name="Chat_ServerFailed" xml:space="preserve"><value>llama-server did not start: {0}</value></data>
+  <data name="Chat_ProviderMissing" xml:space="preserve"><value>The API provider was removed.</value></data>
+  <data name="Chat_LiveStats" xml:space="preserve"><value>Generating: {0} tok · {1} tok/s · first token {2}</value></data>
+  <data name="Chat_Context" xml:space="preserve"><value>Context {0} / {1}</value></data>
+  <data name="Chat_ContextNoLimit" xml:space="preserve"><value>Context {0} tokens</value></data>
+  <data name="Stats_Gen" xml:space="preserve"><value>{0} tok/s</value></data>
+  <data name="Stats_Tokens" xml:space="preserve"><value>{0} tok</value></data>
+  <data name="Stats_Prompt" xml:space="preserve"><value>prompt {0} tok @ {1} tok/s</value></data>
+  <data name="Stats_Ttft" xml:space="preserve"><value>first token {0}</value></data>
+  <data name="Stats_Draft" xml:space="preserve"><value>draft accepted {0}%</value></data>
+  <data name="Stats_Truncated" xml:space="preserve"><value>cut off by the token limit</value></data>
+  <data name="Stats_Stopped" xml:space="preserve"><value>stopped</value></data>
+  <data name="Providers_Hint" xml:space="preserve"><value>Cloud and local OpenAI-compatible APIs. Keys are stored encrypted (DPAPI). Selected models appear in the chat model picker.</value></data>
+  <data name="Providers_Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Providers_None" xml:space="preserve"><value>No providers yet — choose a preset above.</value></data>
+  <data name="Providers_Enabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="Providers_ApiKey" xml:space="preserve"><value>API key</value></data>
+  <data name="Providers_GetKey" xml:space="preserve"><value>Get a key ↗</value></data>
+  <data name="Providers_KeySaved" xml:space="preserve"><value>Key saved (encrypted)</value></data>
+  <data name="Providers_KeyMissing" xml:space="preserve"><value>A key is required</value></data>
+  <data name="Providers_KeyOptional" xml:space="preserve"><value>Key is optional for this server</value></data>
+  <data name="Providers_Test" xml:space="preserve"><value>Check and load models</value></data>
+  <data name="Providers_Testing" xml:space="preserve"><value>Connecting…</value></data>
+  <data name="Providers_TestOk" xml:space="preserve"><value>Connected, models: {0}</value></data>
+  <data name="Providers_Models" xml:space="preserve"><value>Models in the chat picker</value></data>
+  <data name="Providers_ModelsHint" xml:space="preserve"><value>Checked models are shown in the chat model picker.</value></data>
+  <data name="Providers_Quirks" xml:space="preserve"><value>API specifics</value></data>
+  <data name="Providers_MaxTokensField" xml:space="preserve"><value>Max tokens field name</value></data>
+  <data name="Providers_Vision" xml:space="preserve"><value>Supports images</value></data>
+  <data name="Providers_Tools" xml:space="preserve"><value>Supports tools (function calling)</value></data>
+  <data name="Providers_LlamaCpp" xml:space="preserve"><value>llama.cpp server extensions (thinking toggle, timings)</value></data>
+  <data name="Bench_LlamaHint" xml:space="preserve"><value>Raw engine speed: prompt processing (pp) and generation (tg). The server is stopped while measuring.</value></data>
+  <data name="Bench_ChatHint" xml:space="preserve"><value>Real chat requests N times: time to first token and generation speed (median, p95). Works with APIs too.</value></data>
+  <data name="Bench_Model" xml:space="preserve"><value>Model:</value></data>
+  <data name="Bench_Prompt" xml:space="preserve"><value>Prompt tokens</value></data>
+  <data name="Bench_Gen" xml:space="preserve"><value>Generated tokens</value></data>
+  <data name="Bench_Reps" xml:space="preserve"><value>Repetitions</value></data>
+  <data name="Bench_Ngl" xml:space="preserve"><value>GPU layers (empty — all)</value></data>
+  <data name="Bench_Target" xml:space="preserve"><value>Model or API</value></data>
+  <data name="Bench_Runs" xml:space="preserve"><value>Runs</value></data>
+  <data name="Bench_Prompts" xml:space="preserve"><value>Prompts (one per line)</value></data>
+  <data name="Bench_Run" xml:space="preserve"><value>Run</value></data>
+  <data name="Bench_Running" xml:space="preserve"><value>Measuring…</value></data>
+  <data name="Bench_Done" xml:space="preserve"><value>Done — the report is saved</value></data>
+  <data name="Bench_Failed" xml:space="preserve"><value>Benchmark failed: {0}</value></data>
+  <data name="Bench_NoBenchExe" xml:space="preserve"><value>llama-bench.exe was not found next to the active engine.</value></data>
+  <data name="Bench_Output" xml:space="preserve"><value>Output</value></data>
+  <data name="Bench_Reports" xml:space="preserve"><value>Reports</value></data>
+  <data name="Bench_ReportsHint" xml:space="preserve"><value>Check reports to compare them and to export only them.</value></data>
+  <data name="Bench_Compare" xml:space="preserve"><value>Comparison</value></data>
+  <data name="Bench_Exported" xml:space="preserve"><value>Saved: {0}</value></data>
+  <data name="Logs_LevelAll" xml:space="preserve"><value>All levels</value></data>
+  <data name="Logs_Auto" xml:space="preserve"><value>Auto-refresh</value></data>
+  <data name="Logs_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Logs_Bundle" xml:space="preserve"><value>Diagnostics archive…</value></data>
+  <data name="Logs_Filter" xml:space="preserve"><value>Filter by text</value></data>
+  <data name="Logs_Count" xml:space="preserve"><value>Shown {0} of {1}</value></data>
+  <data name="Logs_BundleSaved" xml:space="preserve"><value>Saved (no secrets inside): {0}</value></data>
+  <data name="Res_Title" xml:space="preserve"><value>llama-server resources</value></data>
+  <data name="Res_ServerStopped" xml:space="preserve"><value>Server is not running</value></data>
+  <data name="Res_Cpu" xml:space="preserve"><value>CPU: {0}%</value></data>
+  <data name="Res_Ram" xml:space="preserve"><value>RAM: {0}</value></data>
+  <data name="Res_Vram" xml:space="preserve"><value>VRAM: {0} of {1}</value></data>
+  <data name="Export_Title" xml:space="preserve"><value>Export — choose the format in «Save as type»</value></data>
+  <data name="Export_Chat" xml:space="preserve"><value>Export chat (DOCX, DOC, RTF, HTML, Markdown, JSON)</value></data>
+  <data name="Export_Message" xml:space="preserve"><value>Export this message</value></data>
+  <data name="Export_Print" xml:space="preserve"><value>Print (or «Print to PDF»)</value></data>
+  <data name="Export_User" xml:space="preserve"><value>User</value></data>
+  <data name="Export_Assistant" xml:space="preserve"><value>Assistant</value></data>
+  <data name="Mcp_Hint" xml:space="preserve"><value>The model can call tools: built-in ones work offline; MCP servers add any external tools (files, Git, databases, browsers…). Small models (~1B) call tools poorly — 4B+ is recommended.</value></data>
+  <data name="Tools_EnabledByDefault" xml:space="preserve"><value>Allow tools in new chats</value></data>
+  <data name="Tools_MaxStepsLabel" xml:space="preserve"><value>Max tool steps per answer</value></data>
+  <data name="Tools_Builtin" xml:space="preserve"><value>Built-in tools</value></data>
+  <data name="Tools_Sandbox" xml:space="preserve"><value>Folder the read_file tool may read (empty — tool off)</value></data>
+  <data name="Tools_Searxng" xml:space="preserve"><value>SearXNG address for web_search (empty — tool off)</value></data>
+  <data name="Tools_ChatToggle" xml:space="preserve"><value>Tools (built-in and MCP)</value></data>
+  <data name="Tools_ConsentTitle" xml:space="preserve"><value>Tool call</value></data>
+  <data name="Tools_ConsentHeader" xml:space="preserve"><value>The model wants to call «{0}»</value></data>
+  <data name="Tools_ConsentSource" xml:space="preserve"><value>Source: {0}</value></data>
+  <data name="Tools_Arguments" xml:space="preserve"><value>Arguments</value></data>
+  <data name="Tools_Result" xml:space="preserve"><value>Result</value></data>
+  <data name="Tools_AllowOnce" xml:space="preserve"><value>Allow once</value></data>
+  <data name="Tools_AllowAlways" xml:space="preserve"><value>Always allow</value></data>
+  <data name="Tools_Deny" xml:space="preserve"><value>Deny</value></data>
+  <data name="Tools_ExternalWarning" xml:space="preserve"><value>External MCP servers are programs or services with your rights — connect only those you trust.</value></data>
+  <data name="Tools_Running" xml:space="preserve"><value>Running tool {0}…</value></data>
+  <data name="Tools_MaxSteps" xml:space="preserve"><value>Tool step limit reached</value></data>
+  <data name="Enum_ConsentMode_Ask" xml:space="preserve"><value>Ask every time</value></data>
+  <data name="Enum_ConsentMode_Always" xml:space="preserve"><value>Always allow</value></data>
+  <data name="Enum_ConsentMode_Disabled" xml:space="preserve"><value>Off</value></data>
+  <data name="Mcp_Servers" xml:space="preserve"><value>MCP servers</value></data>
+  <data name="Mcp_None" xml:space="preserve"><value>No servers. Add one below, import from Claude Desktop or edit mcp.json (same «mcpServers» format).</value></data>
+  <data name="Mcp_Import" xml:space="preserve"><value>Import from Claude Desktop</value></data>
+  <data name="Mcp_ImportTitle" xml:space="preserve"><value>Select claude_desktop_config.json</value></data>
+  <data name="Mcp_Imported" xml:space="preserve"><value>Imported servers: {0}</value></data>
+  <data name="Mcp_OpenConfig" xml:space="preserve"><value>Open mcp.json</value></data>
+  <data name="Mcp_Connect" xml:space="preserve"><value>Connect</value></data>
+  <data name="Mcp_Disconnect" xml:space="preserve"><value>Disconnect</value></data>
+  <data name="Mcp_Connecting" xml:space="preserve"><value>Connecting…</value></data>
+  <data name="Mcp_Connected" xml:space="preserve"><value>Connected: {0} · tools {1} · resources {2} · prompts {3}</value></data>
+  <data name="Mcp_NotConnected" xml:space="preserve"><value>Not connected</value></data>
+  <data name="Mcp_Disabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="Mcp_Error" xml:space="preserve"><value>Error: {0}</value></data>
+  <data name="Mcp_Tools" xml:space="preserve"><value>Tools and permissions</value></data>
+  <data name="Mcp_ConfirmRemove" xml:space="preserve"><value>Remove MCP server «{0}»?</value></data>
+  <data name="Mcp_AddTitle" xml:space="preserve"><value>Add a server</value></data>
+  <data name="Mcp_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Mcp_Command" xml:space="preserve"><value>Command (stdio), e.g. npx -y @modelcontextprotocol/server-filesystem C:\Docs</value></data>
+  <data name="Mcp_Url" xml:space="preserve"><value>…or URL (Streamable HTTP; an address ending with /sse uses the legacy SSE protocol)</value></data>
+  <data name="Mcp_AddHint" xml:space="preserve"><value>Enter a name and a command or URL</value></data>
+  <data name="Mcp_Exists" xml:space="preserve"><value>A server named «{0}» already exists</value></data>
+  <data name="Nav_Welcome" xml:space="preserve"><value>Getting started</value></data>
+  <data name="Nav_Compare" xml:space="preserve"><value>Compare models</value></data>
+  <data name="Compare_Hint" xml:space="preserve"><value>One prompt — two models side by side (local or API). Two local models run one after another.</value></data>
+  <data name="Tray_Open" xml:space="preserve"><value>Open Offline Chatter</value></data>
+  <data name="Tray_QuickAsk" xml:space="preserve"><value>Quick question</value></data>
+  <data name="Tray_Exit" xml:space="preserve"><value>Exit</value></data>
+  <data name="Notify_DownloadDone" xml:space="preserve"><value>Download completed</value></data>
+  <data name="Notify_DownloadFailed" xml:space="preserve"><value>Download failed</value></data>
+  <data name="Notify_InTray" xml:space="preserve"><value>The app keeps running in the notification area.</value></data>
+  <data name="Jump_Recent" xml:space="preserve"><value>Recent chats</value></data>
+  <data name="QuickAsk_Placeholder" xml:space="preserve"><value>Ask anything… (Enter)</value></data>
+  <data name="QuickAsk_OpenInChat" xml:space="preserve"><value>Open in chat</value></data>
+  <data name="Chat_Speak" xml:space="preserve"><value>Read aloud / stop</value></data>
+  <data name="Palette_Placeholder" xml:space="preserve"><value>Type a command, section or chat…</value></data>
+  <data name="Palette_Go" xml:space="preserve"><value>Go to: {0}</value></data>
+  <data name="Palette_Section" xml:space="preserve"><value>section</value></data>
+  <data name="Palette_ToggleTheme" xml:space="preserve"><value>Switch light / dark theme</value></data>
+  <data name="Palette_StopServer" xml:space="preserve"><value>Stop llama-server</value></data>
+  <data name="Settings_CloseToTray" xml:space="preserve"><value>Closing the window keeps the app in the notification area</value></data>
+  <data name="Settings_QuickAskHotkey" xml:space="preserve"><value>Quick question by Ctrl+Alt+Space (after restart)</value></data>
+  <data name="Settings_Security" xml:space="preserve"><value>Security</value></data>
+  <data name="Security_ModeDpapi" xml:space="preserve"><value>Keys are encrypted with your Windows account (DPAPI)</value></data>
+  <data name="Security_ModeMaster" xml:space="preserve"><value>Keys are encrypted with a master password</value></data>
+  <data name="Security_Hint" xml:space="preserve"><value>A master password lets you move the portable folder to another PC without re-entering API keys. It is asked at startup.</value></data>
+  <data name="Security_NewPassword" xml:space="preserve"><value>New master password</value></data>
+  <data name="Security_Confirm" xml:space="preserve"><value>Repeat</value></data>
+  <data name="Security_Set" xml:space="preserve"><value>Set password</value></data>
+  <data name="Security_Disable" xml:space="preserve"><value>Switch back to DPAPI</value></data>
+  <data name="Security_TooShort" xml:space="preserve"><value>At least 6 characters</value></data>
+  <data name="Security_Mismatch" xml:space="preserve"><value>Passwords do not match</value></data>
+  <data name="Security_Enabled" xml:space="preserve"><value>Master password set, keys re-encrypted</value></data>
+  <data name="Security_Disabled" xml:space="preserve"><value>Keys are encrypted with DPAPI again</value></data>
+  <data name="Security_UnlockTitle" xml:space="preserve"><value>Master password</value></data>
+  <data name="Security_UnlockHint" xml:space="preserve"><value>Enter the master password to decrypt saved API keys and tokens.</value></data>
+  <data name="Security_WrongPassword" xml:space="preserve"><value>Wrong password</value></data>
+  <data name="Security_Skip" xml:space="preserve"><value>Skip</value></data>
+  <data name="Security_Unlock" xml:space="preserve"><value>Unlock</value></data>
+  <data name="Welcome_Title" xml:space="preserve"><value>Welcome to Offline Chatter</value></data>
+  <data name="Welcome_Subtitle" xml:space="preserve"><value>Three steps and you can chat with an AI model right on this computer — no internet needed afterwards.</value></data>
+  <data name="Welcome_Loading" xml:space="preserve"><value>Checking…</value></data>
+  <data name="Welcome_Step_Hardware" xml:space="preserve"><value>Your computer</value></data>
+  <data name="Welcome_Step_Engine" xml:space="preserve"><value>Engine (llama.cpp)</value></data>
+  <data name="Welcome_Step_Model" xml:space="preserve"><value>Model</value></data>
+  <data name="Welcome_EngineCpu" xml:space="preserve"><value>llama.cpp {0} for CPU — works on any PC ({1})</value></data>
+  <data name="Welcome_EngineReady" xml:space="preserve"><value>Ready: {0}</value></data>
+  <data name="Welcome_EngineUnavailable" xml:space="preserve"><value>No suitable build found</value></data>
+  <data name="Welcome_GpuOption" xml:space="preserve"><value>Use the GPU build instead: {0} ({1}) — much faster</value></data>
+  <data name="Welcome_OwnEngine" xml:space="preserve"><value>I already have llama.cpp…</value></data>
+  <data name="Welcome_ModelDefault" xml:space="preserve"><value>{0} · {1} · {2} — small, understands images</value></data>
+  <data name="Welcome_ModelReady" xml:space="preserve"><value>Ready: {0}</value></data>
+  <data name="Welcome_OwnModel" xml:space="preserve"><value>I have a GGUF file…</value></data>
+  <data name="Welcome_UseApi" xml:space="preserve"><value>Use an online API instead</value></data>
+  <data name="Welcome_InstallAll" xml:space="preserve"><value>Install everything</value></data>
+  <data name="Welcome_Finish" xml:space="preserve"><value>Go to chat</value></data>
+  <data name="Welcome_AllDone" xml:space="preserve"><value>All set — click «Go to chat».</value></data>
+  <data name="Welcome_Partial" xml:space="preserve"><value>Not everything is installed — see the messages above.</value></data>
+  <data name="Welcome_FirstPrompt" xml:space="preserve"><value>Hi! Briefly tell me what you can do.</value></data>
+  <data name="Update_Title" xml:space="preserve"><value>Updates</value></data>
+  <data name="Update_RepoHint" xml:space="preserve"><value>GitHub repository of the app (owner/repo) to check for new releases</value></data>
+  <data name="Update_Check" xml:space="preserve"><value>Check</value></data>
+  <data name="Update_Open" xml:space="preserve"><value>Open release page ↗</value></data>
+  <data name="Update_NoRepo" xml:space="preserve"><value>Enter the repository first</value></data>
+  <data name="Update_Available" xml:space="preserve"><value>New version available: {0}</value></data>
+  <data name="Update_Latest" xml:space="preserve"><value>You have the latest version</value></data>
+  <data name="Update_RunWizard" xml:space="preserve"><value>Run the getting-started wizard</value></data>
+  <data name="Engine_CompatChannel" xml:space="preserve"><value>Win7-compatible builds from the app repository (static CRT)</value></data>
+</root>

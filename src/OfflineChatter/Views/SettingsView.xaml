@@ -1,0 +1,283 @@
+<UserControl x:Class="OfflineChatter.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:OfflineChatter.Localization">
+    <UserControl.Resources>
+        <DataTemplate x:Key="EnumItemTemplate">
+            <TextBlock Text="{Binding Converter={StaticResource EnumDisplay}}" />
+        </DataTemplate>
+
+        <!-- Строка настройки: подпись слева, контрол справа -->
+        <Style x:Key="SettingLabel" TargetType="TextBlock" BasedOn="{StaticResource BodyText}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="32,24,32,32" MaxWidth="820" HorizontalAlignment="Left">
+            <TextBlock Text="{l:Loc Nav_Settings}" Style="{StaticResource PageTitleText}" />
+
+            <!-- ===== Оформление ===== -->
+            <TextBlock Text="{l:Loc Settings_Appearance}" Style="{StaticResource SubtitleText}" Margin="0,0,0,8" />
+            <StackPanel DataContext="{Binding Appearance}">
+                <Border Style="{StaticResource SettingCard}">
+                    <DockPanel>
+                        <ComboBox DockPanel.Dock="Right" Width="260" ItemsSource="{Binding SkinOptions}" SelectedItem="{Binding Skin}"
+                                  ItemTemplate="{StaticResource EnumItemTemplate}" />
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Appearance_Skin}" Style="{StaticResource SettingLabel}" />
+                            <TextBlock Text="{l:Loc Appearance_SkinHint}" Style="{StaticResource CaptionText}" />
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource SettingCard}">
+                    <DockPanel>
+                        <ComboBox DockPanel.Dock="Right" Width="260" ItemsSource="{Binding ModeOptions}" SelectedItem="{Binding Mode}"
+                                  ItemTemplate="{StaticResource EnumItemTemplate}" />
+                        <TextBlock Text="{l:Loc Appearance_Mode}" Style="{StaticResource SettingLabel}" />
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource SettingCard}">
+                    <DockPanel>
+                        <ComboBox DockPanel.Dock="Right" Width="260" ItemsSource="{Binding BackdropOptions}" SelectedItem="{Binding Backdrop}"
+                                  ItemTemplate="{StaticResource EnumItemTemplate}" />
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Appearance_Backdrop}" Style="{StaticResource SettingLabel}" />
+                            <TextBlock Text="{l:Loc Appearance_BackdropHint}" Style="{StaticResource CaptionText}" />
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource SettingCard}">
+                    <StackPanel>
+                        <DockPanel>
+                            <ComboBox DockPanel.Dock="Right" Width="260" ItemsSource="{Binding AccentOptions}" SelectedItem="{Binding Accent}"
+                                      ItemTemplate="{StaticResource EnumItemTemplate}" />
+                            <TextBlock Text="{l:Loc Appearance_Accent}" Style="{StaticResource SettingLabel}" />
+                        </DockPanel>
+                        <ItemsControl ItemsSource="{Binding Swatches}" Margin="0,12,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource SwatchButton}" Background="{Binding}" ToolTip="{Binding}"
+                                            Command="{Binding DataContext.PickSwatchCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <DockPanel Margin="0,4,0,0" Visibility="{Binding IsCustomAccent, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="HEX" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBox Width="120" HorizontalAlignment="Left" Text="{Binding CustomAccent, UpdateSourceTrigger=PropertyChanged}" ToolTip="#RRGGBB" />
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+                <TextBlock Text="{Binding ResolvedSummary}" Style="{StaticResource CaptionText}" Margin="4,0,0,0" />
+            </StackPanel>
+
+            <!-- ===== Общие ===== -->
+            <TextBlock Text="{l:Loc Settings_General}" Style="{StaticResource SubtitleText}" Margin="0,24,0,8" />
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <ComboBox DockPanel.Dock="Right" Width="260" ItemsSource="{Binding Languages}" DisplayMemberPath="Title"
+                              SelectedValuePath="Code" SelectedValue="{Binding Language}" />
+                    <StackPanel>
+                        <TextBlock Text="{l:Loc Settings_Language}" Style="{StaticResource SettingLabel}" />
+                        <TextBlock Text="{l:Loc Settings_RestartRequired}" Style="{StaticResource CaptionText}"
+                                   Foreground="{DynamicResource StatusWarnBrush}"
+                                   Visibility="{Binding RestartRequired, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding LogMessageContent}" VerticalAlignment="Center" />
+                    <StackPanel>
+                        <TextBlock Text="{l:Loc Settings_LogContent}" Style="{StaticResource SettingLabel}" />
+                        <TextBlock Text="{l:Loc Settings_LogContentHint}" Style="{StaticResource CaptionText}" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <Border Style="{StaticResource SettingCard}">
+                <StackPanel>
+                    <CheckBox Content="{l:Loc Settings_CloseToTray}" IsChecked="{Binding CloseToTray}" />
+                    <CheckBox Content="{l:Loc Settings_QuickAskHotkey}" IsChecked="{Binding QuickAskHotkey}" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- ===== Безопасность ===== -->
+            <TextBlock Text="{l:Loc Settings_Security}" Style="{StaticResource SubtitleText}" Margin="0,24,0,8" />
+            <Border Style="{StaticResource SettingCard}">
+                <StackPanel>
+                    <TextBlock Text="{Binding SecurityState}" Style="{StaticResource BodyText}" />
+                    <TextBlock Text="{l:Loc Security_Hint}" Style="{StaticResource CaptionText}" Margin="0,2,0,10" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Security_NewPassword}" Style="{StaticResource CaptionText}" />
+                            <PasswordBox x:Name="MasterPwd" MinHeight="32" VerticalContentAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="{l:Loc Security_Confirm}" Style="{StaticResource CaptionText}" />
+                            <PasswordBox x:Name="MasterPwd2" MinHeight="32" VerticalContentAlignment="Center" />
+                        </StackPanel>
+                        <Button Grid.Column="3" Content="{l:Loc Security_Set}" Click="OnSetMasterPassword" VerticalAlignment="Bottom" Margin="8,0,0,0" />
+                    </Grid>
+                    <Button Content="{l:Loc Security_Disable}" Command="{Binding DisableMasterPasswordCommand}" HorizontalAlignment="Left" Margin="0,10,0,0"
+                            Visibility="{Binding IsMasterPassword, Converter={StaticResource BoolToVisibility}}" />
+                    <TextBlock Text="{Binding SecurityStatus}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource AccentTextBrush}" Margin="0,6,0,0"
+                               Visibility="{Binding SecurityStatus, Converter={StaticResource NullToCollapsed}}" />
+                </StackPanel>
+            </Border>
+
+            <!-- ===== Сеть ===== -->
+            <TextBlock Text="{l:Loc Settings_Network}" Style="{StaticResource SubtitleText}" Margin="0,24,0,8" />
+            <StackPanel DataContext="{Binding Network}">
+                <Border Style="{StaticResource SettingCard}">
+                    <StackPanel>
+                        <DockPanel>
+                            <ComboBox DockPanel.Dock="Right" Width="260" ItemsSource="{Binding ProxyModes}" SelectedItem="{Binding ProxyMode}"
+                                      ItemTemplate="{StaticResource EnumItemTemplate}" />
+                            <TextBlock Text="{l:Loc Net_Proxy}" Style="{StaticResource SettingLabel}" />
+                        </DockPanel>
+                        <Grid Margin="0,10,0,0" Visibility="{Binding IsManualProxy, Converter={StaticResource BoolToVisibility}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{l:Loc Net_ProxyAddress}" Style="{StaticResource CaptionText}" />
+                                <TextBox Text="{Binding ProxyAddress}" ToolTip="http://host:port" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{l:Loc Net_ProxyUser}" Style="{StaticResource CaptionText}" />
+                                <TextBox Text="{Binding ProxyUser}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="{l:Loc Net_ProxyPassword}" Style="{StaticResource CaptionText}" />
+                                <PasswordBox x:Name="ProxyPassword" MinHeight="32" VerticalContentAlignment="Center" LostFocus="OnProxyPasswordLostFocus" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SettingCard}">
+                    <DockPanel>
+                        <ComboBox DockPanel.Dock="Right" Width="260" ItemsSource="{Binding TlsModes}" SelectedItem="{Binding TlsMode}"
+                                  ItemTemplate="{StaticResource EnumItemTemplate}" />
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Net_Tls}" Style="{StaticResource SettingLabel}" />
+                            <TextBlock Text="{l:Loc Net_TlsHint}" Style="{StaticResource CaptionText}" />
+                            <TextBlock Text="{Binding RootsInfo}" Style="{StaticResource CaptionText}" />
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource SettingCard}">
+                    <StackPanel>
+                        <TextBlock Text="{l:Loc Net_Mirrors}" Style="{StaticResource SettingLabel}" />
+                        <TextBlock Text="{l:Loc Net_MirrorsHint}" Style="{StaticResource CaptionText}" Margin="0,0,0,8" />
+                        <TextBlock Text="Hugging Face" Style="{StaticResource CaptionText}" />
+                        <TextBox Text="{Binding HfEndpoint}" Margin="0,0,0,8" />
+                        <TextBlock Text="GitHub API" Style="{StaticResource CaptionText}" />
+                        <TextBox Text="{Binding GitHubApiEndpoint}" Margin="0,0,0,8" />
+                        <TextBlock Text="{l:Loc Net_GitHubPrefix}" Style="{StaticResource CaptionText}" />
+                        <TextBox Text="{Binding GitHubDownloadPrefix}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SettingCard}">
+                    <StackPanel>
+                        <DockPanel>
+                            <ComboBox DockPanel.Dock="Right" Width="100" ItemsSource="{Binding ConcurrencyOptions}" SelectedItem="{Binding MaxConcurrentDownloads}" />
+                            <TextBlock Text="{l:Loc Net_Concurrent}" Style="{StaticResource SettingLabel}" />
+                        </DockPanel>
+                        <DockPanel Margin="0,10,0,0">
+                            <TextBox DockPanel.Dock="Right" Width="100" Text="{Binding SpeedLimitKBps}" />
+                            <StackPanel>
+                                <TextBlock Text="{l:Loc Net_SpeedLimit}" Style="{StaticResource SettingLabel}" />
+                                <TextBlock Text="{l:Loc Net_SpeedLimitHint}" Style="{StaticResource CaptionText}" />
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SettingCard}">
+                    <StackPanel>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Command="{Binding CheckCommand}" Content="{l:Loc Net_Check}" />
+                            <TextBlock Text="{l:Loc Net_CheckTitle}" Style="{StaticResource SettingLabel}" />
+                        </DockPanel>
+                        <ProgressBar IsIndeterminate="True" Margin="0,10,0,0"
+                                     Visibility="{Binding IsChecking, Converter={StaticResource BoolToVisibility}}" />
+                        <ItemsControl ItemsSource="{Binding CheckResults}" Margin="0,8,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel Margin="0,3">
+                                        <Ellipse x:Name="Dot" Width="8" Height="8" Fill="{DynamicResource StatusOkBrush}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Host}" Width="260" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <TextBlock Text="{Binding Details}" Style="{StaticResource CaptionText}" />
+                                    </DockPanel>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Ok}" Value="False">
+                                            <Setter TargetName="Dot" Property="Fill" Value="{DynamicResource StatusErrorBrush}" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- ===== Обновления ===== -->
+            <TextBlock Text="{l:Loc Update_Title}" Style="{StaticResource SubtitleText}" Margin="0,24,0,8" />
+            <Border Style="{StaticResource SettingCard}">
+                <StackPanel>
+                    <TextBlock Text="{Binding AppVersion}" Style="{StaticResource BodyText}" />
+                    <TextBlock Text="{l:Loc Update_RepoHint}" Style="{StaticResource CaptionText}" Margin="0,6,0,2" />
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="{l:Loc Update_Check}" Command="{Binding CheckUpdatesCommand}" Margin="6,0,0,0" />
+                        <TextBox Text="{Binding UpdateRepo}" ToolTip="owner/repo" />
+                    </DockPanel>
+                    <DockPanel Margin="0,6,0,0">
+                        <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Content="{l:Loc Update_Open}" Command="{Binding OpenUpdatePageCommand}" />
+                        <TextBlock Text="{Binding UpdateStatus}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Button Content="{l:Loc Update_RunWizard}" Command="{Binding RunWizardCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- ===== О системе ===== -->
+            <TextBlock Text="{l:Loc Settings_System}" Style="{StaticResource SubtitleText}" Margin="0,24,0,8" />
+            <Border Style="{StaticResource SettingCard}">
+                <StackPanel>
+                    <TextBlock Text="{Binding OsName}" Style="{StaticResource BodyText}" />
+                    <TextBlock Text="{Binding RuntimeInfo}" Style="{StaticResource CaptionText}" Margin="0,4,0,0" />
+                    <TextBlock Text="{Binding DataLocation}" Style="{StaticResource CaptionText}" Margin="0,4,0,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button Command="{Binding OpenDataFolderCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconFolder}" Style="{StaticResource IconPath}" />
+                                <TextBlock Text="{l:Loc Settings_OpenData}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding OpenLogsFolderCommand}" Margin="8,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconList}" Style="{StaticResource IconPath}" />
+                                <TextBlock Text="{l:Loc Settings_OpenLogs}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

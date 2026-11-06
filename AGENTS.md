@@ -27,7 +27,7 @@
 | Markdig | App/Core | Markdown |
 | XAML-Math (`WpfMath`) | App | рендер LaTeX |
 | AvalonEdit | App | подсветка кода, редактор JSON |
-| iNKORE.UI.WPF.Modern | App | Fluent-скин (загружается лениво) |
+| ~~iNKORE.UI.WPF.Modern~~ | — | отклонён: собственный Fluent-скин легче |
 | BouncyCastle.Cryptography | Core | резервный TLS (сжатым ресурсом) |
 | Costura.Fody | App | склейка в один exe |
 | xunit | tests | тесты |
@@ -64,7 +64,7 @@ tests/OfflineChatter.Core.Tests/
   - **подложку** окна (None / AeroGlass / Win10Blur / Win10Acrylic / Mica / MicaAlt / Acrylic);
   - **акцент** (системный или свой);
   - **светлую / тёмную** тему.
-- Цвета в XAML берутся только через `DynamicResource` с ключами из `Skins/Tokens.xaml`. Литералы цветов в разметке запрещены.
+- Цвета в XAML берутся только через `DynamicResource` с ключами из `ThemeKeys` (`Theming/ThemeTokens.cs`, там же значения для светлой/тёмной темы и каждой подложки). Литералы цветов в разметке запрещены.
 - Каждая подложка обязана деградировать плавно: если ОС или режим не поддерживают эффект, используется сплошной фон. На Win7 также учитывается выключенная композиция DWM (Aero Basic / Classic) и событие `WM_DWMCOMPOSITIONCHANGED`.
 - Окна с собственным заголовком на Win11 обязаны поддерживать Snap Layouts (`HTMAXBUTTON` в `WM_NCHITTEST`).
 - Каждое окно подключается через `ThemeManager.Attach(window)` в конструкторе. Подложка применяется в `SourceInitialized` и **повторно в `ContentRendered`**: Win11 25H2 при первом показе сам выставляет тёмный заголовок по системной теме.
@@ -84,7 +84,16 @@ tests/OfflineChatter.Core.Tests/
 - Async до самого верха. Везде, где есть I/O, передаётся `CancellationToken`. `.Result` / `.Wait()` в UI-потоке запрещены.
 - В библиотеке Core используется `ConfigureAwait(false)`.
 - Имена на английском. Комментарии на русском или английском, но только там, где без них непонятно, *почему* код написан именно так.
-- Строки UI размещаются в resx (`Strings.resx` для EN и `Strings.ru.resx`), строковые литералы в XAML не допускаются. Исключение: временные заглушки с пометкой `// TODO(l10n)`.
+- Строки UI: добавить строку в `src/OfflineChatter/Localization/Strings.tsv` (ключ, EN, RU через табуляцию) и запустить `pwsh tools/gen-strings.ps1` — он пересоздаст `Strings.resx` и `StringsRu.resx` (вручную их не править). В XAML — `{l:Loc Key}`, в коде — `L.Get("Key")` / `L.F("Key", args)`. Строковые литералы в XAML не допускаются.
+- Названия значений enum в UI: ключ `Enum_{Тип}_{Значение}` + конвертер `EnumDisplay`.
+
+## Ручная проверка UI
+
+```powershell
+pwsh tools/screenshot.ps1 -Exe src/OfflineChatter/bin/Debug/net48/OfflineChatter.exe -Out shot.png `
+     -Skin Aero -Mode Light -Backdrop Auto -Language en -Page Settings -HitTestMaxButton
+```
+Скрипт правит `config/settings.json` рядом с exe, запускает приложение (`--page` открывает раздел), снимает окно и закрывает его.
 
 ## Сборка и проверка
 

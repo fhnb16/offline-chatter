@@ -1,13 +1,21 @@
 using System;
+using System.ComponentModel;
 using System.IO;
-using System.Net;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Shell;
 using System.Windows.Threading;
 using OfflineChatter.Core.Diagnostics;
+using OfflineChatter.Core.Net;
 using OfflineChatter.Core.Storage;
+using OfflineChatter.Localization;
+using OfflineChatter.Shell;
 using OfflineChatter.Theming;
 using OfflineChatter.ViewModels;
+using OfflineChatter.Views;
 
 namespace OfflineChatter;
 
@@ -15,10 +23,29 @@ public partial class App : Application
 {
     public static AppPaths Paths { get; private set; } = null!;
     public static SettingsStore Settings { get; private set; } = null!;
+    public static AppServices Services { get; private set; } = null!;
+
+    /// <summary>Фактически зарегистрированная горячая клавиша быстрого вопроса (или пусто).</summary>
+    public static string QuickAskHotkeyText { get; private set; } = string.Empty;
+
+    private static MainViewModel? _mainVm;
+    private SingleInstance? _single;
+    private TrayIcon? _tray;
+    private GlobalHotkey? _hotkey;
+    private QuickAskWindow? _quick;
+    private bool _exiting;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // Один экземпляр на папку: повторный запуск передаёт аргументы работающему окну
+        _single = SingleInstance.TryStart(e.Args);
+        if (_single == null)
+        {
+            Shutdown(0);
+            return;
+        }
 
         try
         {
@@ -27,8 +54,7 @@ public partial class App : Application
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // TODO(l10n)
-            MessageBox.Show("Не удалось создать папку данных:\n" + ex.Message, "Offline Chatter",
+            MessageBox.Show("Cannot create data folder / Не удалось создать папку данных:\n" + ex.Message, "Offline Chatter",
                 MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
             return;
@@ -36,6 +62,11 @@ public partial class App : Application
 
         Settings = new SettingsStore(Paths.SettingsFile);
         Settings.Load();
+        L.Initialize(Settings.Current.Language);
+        // Форматирование дат и чисел в привязках WPF по языку интерфейса (по умолчанию WPF берёт en-US)
+        FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement),
+            new FrameworkPropertyMetadata(System.Windows.Markup.XmlLanguage.GetLanguage(L.Culture.IetfLanguageTag)));
+        Core.Text.Units.ByteSuffixes = L.Get("Units_Bytes").Split('|');
 
         var logCfg = Settings.Current.Logging;
         Enum.TryParse<LogLevel>(logCfg.MinLevel, true, out var minLevel);
@@ -43,8 +74,8 @@ public partial class App : Application
         CrashHandler.Install(Paths.Logs);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
 
-        // На Win7 TLS 1.2 по умолчанию выключен для .NET — включаем явно (уровень 1 сетевого стека).
-        ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+        // Уровень 1 сетевого стека: на Win7/8 явно включаем TLS 1.2, на Win10+ оставляем системные версии (TLS 1.3).
+        HttpService.ConfigureGlobalTls(OsInfo.IsWin10OrNewer);
 
         Log.Info("App", "Starting", new
         {
@@ -57,15 +88,184 @@ public partial class App : Application
         });
 
         ThemeManager.Initialize(Settings.Current.Appearance);
+        Secrets.LoadMode(Settings.Current.Security);
+        if (Secrets.NeedsUnlock)
+        {
+            // До главного окна: ShutdownMode не должен закрыть приложение после этого диалога
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            new UnlockWindow().ShowDialog();
+            ShutdownMode = ShutdownMode.OnMainWindowClose;
+        }
 
-        var window = new MainWindow(new MainViewModel(Settings, Paths));
+        Services = new AppServices(Paths, Settings);
+        Services.ConnectMcpServers();
+        _mainVm = new MainViewModel(Services);
+
+        // Первый запуск: мастер (если ещё нет ни движка, ни моделей)
+        if (!Settings.Current.Window.FirstRunDone && Services.Engine.Registry.Active == null && Services.Models.Models.Count == 0)
+            _mainVm.Navigate(PageKind.Welcome);
+
+        var window = new MainWindow(_mainVm);
         MainWindow = window;
+        window.Closing += OnMainClosing;
+        window.SourceInitialized += (_, _) =>
+        {
+            if (Settings.Current.Window.QuickAskHotkey && HwndSource.FromHwnd(new WindowInteropHelper(window).Handle) is { } src)
+            {
+                // Ctrl+Alt+Space часто занята (PowerToys и т.п.) — пробуем запасную комбинацию
+                foreach (var (mods, text) in new[] { (ModifierKeys.Control | ModifierKeys.Alt, "Ctrl+Alt+Space"), (ModifierKeys.Control | ModifierKeys.Shift, "Ctrl+Shift+Space") })
+                {
+                    var hk = new GlobalHotkey(src, mods, Key.Space, ShowQuickAsk);
+                    if (hk.IsRegistered)
+                    {
+                        _hotkey = hk;
+                        QuickAskHotkeyText = text;
+                        Log.Info("App", "Quick ask hotkey: " + text);
+                        break;
+                    }
+                }
+            }
+        };
         window.Show();
+
+        _tray = new TrayIcon(ShowMainWindow, ShowQuickAsk, () => { ShowMainWindow(); _mainVm.NewChatCommand.Execute(null); }, ExitApp);
+        Services.Downloads.JobChanged += (_, job) =>
+        {
+            if (job.State is not (Core.Net.DownloadState.Completed or Core.Net.DownloadState.Failed)) return;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (MainWindow?.IsActive == true) return;
+                _tray?.Notify(L.Get(job.State == Core.Net.DownloadState.Completed ? "Notify_DownloadDone" : "Notify_DownloadFailed"), job.DisplayName);
+            }));
+        };
+        _single.ArgumentsReceived += args => Dispatcher.BeginInvoke(new Action(() => HandleArgs(args, fromOtherInstance: true)));
+
+        UpdateJumpList();
+        window.ContentRendered += (_, _) => HandleArgs(e.Args, fromOtherInstance: false);
+    }
+
+    /// <summary>
+    /// Аргументы командной строки (и из Jump List / повторного запуска):
+    /// --page Kind, --prompt "текст", --new, --chat id, --quick.
+    /// </summary>
+    private void HandleArgs(string[] args, bool fromOtherInstance)
+    {
+        if (_mainVm == null) return;
+        string? Value(string name)
+        {
+            var i = Array.FindIndex(args, a => a.Equals(name, StringComparison.OrdinalIgnoreCase));
+            return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
+        }
+        bool Has(string name) => args.Any(a => a.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+        if (Has("--quick"))
+        {
+            ShowQuickAsk();
+            return;
+        }
+        if (fromOtherInstance) ShowMainWindow();
+
+        if (Value("--page") is { } page && Enum.TryParse<PageKind>(page, true, out var kind)) _mainVm.Navigate(kind);
+        if (Value("--chat") is { } chatId && _mainVm.Chat.Chats.FirstOrDefault(c => c.Session.Id == chatId) is { } chat)
+        {
+            _mainVm.Chat.SelectedChat = chat;
+            _mainVm.Navigate(PageKind.Chat);
+        }
+        if (Has("--new")) _mainVm.NewChatCommand.Execute(null);
+        if (Value("--prompt") is { } prompt)
+        {
+            _mainVm.NewChatCommand.Execute(null);
+            _mainVm.Chat.InputText = prompt;
+            if (_mainVm.Chat.SendCommand.CanExecute(null)) _mainVm.Chat.SendCommand.Execute(null);
+        }
+    }
+
+    public static void ShowMainWindow()
+    {
+        if (Current.MainWindow is not { } w) return;
+        if (!w.IsVisible) w.Show();
+        if (w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal;
+        w.Activate();
+        // Обход запрета на перехват фокуса: кратко делаем окно поверх всех
+        w.Topmost = true;
+        w.Topmost = false;
+        w.Focus();
+    }
+
+    private void ShowQuickAsk()
+    {
+        if (_mainVm == null) return;
+        if (_quick is { IsVisible: true })
+        {
+            _quick.Activate();
+            return;
+        }
+        _quick = new QuickAskWindow(Services, _mainVm);
+        _quick.Closed += (_, _) => _quick = null;
+        _quick.Show();
+        _quick.Activate();
+    }
+
+    private void OnMainClosing(object? sender, CancelEventArgs e)
+    {
+        if (_exiting || !Settings.Current.Window.CloseToTray) return;
+        e.Cancel = true;
+        MainWindow?.Hide();
+        _tray?.Notify("Offline Chatter", L.Get("Notify_InTray"));
+    }
+
+    private void ExitApp()
+    {
+        _exiting = true;
+        MainWindow?.Close();
+        Shutdown();
+    }
+
+    /// <summary>Jump List (Win7+): «Новый чат», «Быстрый вопрос» и последние чаты.</summary>
+    public static void UpdateJumpList()
+    {
+        try
+        {
+            var exe = Assembly.GetExecutingAssembly().Location;
+            var list = new JumpList { ShowRecentCategory = false, ShowFrequentCategory = false };
+            list.JumpItems.Add(new JumpTask { Title = L.Get("Chat_New"), Arguments = "--new", ApplicationPath = exe, IconResourcePath = exe });
+            list.JumpItems.Add(new JumpTask { Title = L.Get("Tray_QuickAsk"), Arguments = "--quick", ApplicationPath = exe, IconResourcePath = exe });
+            if (_mainVm != null)
+            {
+                foreach (var c in _mainVm.Chat.Chats.Where(c => c.Session.Messages.Count > 0).OrderByDescending(c => c.Session.UpdatedAt).Take(6))
+                {
+                    list.JumpItems.Add(new JumpTask
+                    {
+                        Title = c.Title.Length > 60 ? c.Title.Substring(0, 60) + "…" : c.Title,
+                        Arguments = "--chat " + c.Session.Id,
+                        ApplicationPath = exe,
+                        IconResourcePath = exe,
+                        CustomCategory = L.Get("Jump_Recent"),
+                    });
+                }
+            }
+            JumpList.SetJumpList(Current, list);
+            list.Apply();
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException)
+        {
+            Log.Debug("App", "Jump list not updated: " + ex.Message);
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        if (_single == null)
+        {
+            base.OnExit(e);
+            return;
+        }
+        UpdateJumpList();
+        _hotkey?.Dispose();
+        _tray?.Dispose();
         Settings?.Save();
+        Services?.Dispose();
+        _single.Dispose();
         Log.Info("App", "Exit", new { code = e.ApplicationExitCode });
         Log.Shutdown();
         base.OnExit(e);
@@ -74,8 +274,7 @@ public partial class App : Application
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         CrashHandler.Report("Dispatcher", e.Exception, isTerminating: false);
-        // TODO(l10n)
-        MessageBox.Show("Произошла непредвиденная ошибка. Подробности записаны в журнал:\n" + Paths.Logs + "\n\n" + e.Exception.Message,
+        MessageBox.Show(L.F("App_UnexpectedError", Paths.Logs, e.Exception.Message),
             "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Warning);
         e.Handled = true;
     }

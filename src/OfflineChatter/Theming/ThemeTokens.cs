@@ -51,6 +51,14 @@ public static class ThemeKeys
     public const string StatusWarn = "StatusWarnBrush";
     public const string StatusError = "StatusErrorBrush";
 
+    public const string GlassTextEffect = "GlassTextEffect";
+
+    public const string CodeBackground = "CodeBackgroundBrush";
+    public const string CodeKeyword = "CodeKeywordBrush";
+    public const string CodeString = "CodeStringBrush";
+    public const string CodeComment = "CodeCommentBrush";
+    public const string CodeNumber = "CodeNumberBrush";
+    public const string QuoteBar = "QuoteBarBrush";
     public const string AppFontFamily = "AppFontFamily";
     public const string MonoFontFamily = "MonoFontFamily";
 }
@@ -73,14 +81,14 @@ internal static class ThemeTokens
         dark ? C(0xFF202020)
              : skin == SkinKind.Fluent ? C(0xFFF3F3F3) : C(0xFFF0F0F0);
 
-    public static Dictionary<string, object> Build(ResolvedTheme t)
+    public static Dictionary<string, object?> Build(ResolvedTheme t)
     {
         if (t.HighContrast) return BuildHighContrast();
 
         var d = t.IsDark;
         var bd = t.Backdrop;
         var native = t.Skin != SkinKind.Fluent;
-        var r = new Dictionary<string, object>();
+        var r = new Dictionary<string, object?>();
 
         // --- Поверхности ---
         r[ThemeKeys.WindowBackground] = t.HasBackdrop ? Brushes.Transparent : B(t.SolidWindowColor);
@@ -140,16 +148,43 @@ internal static class ThemeTokens
         r[ThemeKeys.FocusStroke] = B(d ? 0xFFFFFFFFu : 0xE4000000u);
         r[ThemeKeys.ScrollThumb] = B(d ? 0x8BFFFFFFu : 0x72000000u);
 
+        // --- Код и цитаты ---
+        r[ThemeKeys.CodeBackground] = B(d ? 0x33000000u : 0x0A000000u);
+        r[ThemeKeys.CodeKeyword] = B(d ? 0xFF569CD6u : 0xFF0000FFu);
+        r[ThemeKeys.CodeString] = B(d ? 0xFFCE9178u : 0xFFA31515u);
+        r[ThemeKeys.CodeComment] = B(d ? 0xFF6A9955u : 0xFF008000u);
+        r[ThemeKeys.CodeNumber] = B(d ? 0xFFB5CEA8u : 0xFF098658u);
+        r[ThemeKeys.QuoteBar] = B(AccentPalette.WithAlpha(fill, 0x99));
+
         // --- Статусы ---
         r[ThemeKeys.StatusOk] = B(d ? 0xFF6CCB5Fu : 0xFF0F7B0Fu);
         r[ThemeKeys.StatusWarn] = B(d ? 0xFFFCE100u : 0xFF9D5D00u);
         r[ThemeKeys.StatusError] = B(d ? 0xFFFF99A4u : 0xFFC42B1Cu);
 
+        // Свечение под текстом на стекле Win7 (как у DrawThemeTextEx с DTT_GLOWSIZE)
+        if (bd == BackdropKind.AeroGlass)
+        {
+            var glow = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = d ? Colors.Black : Colors.White,
+                BlurRadius = 14,
+                ShadowDepth = 0,
+                Opacity = 0.95,
+                RenderingBias = System.Windows.Media.Effects.RenderingBias.Quality,
+            };
+            glow.Freeze();
+            r[ThemeKeys.GlassTextEffect] = glow;
+        }
+        else
+        {
+            r[ThemeKeys.GlassTextEffect] = null;
+        }
+
         AddFonts(r);
         return r;
     }
 
-    private static Dictionary<string, object> BuildHighContrast()
+    private static Dictionary<string, object?> BuildHighContrast()
     {
         var window = SystemColors.WindowBrush;
         var text = SystemColors.WindowTextBrush;
@@ -158,7 +193,7 @@ internal static class ThemeTokens
         var gray = SystemColors.GrayTextBrush;
         var control = SystemColors.ControlBrush;
 
-        var r = new Dictionary<string, object>
+        var r = new Dictionary<string, object?>
         {
             [ThemeKeys.WindowBackground] = window,
             [ThemeKeys.SidebarBackground] = window,
@@ -195,12 +230,19 @@ internal static class ThemeTokens
             [ThemeKeys.StatusOk] = text,
             [ThemeKeys.StatusWarn] = text,
             [ThemeKeys.StatusError] = text,
+            [ThemeKeys.GlassTextEffect] = null,
+            [ThemeKeys.CodeBackground] = window,
+            [ThemeKeys.CodeKeyword] = text,
+            [ThemeKeys.CodeString] = text,
+            [ThemeKeys.CodeComment] = gray,
+            [ThemeKeys.CodeNumber] = text,
+            [ThemeKeys.QuoteBar] = text,
         };
         AddFonts(r);
         return r;
     }
 
-    private static void AddFonts(Dictionary<string, object> r)
+    private static void AddFonts(Dictionary<string, object?> r)
     {
         r[ThemeKeys.AppFontFamily] = OsInfo.IsWin11OrNewer
             ? new FontFamily("Segoe UI Variable Text, Segoe UI")

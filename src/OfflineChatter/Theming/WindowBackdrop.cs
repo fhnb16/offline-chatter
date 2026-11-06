@@ -14,7 +14,11 @@ namespace OfflineChatter.Theming;
 /// </summary>
 internal static class WindowBackdrop
 {
-    public static void Apply(IntPtr hwnd, ResolvedTheme theme)
+    /// <param name="extendedChrome">
+    /// Заголовок совмещён с содержимым (ShellChrome): рамку DWM нужно держать расширенной всегда,
+    /// иначе пропадут системные кнопки заголовка.
+    /// </param>
+    public static void Apply(IntPtr hwnd, ResolvedTheme theme, bool extendedChrome)
     {
         if (hwnd == IntPtr.Zero) return;
         var source = HwndSource.FromHwnd(hwnd);
@@ -28,8 +32,8 @@ internal static class WindowBackdrop
             if (!theme.HasBackdrop)
             {
                 source.CompositionTarget.BackgroundColor = theme.SolidWindowColor;
-                var zero = MARGINS.All(0);
-                DwmApi.DwmExtendFrameIntoClientArea(hwnd, ref zero);
+                var m = MARGINS.All(extendedChrome ? -1 : 0);
+                DwmApi.DwmExtendFrameIntoClientArea(hwnd, ref m);
                 return;
             }
 

@@ -63,7 +63,7 @@ public static class ThemeManager
         void OnRendered(object? s, EventArgs e)
         {
             window.ContentRendered -= OnRendered;
-            if (Current != null) WindowBackdrop.Apply(new WindowInteropHelper(window).Handle, Current);
+            ApplyToWindow(window);
         }
         window.ContentRendered += OnRendered;
     }
@@ -72,7 +72,14 @@ public static class ThemeManager
     {
         var hwnd = new WindowInteropHelper(window).Handle;
         HwndSource.FromHwnd(hwnd)?.AddHook(WndProc);
-        if (Current != null) WindowBackdrop.Apply(hwnd, Current);
+        ApplyToWindow(window);
+    }
+
+    private static void ApplyToWindow(Window window)
+    {
+        if (Current == null) return;
+        var extended = ShellChrome.Update(window);
+        WindowBackdrop.Apply(new WindowInteropHelper(window).Handle, Current, extended);
     }
 
     private static void Apply()
@@ -91,8 +98,8 @@ public static class ThemeManager
 
         foreach (var w in AttachedWindows.ToList())
         {
-            if (w.TryGetTarget(out var window))
-                WindowBackdrop.Apply(new WindowInteropHelper(window).Handle, resolved);
+            if (w.TryGetTarget(out var window) && new WindowInteropHelper(window).Handle != IntPtr.Zero)
+                ApplyToWindow(window);
         }
 
         Log.Info("Theme", "Theme applied", new

@@ -99,6 +99,20 @@ internal static class DwmApi
     /// <summary>Vista+. Набор атрибутов зависит от версии ОС.</summary>
     [DllImport("dwmapi.dll", PreserveSig = true)]
     public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+
+    /// <summary>Win7+: прямоугольник системных кнопок заголовка (в координатах окна, физические пиксели).</summary>
+    public const int DWMWA_CAPTION_BUTTON_BOUNDS = 5;
+
+    [DllImport("dwmapi.dll", PreserveSig = true)]
+    public static extern int DwmGetWindowAttribute(IntPtr hwnd, int attribute, out RECT value, int size);
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct RECT
+{
+    public int Left, Top, Right, Bottom;
+    public int Width => Right - Left;
+    public int Height => Bottom - Top;
 }
 
 internal static class User32
@@ -109,6 +123,15 @@ internal static class User32
     public const int WM_DWMCOLORIZATIONCOLORCHANGED = 0x0320;
     public const int WM_ENTERSIZEMOVE = 0x0231;
     public const int WM_EXITSIZEMOVE = 0x0232;
+
+    public const int SM_CXSIZEFRAME = 32;
+    public const int SM_CYSIZEFRAME = 33;
+    public const int SM_CXPADDEDBORDER = 92;
+    public const int WM_NCHITTEST = 0x0084;
+    public const int HTMAXBUTTON = 9;
+
+    [DllImport("user32.dll")]
+    public static extern int GetSystemMetrics(int index);
 
     /// <summary>Недокументированная, Win7+ (ACCENT_POLICY работает с Win10).</summary>
     [DllImport("user32.dll", PreserveSig = true)]

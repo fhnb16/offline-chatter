@@ -1,0 +1,28 @@
+<Window x:Class="OfflineChatter.Views.CommandPalette"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:OfflineChatter.Localization"
+        Width="560" Height="420" WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource PopupBackgroundBrush}"
+        Foreground="{DynamicResource TextPrimaryBrush}" FontFamily="{DynamicResource AppFontFamily}" FontSize="13"
+        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" Deactivated="OnDeactivated">
+    <DockPanel Margin="10">
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+            <TextBox x:Name="Query" FontSize="15" Padding="32,6,9,6" PreviewKeyDown="OnQueryKeyDown" TextChanged="OnQueryChanged" />
+            <Path Data="{StaticResource IconSearch}" Style="{StaticResource IconPath}" Margin="10,0,0,0" HorizontalAlignment="Left" IsHitTestVisible="False"
+                  TextElement.Foreground="{DynamicResource TextTertiaryBrush}" />
+            <TextBlock Text="{l:Loc Palette_Placeholder}" Margin="33,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="15"
+                       Foreground="{DynamicResource TextTertiaryBrush}" Visibility="{Binding Text, ElementName=Query, Converter={StaticResource EmptyToVisible}}" />
+        </Grid>
+        <ListBox x:Name="Items" MouseDoubleClick="OnItemActivated" KeyDown="OnListKeyDown">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding Hint}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="11.5" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                    </DockPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</Window>

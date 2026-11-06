@@ -1,0 +1,97 @@
+<UserControl x:Class="OfflineChatter.Views.ProvidersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:OfflineChatter.ViewModels"
+             xmlns:l="clr-namespace:OfflineChatter.Localization">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="32,24,32,32" MaxWidth="900" HorizontalAlignment="Left">
+            <TextBlock Text="{l:Loc Nav_Providers}" Style="{StaticResource PageTitleText}" />
+            <TextBlock Text="{l:Loc Providers_Hint}" Style="{StaticResource CaptionText}" Margin="0,0,0,12" />
+
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Style="{DynamicResource AccentButtonStyle}" Command="{Binding AddCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconPlus}" Style="{StaticResource IconPath}" />
+                            <TextBlock Text="{l:Loc Providers_Add}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <ComboBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}" DisplayMemberPath="Name" Width="300" HorizontalAlignment="Left" />
+                </DockPanel>
+            </Border>
+
+            <TextBlock Text="{l:Loc Providers_None}" Style="{StaticResource CaptionText}" Margin="0,8,0,0"
+                       Visibility="{Binding HasItems, Converter={StaticResource InverseBoolToVisibility}}" />
+
+            <ItemsControl ItemsSource="{Binding Items}" Margin="0,8,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:ProviderItemViewModel}">
+                        <Border Style="{StaticResource SettingCard}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <CheckBox Content="{l:Loc Providers_Enabled}" IsChecked="{Binding Enabled}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <Button Style="{DynamicResource SubtleButtonStyle}" Command="{Binding RemoveCommand}" ToolTip="{l:Loc Common_Remove}">
+                                            <Path Data="{StaticResource IconTrash}" Style="{StaticResource IconPath}" />
+                                        </Button>
+                                    </StackPanel>
+                                    <TextBox Text="{Binding Name}" FontWeight="SemiBold" Width="300" HorizontalAlignment="Left" />
+                                </DockPanel>
+
+                                <TextBlock Text="Base URL" Style="{StaticResource CaptionText}" Margin="0,10,0,2" />
+                                <TextBox Text="{Binding BaseUrl}" FontFamily="{DynamicResource MonoFontFamily}" />
+
+                                <TextBlock Text="{l:Loc Providers_ApiKey}" Style="{StaticResource CaptionText}" Margin="0,10,0,2" />
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding OpenKeyPageCommand}" Content="{l:Loc Providers_GetKey}"
+                                            Visibility="{Binding HasKeyUrl, Converter={StaticResource BoolToVisibility}}" Margin="6,0,0,0" />
+                                    <PasswordBox Tag="{Binding}" LostFocus="OnKeyLostFocus" MinHeight="32" VerticalContentAlignment="Center" />
+                                </DockPanel>
+                                <TextBlock Text="{Binding KeyState}" Style="{StaticResource CaptionText}" />
+
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <Button Command="{Binding TestCommand}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Data="{StaticResource IconRefresh}" Style="{StaticResource IconPath}" />
+                                            <TextBlock Text="{l:Loc Providers_Test}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <TextBlock x:Name="St" Text="{Binding Status}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Margin="10,0,0,0"
+                                               MaxWidth="560" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource StatusErrorBrush}" />
+                                </StackPanel>
+
+                                <Expander Header="{l:Loc Providers_Models}" Margin="0,8,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="{l:Loc Providers_ModelsHint}" Style="{StaticResource CaptionText}" Margin="0,0,0,6" />
+                                        <ListBox ItemsSource="{Binding Models}" MaxHeight="260">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type vm:ProviderModelItem}">
+                                                    <CheckBox Content="{Binding Id}" IsChecked="{Binding Pinned}" />
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </StackPanel>
+                                </Expander>
+
+                                <Expander Header="{l:Loc Providers_Quirks}" Margin="0,4,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="{l:Loc Providers_MaxTokensField}" Style="{StaticResource CaptionText}" Margin="0,4,0,2" />
+                                        <ComboBox ItemsSource="{Binding MaxTokensFields}" SelectedItem="{Binding MaxTokensField}" Width="240" HorizontalAlignment="Left" />
+                                        <CheckBox Content="{l:Loc Providers_Vision}" IsChecked="{Binding SupportsVision}" Margin="0,8,0,0" />
+                                        <CheckBox Content="{l:Loc Providers_Tools}" IsChecked="{Binding SupportsTools}" Margin="0,6,0,0" />
+                                        <CheckBox Content="{l:Loc Providers_LlamaCpp}" IsChecked="{Binding IsLlamaCpp}" Margin="0,6,0,0" />
+                                    </StackPanel>
+                                </Expander>
+                            </StackPanel>
+                        </Border>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding StatusOk}" Value="True">
+                                <Setter TargetName="St" Property="Foreground" Value="{DynamicResource StatusOkBrush}" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

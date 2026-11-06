@@ -10,7 +10,13 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+    <None Include="Localization\Strings.tsv" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Системные темы WPF: входят в .NET Framework, работают на любой ОС -->
@@ -24,6 +30,18 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <!-- Склейка всех зависимостей в один exe (только Release) -->
+    <PackageReference Include="Costura.Fody" Version="6.0.0" PrivateAssets="all" Condition="'$(Configuration)' == 'Release'" />
+    <PackageReference Include="Fody" Version="6.9.2" PrivateAssets="all" Condition="'$(Configuration)' == 'Release'" />
+    <PackageReference Include="WpfMath" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Speech" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
 
   <ItemGroup>

@@ -75,13 +75,38 @@ public sealed class SettingsStore
         }
     }
 
+    public static bool IsHttpUrl(string? s) =>
+        Uri.TryCreate(s, UriKind.Absolute, out var u) && (u.Scheme == Uri.UriSchemeHttps || u.Scheme == Uri.UriSchemeHttp);
+
     /// <summary>Восстанавливает null-ветки и выходящие за пределы значения после ручной правки файла.</summary>
     internal static void Normalize(AppSettings s)
     {
         s.Appearance ??= new AppearanceSettings();
         s.Window ??= new WindowPlacementSettings();
         s.Logging ??= new LoggingSettings();
+        s.Network ??= new NetworkSettings();
+        s.Security ??= new SecuritySettings();
+        s.Tools ??= new Tools.ToolsSettings();
+        s.Tools.Consent ??= new System.Collections.Generic.Dictionary<string, Tools.ConsentMode>();
+        if (s.Tools.MaxSteps is < 1 or > 20) s.Tools.MaxSteps = 6;
+        s.Models ??= new Models.ModelsSettings();
+        s.Models.ScanFolders ??= new System.Collections.Generic.List<string>();
+        s.Models.HfTokenProtected ??= string.Empty;
+        s.Engine ??= new Engine.EngineSettings();
+        s.Engine.ExternalEngines ??= new System.Collections.Generic.List<string>();
+        if (s.Engine.Port is < 0 or > 65535) s.Engine.Port = 0;
+        var n = s.Network;
+        if (n.TimeoutSeconds is < 5 or > 600) n.TimeoutSeconds = 30;
+        if (n.MaxConcurrentDownloads is < 1 or > 8) n.MaxConcurrentDownloads = 2;
+        if (n.SpeedLimitKBps < 0) n.SpeedLimitKBps = 0;
+        if (!IsHttpUrl(n.HfEndpoint)) n.HfEndpoint = "https://huggingface.co";
+        if (!IsHttpUrl(n.GitHubApiEndpoint)) n.GitHubApiEndpoint = "https://api.github.com";
+        n.ProxyAddress ??= string.Empty;
+        n.ProxyUser ??= string.Empty;
+        n.ProxyPasswordProtected ??= string.Empty;
+        n.GitHubDownloadPrefix ??= string.Empty;
         if (string.IsNullOrWhiteSpace(s.Language)) s.Language = "auto";
+        s.UpdateRepo ??= string.Empty;
 
         if (string.IsNullOrWhiteSpace(s.Appearance.CustomAccent) || !ColorHex.TryParse(s.Appearance.CustomAccent, out _, out _, out _))
             s.Appearance.CustomAccent = "#0078D4";

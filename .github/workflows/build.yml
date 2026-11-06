@@ -1,0 +1,57 @@
+# Сборка и тесты Offline Chatter. Release-сборка — один exe (Costura) в артефактах.
+# При push тега vX.Y.Z — черновик релиза с exe.
+name: build
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Verify generated strings are up to date
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -File tools/gen-strings.ps1
+          git diff --exit-code -- src/OfflineChatter/Localization/*.resx
+
+      - name: Build (Release)
+        run: dotnet build OfflineChatter.sln -c Release -nologo
+
+      - name: Test (offline tests only)
+        run: dotnet test OfflineChatter.sln -c Release --no-build -nologo
+
+      - name: Collect exe
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          Copy-Item src/OfflineChatter/bin/Release/net48/OfflineChatter.exe out/
+          Copy-Item src/OfflineChatter/bin/Release/net48/OfflineChatter.exe.config out/
+          Get-ChildItem out | Format-Table Name, Length
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OfflineChatter
+          path: out/
+
+      - name: Draft release for tags
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            out/OfflineChatter.exe
+            out/OfflineChatter.exe.config

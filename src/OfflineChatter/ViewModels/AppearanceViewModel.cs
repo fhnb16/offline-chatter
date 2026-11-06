@@ -4,6 +4,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OfflineChatter.Converters;
+using OfflineChatter.Localization;
 using OfflineChatter.Core.Storage;
 using OfflineChatter.Theming;
 
@@ -57,17 +58,17 @@ public sealed partial class AppearanceViewModel : ObservableObject
         {
             var t = ThemeManager.Current;
             if (t == null) return string.Empty;
-            if (t.HighContrast) return "Сейчас: режим высокой контрастности"; // TODO(l10n)
+            if (t.HighContrast) return L.Get("Appearance_NowHighContrast");
             var parts = new List<string>
             {
                 EnumDisplayConverter.Get(t.Skin),
-                t.IsDark ? "тёмная" : "светлая",
+                L.Get(t.IsDark ? "Appearance_Dark" : "Appearance_Light"),
                 EnumDisplayConverter.Get(t.Backdrop),
             };
             var note = Skin != SkinKind.Fluent && Skin != SkinKind.Auto && t.IsDark
-                ? " · в тёмной теме контролы рисуются Fluent-стилем"
+                ? " · " + L.Get("Appearance_DarkUsesFluent")
                 : string.Empty;
-            return "Сейчас: " + string.Join(" · ", parts) + note; // TODO(l10n)
+            return L.F("Appearance_Now", string.Join(" · ", parts)) + note;
         }
     }
 

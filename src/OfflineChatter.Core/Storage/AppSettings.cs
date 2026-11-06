@@ -10,11 +10,72 @@ public sealed class AppSettings
     /// <summary>"auto", "ru" или "en".</summary>
     public string Language { get; set; } = "auto";
 
+    /// <summary>Репозиторий программы на GitHub (owner/repo) для проверки обновлений; пусто — не проверять.</summary>
+    public string UpdateRepo { get; set; } = string.Empty;
+
     public AppearanceSettings Appearance { get; set; } = new();
 
     public WindowPlacementSettings Window { get; set; } = new();
 
     public LoggingSettings Logging { get; set; } = new();
+
+    public NetworkSettings Network { get; set; } = new();
+
+    public Engine.EngineSettings Engine { get; set; } = new();
+
+    public Models.ModelsSettings Models { get; set; } = new();
+
+    public Tools.ToolsSettings Tools { get; set; } = new();
+
+    public SecuritySettings Security { get; set; } = new();
+}
+
+public enum ProxyMode
+{
+    System,
+    None,
+    Manual,
+}
+
+/// <summary>Какой TLS-стек использовать. Auto — эскалация по первой ошибке и запоминание для каждого хоста.</summary>
+public enum TlsMode
+{
+    Auto,
+    /// <summary>Уровень 1: системный SChannel.</summary>
+    System,
+    /// <summary>Уровень 2: SChannel + проверка цепочки по вшитым корневым сертификатам.</summary>
+    PinnedRoots,
+    /// <summary>Уровень 3: собственный TLS 1.2/1.3 (BouncyCastle).</summary>
+    Managed,
+}
+
+public sealed class NetworkSettings
+{
+    public ProxyMode ProxyMode { get; set; } = ProxyMode.System;
+
+    /// <summary>http://host:port для ручного прокси.</summary>
+    public string ProxyAddress { get; set; } = string.Empty;
+    public string ProxyUser { get; set; } = string.Empty;
+
+    /// <summary>Пароль прокси, зашифрованный через <see cref="Secrets"/>.</summary>
+    public string ProxyPasswordProtected { get; set; } = string.Empty;
+
+    public TlsMode TlsMode { get; set; } = TlsMode.Auto;
+
+    /// <summary>Hugging Face или зеркало (например, https://hf-mirror.com).</summary>
+    public string HfEndpoint { get; set; } = "https://huggingface.co";
+
+    /// <summary>GitHub API или совместимое зеркало.</summary>
+    public string GitHubApiEndpoint { get; set; } = "https://api.github.com";
+
+    /// <summary>Префикс-зеркало для скачивания файлов с GitHub (пусто — напрямую).</summary>
+    public string GitHubDownloadPrefix { get; set; } = string.Empty;
+
+    public int TimeoutSeconds { get; set; } = 30;
+    public int MaxConcurrentDownloads { get; set; } = 2;
+
+    /// <summary>Ограничение скорости скачивания, КБ/с (0 — без ограничения).</summary>
+    public int SpeedLimitKBps { get; set; }
 }
 
 public enum SkinKind
@@ -80,6 +141,15 @@ public sealed class WindowPlacementSettings
     public bool Maximized { get; set; }
     public double SidebarWidth { get; set; } = 260;
     public bool InspectorVisible { get; set; } = true;
+
+    /// <summary>Кнопка «закрыть» прячет окно в трей (сервер продолжает работать).</summary>
+    public bool CloseToTray { get; set; }
+
+    /// <summary>Глобальная горячая клавиша быстрого вопроса (Ctrl+Alt+Space).</summary>
+    public bool QuickAskHotkey { get; set; } = true;
+
+    /// <summary>Мастер первого запуска пройден или пропущен.</summary>
+    public bool FirstRunDone { get; set; }
 }
 
 public sealed class LoggingSettings
