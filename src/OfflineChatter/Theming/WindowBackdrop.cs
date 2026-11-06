@@ -111,10 +111,45 @@ internal static class WindowBackdrop
 
     private static void Reset(IntPtr hwnd)
     {
-        if (OsInfo.IsWin10OrNewer) SetAccent(hwnd, AccentState.Disabled, 0, 0);
+        // SetWindowCompositionAttribute — только на Win10: на Win11 даже «выключение» через него мешает системной подложке
+        if (OsInfo.SupportsWin10Blur) SetAccent(hwnd, AccentState.Disabled, 0, 0);
         if (OsInfo.SupportsSystemBackdrop) SetAttr(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE, DwmApi.DWMSBT_NONE);
         if (OsInfo.SupportsLegacyMica) SetAttr(hwnd, DwmApi.DWMWA_MICA_EFFECT, 0);
     }
+
+    /// <summary>
+    /// Сверка фактических атрибутов DWM с темой. Windows 11 25H2 сама выставляет окну «системные» тёмный заголовок
+    /// и подложку (Mica Alt) при первом показе и после смены шаблона окна (это происходит при смене скина WPF),
+    /// уже после нашего применения. Возвращает true, если пришлось применить заново.
+    /// </summary>
+    public static bool Verify(IntPtr hwnd, ResolvedTheme theme, bool extendedChrome)
+    {
+        if (hwnd == IntPtr.Zero || !OsInfo.SupportsImmersiveDarkMode) return false;
+        try
+        {
+            var darkAttr = OsInfo.Build >= 18985 ? DwmApi.DWMWA_USE_IMMERSIVE_DARK_MODE : DwmApi.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1;
+            var ok = DwmApi.DwmGetWindowAttributeInt(hwnd, darkAttr, out var dark, sizeof(int)) != 0 || (dark != 0) == theme.IsDark;
+            if (OsInfo.SupportsSystemBackdrop && DwmApi.DwmGetWindowAttributeInt(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE, out var type, sizeof(int)) == 0)
+                ok &= type == ExpectedSystemBackdrop(theme);
+            if (ok) return false;
+            Log.Info("Theme", "DWM attributes were overridden by the system, re-applying", new { dark, theme.IsDark, theme.Backdrop });
+            Apply(hwnd, theme, extendedChrome, force: true);
+            return true;
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>Какое значение DWMWA_SYSTEMBACKDROP_TYPE должно стоять для темы (Win11 22H2+).</summary>
+    private static int ExpectedSystemBackdrop(ResolvedTheme theme) => theme.Backdrop switch
+    {
+        BackdropKind.Mica => DwmApi.DWMSBT_MAINWINDOW,
+        BackdropKind.MicaAlt => DwmApi.DWMSBT_TABBEDWINDOW,
+        BackdropKind.Acrylic => DwmApi.DWMSBT_TRANSIENTWINDOW,
+        _ => DwmApi.DWMSBT_NONE,
+    };
 
     /// <summary>Окно закрыто — забываем его состояние.</summary>
     public static void Forget(IntPtr hwnd) => Applied.Remove(hwnd);

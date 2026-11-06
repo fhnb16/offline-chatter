@@ -192,6 +192,17 @@ public partial class App : Application
         if (fromOtherInstance) ShowMainWindow();
 
         if (Value("--page") is { } page && Enum.TryParse<PageKind>(page, true, out var kind)) _mainVm.Navigate(kind);
+        // --appearance Skin:Mode:Backdrop — сменить оформление на лету (проверка тем: tools/theme-tour.ps1)
+        if (Value("--appearance") is { } look)
+        {
+            var parts = look.Split(':');
+            var a = Settings.Current.Appearance;
+            if (parts.Length > 0 && Enum.TryParse<SkinKind>(parts[0], true, out var skin)) a.Skin = skin;
+            if (parts.Length > 1 && Enum.TryParse<ThemeMode>(parts[1], true, out var mode)) a.Mode = mode;
+            if (parts.Length > 2 && Enum.TryParse<BackdropKind>(parts[2], true, out var backdrop)) a.Backdrop = backdrop;
+            Settings.Save();
+            ThemeManager.Apply(a);
+        }
         if (Value("--section") is { } section && Enum.TryParse<SettingsSection>(section, true, out var sec))
             _mainVm.GetPage<SettingsViewModel>()?.Show(sec);
         if (Value("--chat") is { } chatId && _mainVm.Chat.Chats.FirstOrDefault(c => c.Session.Id == chatId) is { } chat)

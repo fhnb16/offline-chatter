@@ -10,7 +10,12 @@ using OfflineChatter.Theming;
 
 namespace OfflineChatter.ViewModels;
 
-/// <summary>Раздел «Оформление»: правит AppearanceSettings и сразу применяет тему.</summary>
+/// <summary>
+/// Раздел «Оформление». Меняет ровно то поле AppearanceSettings, которое тронул пользователь, и сразу применяет тему.
+/// Значения в списках всегда перечитываются из настроек после любого применения темы (палитра команд, системные события,
+/// командная строка): раньше страница хранила свою копию и при следующем изменении записывала её целиком,
+/// откатывая тему или подложку, выбранную в другом месте.
+/// </summary>
 public sealed partial class AppearanceViewModel : ObservableObject
 {
     private readonly SettingsStore _store;
@@ -19,16 +24,12 @@ public sealed partial class AppearanceViewModel : ObservableObject
     public AppearanceViewModel(SettingsStore store)
     {
         _store = store;
-        var a = store.Current.Appearance;
-        _loading = true;
-        Skin = a.Skin;
-        Mode = a.Mode;
-        Backdrop = BackdropOptions.Contains(a.Backdrop) ? a.Backdrop : BackdropKind.Auto;
-        Accent = a.Accent;
-        CustomAccent = a.CustomAccent;
-        _loading = false;
-
-        ThemeManager.Changed += (_, _) => OnPropertyChanged(nameof(ResolvedSummary));
+        Reload();
+        ThemeManager.Changed += (_, _) =>
+        {
+            Reload();
+            OnPropertyChanged(nameof(ResolvedSummary));
+        };
     }
 
     public IReadOnlyList<SkinKind> SkinOptions { get; } = Enum.GetValues(typeof(SkinKind)).Cast<SkinKind>().ToList();
@@ -51,6 +52,25 @@ public sealed partial class AppearanceViewModel : ObservableObject
     [ObservableProperty] private string _customAccent = "#0078D4";
 
     public bool IsCustomAccent => Accent == AccentSource.Custom;
+
+    /// <summary>Перечитать значения из настроек, не применяя их заново.</summary>
+    private void Reload()
+    {
+        var a = _store.Current.Appearance;
+        _loading = true;
+        try
+        {
+            Skin = a.Skin;
+            Mode = a.Mode;
+            Backdrop = BackdropOptions.Contains(a.Backdrop) ? a.Backdrop : BackdropKind.Auto;
+            Accent = a.Accent;
+            CustomAccent = a.CustomAccent;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
 
     public string ResolvedSummary
     {
@@ -79,33 +99,27 @@ public sealed partial class AppearanceViewModel : ObservableObject
         Accent = AccentSource.Custom;
     }
 
-    partial void OnSkinChanged(SkinKind value) => Commit();
-    partial void OnModeChanged(ThemeMode value) => Commit();
-    partial void OnBackdropChanged(BackdropKind value) => Commit();
+    partial void OnSkinChanged(SkinKind value) => Commit(a => a.Skin = value);
+    partial void OnModeChanged(ThemeMode value) => Commit(a => a.Mode = value);
+    partial void OnBackdropChanged(BackdropKind value) => Commit(a => a.Backdrop = value);
 
     partial void OnAccentChanged(AccentSource value)
     {
         OnPropertyChanged(nameof(IsCustomAccent));
-        Commit();
+        Commit(a => a.Accent = value);
     }
 
     partial void OnCustomAccentChanged(string value)
     {
-        if (ColorHex.TryParse(value, out _, out _, out _)) Commit();
+        if (ColorHex.TryParse(value, out var r, out var g, out var b)) Commit(a => a.CustomAccent = ColorHex.Format(r, g, b));
     }
 
-    private void Commit()
+    private void Commit(Action<AppearanceSettings> change)
     {
         if (_loading) return;
         var a = _store.Current.Appearance;
-        a.Skin = Skin;
-        a.Mode = Mode;
-        a.Backdrop = Backdrop;
-        a.Accent = Accent;
-        if (ColorHex.TryParse(CustomAccent, out var r, out var g, out var b))
-            a.CustomAccent = ColorHex.Format(r, g, b);
-
-        ThemeManager.Apply(a);
+        change(a);
         _store.Save();
+        ThemeManager.Apply(a);
     }
 }

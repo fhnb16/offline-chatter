@@ -105,6 +105,10 @@ internal static class DwmApi
 
     [DllImport("dwmapi.dll", PreserveSig = true)]
     public static extern int DwmGetWindowAttribute(IntPtr hwnd, int attribute, out RECT value, int size);
+
+    /// <summary>Vista+. Чтение целочисленного атрибута (тёмный режим, тип подложки) — для сверки с желаемым.</summary>
+    [DllImport("dwmapi.dll", EntryPoint = "DwmGetWindowAttribute", PreserveSig = true)]
+    public static extern int DwmGetWindowAttributeInt(IntPtr hwnd, int attribute, out int value, int size);
 }
 
 [StructLayout(LayoutKind.Sequential)]

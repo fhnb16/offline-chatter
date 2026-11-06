@@ -68,14 +68,7 @@ public static class ThemeManager
         {
             window.ContentRendered -= OnRendered;
             ApplyToWindow(window, force: true);
-            // Система может переписать атрибуты ещё раз чуть позже первого кадра — повторяем после паузы
-            var timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(400) };
-            timer.Tick += (_, _) =>
-            {
-                timer.Stop();
-                ApplyToWindow(window, force: true);
-            };
-            timer.Start();
+            ScheduleVerify();
         }
         window.ContentRendered += OnRendered;
     }
@@ -85,6 +78,43 @@ public static class ThemeManager
         var hwnd = new WindowInteropHelper(window).Handle;
         HwndSource.FromHwnd(hwnd)?.AddHook(WndProc);
         ApplyToWindow(window);
+    }
+
+    private static DispatcherTimer? _verifyTimer;
+    private static int _verifyRounds;
+
+    /// <summary>
+    /// Через 150, 500 и 1200 мс после применения темы сверяем атрибуты DWM у всех окон: система переписывает их
+    /// асинхронно (после смены шаблона окна, при первом показе). Сверка дешёвая и ничего не мигает, если всё совпало.
+    /// </summary>
+    private static void ScheduleVerify()
+    {
+        _verifyRounds = 0;
+        if (_verifyTimer == null)
+        {
+            _verifyTimer = new DispatcherTimer(DispatcherPriority.Background);
+            _verifyTimer.Tick += (_, _) =>
+            {
+                VerifyAll();
+                _verifyRounds++;
+                if (_verifyRounds >= 3) _verifyTimer!.Stop();
+                else _verifyTimer!.Interval = TimeSpan.FromMilliseconds(_verifyRounds == 1 ? 350 : 700);
+            };
+        }
+        _verifyTimer.Stop();
+        _verifyTimer.Interval = TimeSpan.FromMilliseconds(150);
+        _verifyTimer.Start();
+    }
+
+    private static void VerifyAll()
+    {
+        if (Current == null) return;
+        foreach (var w in AttachedWindows.ToList())
+        {
+            if (!w.TryGetTarget(out var window)) continue;
+            var hwnd = new WindowInteropHelper(window).Handle;
+            if (hwnd != IntPtr.Zero) WindowBackdrop.Verify(hwnd, Current, ShellChrome.GetIsExtended(window));
+        }
     }
 
     private static void ApplyToWindow(Window window, bool force = false)
@@ -113,6 +143,7 @@ public static class ThemeManager
             if (w.TryGetTarget(out var window) && new WindowInteropHelper(window).Handle != IntPtr.Zero)
                 ApplyToWindow(window);
         }
+        ScheduleVerify();
 
         Log.Info("Theme", "Theme applied", new
         {
@@ -295,6 +326,13 @@ public static class ThemeManager
             target[type] = style;
         }
 
+        // Строки списков (боковая панель, результаты поиска) — той же высоты, что во Fluent
+        var item = new Style(typeof(ListBoxItem), native?[typeof(ListBoxItem)] as Style);
+        item.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 7, 10, 7)));
+        item.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(0, 1, 0, 1)));
+        item.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
+        target[typeof(ListBoxItem)] = item;
+
         var buttonBase = target[typeof(Button)] as Style;
         target["AccentButtonStyle"] = new Style(typeof(Button), buttonBase);
 
@@ -323,7 +361,11 @@ public static class ThemeManager
                 break;
 
             case User32.WM_ACTIVATE:
-                if (Current != null && wParam != IntPtr.Zero) WindowBackdrop.ReapplyCaption(hwnd, Current);
+                if (Current != null && wParam != IntPtr.Zero)
+                {
+                    var win = HwndSource.FromHwnd(hwnd)?.RootVisual as Window;
+                    WindowBackdrop.Verify(hwnd, Current, win != null && ShellChrome.GetIsExtended(win));
+                }
                 break;
 
             case User32.WM_ENTERSIZEMOVE:
