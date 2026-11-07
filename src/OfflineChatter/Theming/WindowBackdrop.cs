@@ -48,8 +48,17 @@ internal static class WindowBackdrop
             }
 
             source.CompositionTarget.BackgroundColor = Colors.Transparent;
-            var all = MARGINS.All(-1);
-            DwmApi.DwmExtendFrameIntoClientArea(hwnd, ref all);
+            var margins = MARGINS.All(-1);
+            if (UsesAccentPolicy(theme))
+            {
+                // Win10, SetWindowCompositionAttribute: расширенную на всё окно рамку DWM рисует сплошным цветом рамки
+                // поверх эффекта («чёрное пятно» в тёмной теме). Рамка — только под системные кнопки заголовка;
+                // остальная часть окна прозрачна для эффекта и так (1 px нужен, чтобы DWM учитывал альфа-канал окна).
+                var caption = extendedChrome && source.RootVisual is System.Windows.Window w ? ShellChrome.TitleBarHeightPixels(w) : 1;
+                margins = new MARGINS { cxLeftWidth = 0, cxRightWidth = 0, cyTopHeight = Math.Max(1, caption), cyBottomHeight = 0 };
+            }
+            DwmApi.DwmExtendFrameIntoClientArea(hwnd, ref margins);
+            LastMargins = margins.cyTopHeight == -1 ? "all" : "top " + margins.cyTopHeight;
 
             switch (theme.Backdrop)
             {
@@ -89,6 +98,13 @@ internal static class WindowBackdrop
             source.CompositionTarget.BackgroundColor = theme.SolidWindowColor;
         }
     }
+
+    /// <summary>Подложка рисуется через SetWindowCompositionAttribute (размытие и Acrylic на Win10).</summary>
+    public static bool UsesAccentPolicy(ResolvedTheme theme) =>
+        OsInfo.SupportsWin10Blur && (theme.Backdrop == BackdropKind.Blur || theme.Backdrop == BackdropKind.Acrylic && !OsInfo.SupportsSystemBackdrop);
+
+    /// <summary>Последнее расширение рамки DWM (для «Сведений о подложке»).</summary>
+    public static string? LastMargins { get; private set; }
 
     /// <summary>
     /// Обход лагов Acrylic на Win10 1903+: на время перетаскивания или ресайза

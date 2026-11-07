@@ -122,7 +122,7 @@ public static class ThemeManager
     private static void ApplyToWindow(Window window, bool force = false)
     {
         if (Current == null) return;
-        var extended = ShellChrome.Update(window);
+        var extended = ShellChrome.Update(window, WindowBackdrop.UsesAccentPolicy(Current));
         WindowBackdrop.Apply(new WindowInteropHelper(window).Handle, Current, extended, force);
     }
 

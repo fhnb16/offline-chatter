@@ -89,6 +89,7 @@ public sealed partial class AppearanceViewModel : ObservableObject
                 "skin " + (t?.Skin.ToString() ?? "?"),
                 "dark " + (t?.IsDark == true ? "yes" : "no"),
                 "accent " + (WindowBackdrop.LastAccent ?? "not used"),
+                "frame " + (WindowBackdrop.LastMargins ?? "?"),
             });
         }
     }

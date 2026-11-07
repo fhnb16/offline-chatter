@@ -47,17 +47,23 @@ public static class ShellChrome
 
     public static bool CanExtend => OsInfo.IsCompositionEnabled && Environment.OSVersion.Version.Major >= 6;
 
-    internal static bool Update(Window window)
+    /// <param name="captionGlassOnly">
+    /// Расширять рамку DWM только на полосу заголовка (под системные кнопки), а не на всё окно.
+    /// Нужно для размытия и Acrylic через SetWindowCompositionAttribute на Win10: область расширенной рамки
+    /// DWM заливает сплошным цветом рамки (в тёмной теме — почти чёрным), и эффект под ней не виден.
+    /// </param>
+    internal static bool Update(Window window, bool captionGlassOnly = false)
     {
         var extend = GetExtendIntoTitleBar(window) && CanExtend && !SystemParameters.HighContrast;
         var current = GetIsExtended(window);
+        SetCaptionGlassOnly(window, captionGlassOnly);
 
         if (extend && !current)
         {
             WindowChrome.SetWindowChrome(window, new WindowChrome
             {
                 CaptionHeight = 32,
-                GlassFrameThickness = new Thickness(-1),
+                GlassFrameThickness = GlassThickness(window),
                 ResizeBorderThickness = SystemParameters.WindowResizeBorderThickness,
                 UseAeroCaptionButtons = true,
                 NonClientFrameEdges = NonClientFrameEdges.None,
@@ -81,6 +87,23 @@ public static class ShellChrome
         if (extend) Refresh(window);
         return extend;
     }
+
+    private static readonly DependencyProperty CaptionGlassOnlyProperty = DependencyProperty.RegisterAttached(
+        "CaptionGlassOnly", typeof(bool), typeof(ShellChrome), new PropertyMetadata(false));
+
+    private static void SetCaptionGlassOnly(Window window, bool value)
+    {
+        if ((bool)window.GetValue(CaptionGlassOnlyProperty) == value) return;
+        window.SetValue(CaptionGlassOnlyProperty, value);
+        if (WindowChrome.GetWindowChrome(window) is { } chrome) chrome.GlassFrameThickness = GlassThickness(window);
+    }
+
+    private static Thickness GlassThickness(Window window) =>
+        (bool)window.GetValue(CaptionGlassOnlyProperty) ? new Thickness(0, GetTitleBarHeight(window), 0, 0) : new Thickness(-1);
+
+    /// <summary>Высота полосы заголовка в пикселях устройства — сколько рамки DWM нужно под системные кнопки.</summary>
+    internal static int TitleBarHeightPixels(Window window) =>
+        (int)Math.Ceiling(GetTitleBarHeight(window) * VisualTreeHelper.GetDpi(window).DpiScaleY);
 
     private static void OnStateChanged(object? sender, EventArgs e) => Refresh((Window)sender!);
     private static void OnSizeChanged(object sender, SizeChangedEventArgs e) => Refresh((Window)sender);
@@ -115,7 +138,10 @@ public static class ShellChrome
                 var h = Math.Max(32, Math.Ceiling(r.Bottom / dpi.DpiScaleY));
                 window.SetValue(TitleBarHeightKey, h);
                 if (WindowChrome.GetWindowChrome(window) is { } chrome && Math.Abs(chrome.CaptionHeight - h) > 0.5)
+                {
                     chrome.CaptionHeight = h;
+                    if ((bool)window.GetValue(CaptionGlassOnlyProperty)) chrome.GlassFrameThickness = GlassThickness(window);
+                }
             }
         }
         catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
