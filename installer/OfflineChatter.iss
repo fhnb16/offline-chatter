@@ -42,6 +42,12 @@ WizardStyle=modern
 MinVersion=6.1sp1
 CloseApplications=yes
 RestartApplications=no
+; Подпись Authenticode: ISCC запускают с /DSign=1 и /Socsign="команда подписи $f" (см. build.yml).
+; Подписываются и установщик, и встроенный деинсталлятор.
+#ifdef Sign
+SignTool=ocsign
+SignedUninstaller=yes
+#endif
 
 [Languages]
 Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"

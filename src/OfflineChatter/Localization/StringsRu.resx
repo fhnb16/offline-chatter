@@ -717,4 +717,22 @@
   <data name="Appearance_Diagnostics" xml:space="preserve"><value>Сведения о подложке</value></data>
   <data name="Appearance_DiagnosticsHint" xml:space="preserve"><value>Если подложка выглядит неправильно, скопируйте эту строку и отправьте разработчику</value></data>
   <data name="Appearance_CopyDiagnostics" xml:space="preserve"><value>Копировать</value></data>
+  <data name="Signature_Valid" xml:space="preserve"><value>Подписано: {0}</value></data>
+  <data name="Signature_SelfSigned" xml:space="preserve"><value>Подписано самоподписанным сертификатом: {0}</value></data>
+  <data name="Signature_Invalid" xml:space="preserve"><value>Подпись повреждена: файл изменён после подписания</value></data>
+  <data name="Signature_Unsigned" xml:space="preserve"><value>Не подписано</value></data>
+  <data name="Update_SignatureRejected_SignatureInvalid" xml:space="preserve"><value>Обновление не установлено: его подпись повреждена (файл изменён после подписания)</value></data>
+  <data name="Update_SignatureAsk_SignatureMissing" xml:space="preserve"><value>Версия {0} не подписана, хотя текущая подписана. Файл совпадает с контрольной суммой, опубликованной на GitHub, но подтвердить его автора подписью нельзя.
+
+Устанавливайте, только если знаете, почему релиз без подписи (например, истёк сертификат).
+
+Всё равно установить?</value></data>
+  <data name="Update_SignatureAsk_SignatureUntrusted" xml:space="preserve"><value>Версия {0} подписана «{1}», но Windows не доверяет этому сертификату (самоподписанный или отозванный). Файл совпадает с контрольной суммой, опубликованной на GitHub.
+
+Всё равно установить?</value></data>
+  <data name="Update_SignatureAsk_CertificateChanged" xml:space="preserve"><value>Версия {0} подписана другим самоподписанным сертификатом («{1}»). Файл совпадает с контрольной суммой, опубликованной на GitHub, но проверить новый сертификат нельзя.
+
+Всё равно установить?</value></data>
+  <data name="Update_SignatureDeclined" xml:space="preserve"><value>Обновление не установлено: вы отказались от версии без доверенной подписи</value></data>
+  <data name="Update_FileChanged" xml:space="preserve"><value>Обновление не установлено: скачанный файл изменился, пока ожидались права администратора</value></data>
 </root>

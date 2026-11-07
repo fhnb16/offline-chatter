@@ -187,6 +187,49 @@ internal static class UxThemeDark
     public static extern void FlushMenuThemes();
 }
 
+/// <summary>Проверка подписи Authenticode (wintrust.dll, Windows XP+).</summary>
+internal static class WinTrust
+{
+    /// <summary>WINTRUST_ACTION_GENERIC_VERIFY_V2.</summary>
+    public static readonly Guid GenericVerifyV2 = new("00AAC56B-CD44-11d0-8CC2-00C04FC295EE");
+
+    public const int TRUST_E_NOSIGNATURE = unchecked((int)0x800B0100);
+    public const int TRUST_E_SUBJECT_FORM_UNKNOWN = unchecked((int)0x800B0003);
+    public const int CERT_E_UNTRUSTEDROOT = unchecked((int)0x800B0109);
+    public const int CERT_E_CHAINING = unchecked((int)0x800B010A);
+    public const int TRUST_E_BAD_DIGEST = unchecked((int)0x80096010);
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct FileInfo
+    {
+        public int cbStruct;
+        [MarshalAs(UnmanagedType.LPWStr)] public string pcwszFilePath;
+        public IntPtr hFile;
+        public IntPtr pgKnownSubject;
+    }
+
+    /// <summary>WINTRUST_DATA без полей Win8+ (cbStruct сообщает размер — так структура подходит и для Win7).</summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Data
+    {
+        public int cbStruct;
+        public IntPtr pPolicyCallbackData;
+        public IntPtr pSIPClientData;
+        public uint dwUIChoice;          // 2 = WTD_UI_NONE
+        public uint fdwRevocationChecks; // 0 = WTD_REVOKE_NONE: проверка отзыва без сети подвешивает Win7
+        public uint dwUnionChoice;       // 1 = WTD_CHOICE_FILE
+        public IntPtr pFile;
+        public uint dwStateAction;       // 0 = WTD_STATEACTION_IGNORE
+        public IntPtr hWVTStateData;
+        public IntPtr pwszURLReference;
+        public uint dwProvFlags;         // 0x10 = WTD_REVOCATION_CHECK_NONE
+        public uint dwUIContext;
+    }
+
+    [DllImport("wintrust.dll", ExactSpelling = true, PreserveSig = true)]
+    public static extern int WinVerifyTrust(IntPtr hwnd, [In] ref Guid action, [In] ref Data data);
+}
+
 internal static class NtDll
 {
     /// <summary>Возвращает настоящую версию ОС независимо от манифеста и режима совместимости.</summary>

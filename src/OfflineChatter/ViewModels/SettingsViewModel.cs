@@ -264,6 +264,22 @@ public sealed partial class SettingsViewModel : PageViewModel
 
     // ---------- О программе и обновления ----------
     public string AppVersion => "Offline Chatter " + _services.Version;
+
+    /// <summary>Подпись работающего exe: кем подписан или «не подписан».</summary>
+    public string SignatureText
+    {
+        get
+        {
+            var s = Shell.Authenticode.Inspect(App.ExePath);
+            return s.State switch
+            {
+                SignatureState.Valid => L.F("Signature_Valid", Shell.Authenticode.Publisher(s)),
+                SignatureState.UntrustedRoot => L.F("Signature_SelfSigned", Shell.Authenticode.Publisher(s)),
+                SignatureState.Invalid => L.Get("Signature_Invalid"),
+                _ => L.Get("Signature_Unsigned"),
+            };
+        }
+    }
     public string OsName { get; }
     public string RuntimeInfo { get; }
 
@@ -341,11 +357,32 @@ public sealed partial class SettingsViewModel : PageViewModel
         try
         {
             var (exe, config) = await UpdateChecker.DownloadAsync(_services.Downloads, Update, _services.Paths.Cache, _services.Releases.MirrorUrl);
+            // Подпись Authenticode: повреждённая — отказ; нет подписи или ей не доверяет Windows — по согласию пользователя
+            var (verdict, reason, candidate) = await System.Threading.Tasks.Task.Run(() => Shell.Authenticode.CheckUpdate(App.ExePath, exe));
+            if (verdict == Core.Net.UpdateSignatureVerdict.Reject)
+            {
+                UpdateStatus = L.Get("Update_SignatureRejected_" + reason);
+                return;
+            }
+            if (verdict == Core.Net.UpdateSignatureVerdict.Ask)
+            {
+                var answer = System.Windows.MessageBox.Show(Shell.Authenticode.ConsentText(reason, candidate, Update.LatestTag), "Offline Chatter",
+                    System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning, System.Windows.MessageBoxResult.No);
+                if (answer != System.Windows.MessageBoxResult.Yes)
+                {
+                    Core.Diagnostics.Log.Info("Update", "Unsigned update declined by user", new { reason });
+                    UpdateStatus = L.Get("Update_SignatureDeclined");
+                    return;
+                }
+                Core.Diagnostics.Log.Info("Update", "Unsigned update accepted by user", new { reason });
+            }
             if (elevate)
             {
                 _services.Engine.Server.Stop();
                 _services.Settings.Save();
-                if (Shell.ElevatedUpdate.TryStart(App.ExePath, exe, config))
+                // Отпечаток файла, который проверили (и, возможно, одобрили): повышенный процесс сверит, что его не подменили
+                var approvedSha = await System.Threading.Tasks.Task.Run(() => Core.Net.DownloadManager.ComputeSha256(exe, System.Threading.CancellationToken.None));
+                if (Shell.ElevatedUpdate.TryStart(App.ExePath, exe, config, approvedSha))
                 {
                     System.Windows.Application.Current.Shutdown();
                     return;

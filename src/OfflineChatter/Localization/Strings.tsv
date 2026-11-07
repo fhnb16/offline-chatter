@@ -712,3 +712,13 @@ Appearance_SoftwareRendering	The window is drawn without the graphics card (virt
 Appearance_Diagnostics	Backdrop details	Сведения о подложке
 Appearance_DiagnosticsHint	If the backdrop looks wrong, copy this line and send it to the developer	Если подложка выглядит неправильно, скопируйте эту строку и отправьте разработчику
 Appearance_CopyDiagnostics	Copy	Копировать
+Signature_Valid	Signed: {0}	Подписано: {0}
+Signature_SelfSigned	Signed with a self-signed certificate: {0}	Подписано самоподписанным сертификатом: {0}
+Signature_Invalid	The signature is damaged: the file was changed after signing	Подпись повреждена: файл изменён после подписания
+Signature_Unsigned	Not signed	Не подписано
+Update_SignatureRejected_SignatureInvalid	The update was not installed: its signature is damaged (the file was changed after signing)	Обновление не установлено: его подпись повреждена (файл изменён после подписания)
+Update_SignatureAsk_SignatureMissing	Version {0} is not signed, although this version is. The file matches the checksum published on GitHub, but its author cannot be confirmed by a signature.\n\nInstall it only if you know why the release is unsigned (for example, the certificate has expired).\n\nInstall anyway?	Версия {0} не подписана, хотя текущая подписана. Файл совпадает с контрольной суммой, опубликованной на GitHub, но подтвердить его автора подписью нельзя.\n\nУстанавливайте, только если знаете, почему релиз без подписи (например, истёк сертификат).\n\nВсё равно установить?
+Update_SignatureAsk_SignatureUntrusted	Version {0} is signed by {1}, but Windows does not trust this certificate (self-signed or revoked). The file matches the checksum published on GitHub.\n\nInstall anyway?	Версия {0} подписана «{1}», но Windows не доверяет этому сертификату (самоподписанный или отозванный). Файл совпадает с контрольной суммой, опубликованной на GitHub.\n\nВсё равно установить?
+Update_SignatureAsk_CertificateChanged	Version {0} is signed with a different self-signed certificate ({1}). The file matches the checksum published on GitHub, but the new certificate cannot be verified.\n\nInstall anyway?	Версия {0} подписана другим самоподписанным сертификатом («{1}»). Файл совпадает с контрольной суммой, опубликованной на GitHub, но проверить новый сертификат нельзя.\n\nВсё равно установить?
+Update_SignatureDeclined	The update was not installed: you declined a version without a trusted signature	Обновление не установлено: вы отказались от версии без доверенной подписи
+Update_FileChanged	The update was not installed: the downloaded file changed while waiting for administrator rights	Обновление не установлено: скачанный файл изменился, пока ожидались права администратора

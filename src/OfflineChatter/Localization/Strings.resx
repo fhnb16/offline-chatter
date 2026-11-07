@@ -717,4 +717,22 @@ Cancel — not now</value></data>
   <data name="Appearance_Diagnostics" xml:space="preserve"><value>Backdrop details</value></data>
   <data name="Appearance_DiagnosticsHint" xml:space="preserve"><value>If the backdrop looks wrong, copy this line and send it to the developer</value></data>
   <data name="Appearance_CopyDiagnostics" xml:space="preserve"><value>Copy</value></data>
+  <data name="Signature_Valid" xml:space="preserve"><value>Signed: {0}</value></data>
+  <data name="Signature_SelfSigned" xml:space="preserve"><value>Signed with a self-signed certificate: {0}</value></data>
+  <data name="Signature_Invalid" xml:space="preserve"><value>The signature is damaged: the file was changed after signing</value></data>
+  <data name="Signature_Unsigned" xml:space="preserve"><value>Not signed</value></data>
+  <data name="Update_SignatureRejected_SignatureInvalid" xml:space="preserve"><value>The update was not installed: its signature is damaged (the file was changed after signing)</value></data>
+  <data name="Update_SignatureAsk_SignatureMissing" xml:space="preserve"><value>Version {0} is not signed, although this version is. The file matches the checksum published on GitHub, but its author cannot be confirmed by a signature.
+
+Install it only if you know why the release is unsigned (for example, the certificate has expired).
+
+Install anyway?</value></data>
+  <data name="Update_SignatureAsk_SignatureUntrusted" xml:space="preserve"><value>Version {0} is signed by {1}, but Windows does not trust this certificate (self-signed or revoked). The file matches the checksum published on GitHub.
+
+Install anyway?</value></data>
+  <data name="Update_SignatureAsk_CertificateChanged" xml:space="preserve"><value>Version {0} is signed with a different self-signed certificate ({1}). The file matches the checksum published on GitHub, but the new certificate cannot be verified.
+
+Install anyway?</value></data>
+  <data name="Update_SignatureDeclined" xml:space="preserve"><value>The update was not installed: you declined a version without a trusted signature</value></data>
+  <data name="Update_FileChanged" xml:space="preserve"><value>The update was not installed: the downloaded file changed while waiting for administrator rights</value></data>
 </root>

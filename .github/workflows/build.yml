@@ -65,6 +65,18 @@ jobs:
       - name: Test (offline tests only)
         run: dotnet test OfflineChatter.sln -c Release --no-build -nologo
 
+      # Authenticode: подписываем exe до упаковки — в zip, rar и установщик попадает уже подписанный файл.
+      # Секреты: SIGN_PFX_BASE64 + SIGN_PFX_PASSWORD (PFX в base64) или SIGN_CERT_THUMBPRINT; без них шаг пропускается.
+      - name: Sign executable
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        env:
+          SIGN_PFX_BASE64: ${{ secrets.SIGN_PFX_BASE64 }}
+          SIGN_PFX_PASSWORD: ${{ secrets.SIGN_PFX_PASSWORD }}
+          SIGN_CERT_THUMBPRINT: ${{ secrets.SIGN_CERT_THUMBPRINT }}
+          SIGN_TIMESTAMP_URL: ${{ vars.SIGN_TIMESTAMP_URL }}
+        run: pwsh -NoProfile -File tools/sign.ps1 -Files src/OfflineChatter/bin/Release/net48/OfflineChatter.exe
+
       - name: Install packaging tools (WinRAR, Inno Setup)
         shell: pwsh
         run: |
@@ -74,12 +86,22 @@ jobs:
 
       - name: Package (zip, rar, installer)
         shell: pwsh
+        env:
+          SIGN_PFX_BASE64: ${{ github.event_name != 'pull_request' && secrets.SIGN_PFX_BASE64 || '' }}
+          SIGN_PFX_PASSWORD: ${{ secrets.SIGN_PFX_PASSWORD }}
+          SIGN_CERT_THUMBPRINT: ${{ github.event_name != 'pull_request' && secrets.SIGN_CERT_THUMBPRINT || '' }}
+          SIGN_TIMESTAMP_URL: ${{ vars.SIGN_TIMESTAMP_URL }}
         run: |
           $v = '${{ steps.ver.outputs.version }}'
           pwsh -NoProfile -File tools/package.ps1 -BinDir src/OfflineChatter/bin/Release/net48 -Version $v -Out out
           $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
           if (-not $iscc) { throw 'ISCC.exe not found' }
-          & $iscc /Qp "/DAppVersion=$v" "/DStageDir=$PWD\out\stage\OfflineChatter" "/DOutDir=$PWD\out" installer/OfflineChatter.iss
+          $isccArgs = @('/Qp', "/DAppVersion=$v", "/DStageDir=$PWD\out\stage\OfflineChatter", "/DOutDir=$PWD\out")
+          if ($env:SIGN_PFX_BASE64 -or $env:SIGN_CERT_THUMBPRINT) {
+            # Inno Setup подставляет вместо $f путь к подписываемому файлу (установщик и деинсталлятор)
+            $isccArgs += '/DSign=1', "/Socsign=pwsh -NoProfile -File `"$PWD\tools\sign.ps1`" -Required -Files `$f"
+          }
+          & $iscc @isccArgs installer/OfflineChatter.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC failed with $LASTEXITCODE" }
           # Только архивы и установщик: голый exe в релиз не кладём (Windows 11 и антивирусы агрессивнее к скачанным exe)
           New-Item -ItemType Directory -Force release | Out-Null

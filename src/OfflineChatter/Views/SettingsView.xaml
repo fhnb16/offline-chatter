@@ -711,6 +711,7 @@
                             <TextBlock Text="{Binding AppVersion}" Style="{StaticResource SubtitleText}" />
                             <TextBlock Text="{Binding OsName}" Style="{StaticResource CaptionText}" Margin="0,4,0,0" />
                             <TextBlock Text="{Binding RuntimeInfo}" Style="{StaticResource CaptionText}" />
+                            <TextBlock Text="{Binding SignatureText}" Style="{StaticResource CaptionText}" />
                         </StackPanel>
                     </Border>
 

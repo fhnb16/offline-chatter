@@ -20,9 +20,9 @@ public static class ElevatedUpdate
     private const int ErrorCancelled = 1223; // пользователь нажал «Нет» в окне UAC
 
     /// <summary>Запустить повышенный процесс. false — пользователь отказался в UAC или запуск не удался.</summary>
-    public static bool TryStart(string targetExe, string newExe, string? newConfig)
+    public static bool TryStart(string targetExe, string newExe, string? newConfig, string approvedSha256)
     {
-        var args = $"{Switch} \"{newExe}\" \"{newConfig ?? "-"}\" {Process.GetCurrentProcess().Id}";
+        var args = $"{Switch} \"{newExe}\" \"{newConfig ?? "-"}\" {Process.GetCurrentProcess().Id} {approvedSha256}";
         try
         {
             Process.Start(new ProcessStartInfo(targetExe, args) { Verb = "runas", UseShellExecute = true });
@@ -41,10 +41,10 @@ public static class ElevatedUpdate
         }
     }
 
-    /// <summary>Режим повышенного процесса: <c>--apply-update новый.exe новый.config|- pid</c>. Возвращает код выхода.</summary>
+    /// <summary>Режим повышенного процесса: <c>--apply-update новый.exe новый.config|- pid sha256</c>. Возвращает код выхода.</summary>
     public static int Run(string[] args)
     {
-        if (args.Length < 4) return 2;
+        if (args.Length < 5) return 2;
         var newExe = args[1];
         var newConfig = args[2] == "-" ? null : args[2];
         var target = App.ExePath;
@@ -58,6 +58,31 @@ public static class ElevatedUpdate
                 p.WaitForExit(30000);
             }
             catch (ArgumentException) { /* уже завершилась */ }
+        }
+
+        // Файл лежит в папке пользователя и мог быть подменён, пока ждали согласия в UAC: сверяем его с тем,
+        // что проверила (и, если подписи нет, одобрила пользователем) обычная копия, и ещё раз проверяем подпись
+        string actualSha;
+        try
+        {
+            actualSha = DownloadManager.ComputeSha256(newExe, System.Threading.CancellationToken.None);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            MessageBox.Show(L.F("Update_Failed", ex.Message), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
+            return 1;
+        }
+        if (!string.Equals(actualSha, args[4], StringComparison.OrdinalIgnoreCase))
+        {
+            Log.Warn("Update", "Update file changed while waiting for elevation");
+            MessageBox.Show(L.Get("Update_FileChanged"), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
+            return 3;
+        }
+        var (verdict, reason, _) = Authenticode.CheckUpdate(target, newExe);
+        if (verdict == UpdateSignatureVerdict.Reject)
+        {
+            MessageBox.Show(L.Get("Update_SignatureRejected_" + reason), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
+            return 3;
         }
 
         try
