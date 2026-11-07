@@ -8,6 +8,8 @@
         <DataTemplate x:Key="EnumItemTemplate">
             <TextBlock Text="{Binding Converter={StaticResource EnumDisplay}}" />
         </DataTemplate>
+        <!-- Содержимое вкладки рисует сама страница ниже: у TabControl оно пустое -->
+        <DataTemplate x:Key="EmptyTemplate" />
 
         <Style x:Key="SettingLabel" TargetType="TextBlock" BasedOn="{StaticResource BodyText}" />
 
@@ -25,8 +27,9 @@
         <!-- Заголовок и вкладки: остаются на месте при прокрутке -->
         <StackPanel DockPanel.Dock="Top" Margin="24,20,24,0">
             <TextBlock Text="{l:Loc Nav_Settings}" Style="{StaticResource PageTitleText}" Margin="0,0,0,12" />
-            <ListBox Style="{StaticResource TabStrip}" ItemsSource="{Binding Sections}" SelectedItem="{Binding SelectedSection}"
-                     ItemTemplate="{StaticResource EnumItemTemplate}" />
+            <!-- Вкладки: во Fluent — плоская полоса, в системных скинах — родные вкладки Windows -->
+            <TabControl Style="{DynamicResource TabStrip}" ItemsSource="{Binding Sections}" SelectedItem="{Binding SelectedSection}"
+                        ItemTemplate="{StaticResource EnumItemTemplate}" ContentTemplate="{StaticResource EmptyTemplate}" />
             <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,4,0,0" />
         </StackPanel>
 
@@ -119,6 +122,14 @@
                 <StackPanel DataContext="{Binding Appearance}"
                             Visibility="{Binding DataContext.SelectedSection, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource EqualsToVisibility}, ConverterParameter=Appearance}">
                     <TextBlock Text="{Binding ResolvedSummary}" Style="{StaticResource CaptionText}" Margin="0,8,0,8" />
+                    <!-- Эффекты прозрачности выключены в Windows или удалённый сеанс — подложка будет сплошной -->
+                    <Border Style="{StaticResource NoticeCard}" Visibility="{Binding BackdropBlockedReason, Converter={StaticResource NullToCollapsed}}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Appearance_TransparencyOffTitle}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding BackdropBlockedReason}" Style="{StaticResource CaptionText}" Margin="0,2,0,8" />
+                            <Button Content="{l:Loc Appearance_OpenColors}" Command="{Binding OpenColorSettingsCommand}" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </Border>
                     <!-- Mica For Everyone и подобные утилиты перекрашивают все окна — без исключения окно «моргает» -->
                     <Border Style="{StaticResource NoticeCard}" Visibility="{Binding ShowMicaForEveryoneNotice, Converter={StaticResource BoolToVisibility}}">
                         <StackPanel>
@@ -466,12 +477,17 @@
                             </StackPanel>
                         </Border>
                         <Border Style="{StaticResource SettingCard}">
-                            <CheckBox IsChecked="{Binding AllowLan}">
-                                <StackPanel>
-                                    <TextBlock Text="{l:Loc Api_Lan}" Style="{StaticResource SettingLabel}" />
-                                    <TextBlock Text="{l:Loc Api_LanHint}" Style="{StaticResource CaptionText}" />
-                                </StackPanel>
-                            </CheckBox>
+                            <StackPanel>
+                                <c:AdaptiveRow Style="{StaticResource Row}">
+                                    <StackPanel>
+                                        <TextBlock Text="{l:Loc Api_Listen}" Style="{StaticResource SettingLabel}" />
+                                        <TextBlock Text="{l:Loc Api_ListenHint}" Style="{StaticResource CaptionText}" />
+                                    </StackPanel>
+                                    <ComboBox ItemsSource="{Binding ListenOptions}" SelectedItem="{Binding Listen}" DisplayMemberPath="Title" />
+                                </c:AdaptiveRow>
+                                <TextBlock Text="{l:Loc Api_LanHint}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}" Margin="0,8,0,0"
+                                           Visibility="{Binding IsLanExposed, Converter={StaticResource BoolToVisibility}}" />
+                            </StackPanel>
                         </Border>
                     </StackPanel>
 
@@ -484,6 +500,8 @@
                                 </Button>
                                 <StackPanel>
                                     <TextBox Text="{Binding LocalUrl, Mode=OneWay}" IsReadOnly="True" FontFamily="{DynamicResource MonoFontFamily}" />
+                                    <TextBox Text="{Binding LocalhostUrl, Mode=OneWay}" IsReadOnly="True" FontFamily="{DynamicResource MonoFontFamily}" Margin="0,6,0,0"
+                                             Visibility="{Binding IsLanExposed, Converter={StaticResource InverseBoolToVisibility}}" />
                                     <TextBox Text="{Binding LanUrl, Mode=OneWay}" IsReadOnly="True" FontFamily="{DynamicResource MonoFontFamily}" Margin="0,6,0,0"
                                              Visibility="{Binding LanUrl, Converter={StaticResource NullToCollapsed}}" />
                                 </StackPanel>
@@ -706,7 +724,8 @@
                                 <TextBlock Text="{l:Loc Update_Repo}" Style="{StaticResource SettingLabel}" />
                                 <TextBlock Text="{l:Loc Update_RepoHint}" Style="{StaticResource CaptionText}" />
                             </StackPanel>
-                            <TextBox Text="{Binding UpdateRepo}" FontFamily="{DynamicResource MonoFontFamily}" ToolTip="owner/repo" />
+                            <TextBlock Text="{Binding ReleasesSource}" FontFamily="{DynamicResource MonoFontFamily}" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Right" />
                         </c:AdaptiveRow>
                     </Border>
                 </StackPanel>

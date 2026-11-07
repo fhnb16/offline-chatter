@@ -10,11 +10,6 @@ public sealed class AppSettings
     /// <summary>"auto", "ru" или "en".</summary>
     public string Language { get; set; } = "auto";
 
-    public const string DefaultUpdateRepo = "fhnb16/offline-chatter";
-
-    /// <summary>Репозиторий программы на GitHub (owner/repo): обновления и Win7-сборки llama.cpp.</summary>
-    public string UpdateRepo { get; set; } = DefaultUpdateRepo;
-
     /// <summary>Id выбранного по умолчанию пресета системного промпта для новых чатов.</summary>
     public string? DefaultPromptPresetId { get; set; }
 

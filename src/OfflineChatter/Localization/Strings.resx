@@ -287,7 +287,7 @@ No — only remove from the list</value></data>
   <data name="Chat_ThinkingMode" xml:space="preserve"><value>Thinking mode</value></data>
   <data name="Chat_ThinkingAuto" xml:space="preserve"><value>As the model decides</value></data>
   <data name="Chat_ThinkingOn" xml:space="preserve"><value>On</value></data>
-  <data name="Chat_ThinkingOff" xml:space="preserve"><value>Off (faster answers)</value></data>
+  <data name="Chat_ThinkingOff" xml:space="preserve"><value>Off</value></data>
   <data name="Chat_SystemPrompt" xml:space="preserve"><value>System prompt</value></data>
   <data name="Chat_OverrideTemperature" xml:space="preserve"><value>Own temperature for this chat</value></data>
   <data name="Chat_InspectorHint" xml:space="preserve"><value>Other sampling parameters come from the launch profile (Engine → Launch profile)</value></data>
@@ -471,7 +471,7 @@ No — only remove from the list</value></data>
   <data name="Welcome_Partial" xml:space="preserve"><value>Not everything is installed — see the messages above</value></data>
   <data name="Welcome_FirstPrompt" xml:space="preserve"><value>Hi! Briefly tell me what you can do.</value></data>
   <data name="Update_Title" xml:space="preserve"><value>Updates</value></data>
-  <data name="Update_RepoHint" xml:space="preserve"><value>GitHub repository with app releases and Win7 builds of llama.cpp</value></data>
+  <data name="Update_RepoHint" xml:space="preserve"><value>App releases and Win7 builds of llama.cpp come only from this repository</value></data>
   <data name="Update_Check" xml:space="preserve"><value>Check</value></data>
   <data name="Update_Open" xml:space="preserve"><value>Open release page</value></data>
   <data name="Update_NoRepo" xml:space="preserve"><value>Enter the repository first</value></data>
@@ -552,7 +552,7 @@ No — only remove from the list</value></data>
   <data name="Api_Copy" xml:space="preserve"><value>Copy</value></data>
   <data name="Api_Regenerate" xml:space="preserve"><value>New key</value></data>
   <data name="Api_Lan" xml:space="preserve"><value>Allow access from the local network</value></data>
-  <data name="Api_LanHint" xml:space="preserve"><value>The server listens on all interfaces. Anyone in your network who knows the key can use the model.</value></data>
+  <data name="Api_LanHint" xml:space="preserve"><value>The server is reachable from other devices. Anyone who can reach this address and knows the key can use the model. The API works only while Offline Chatter is running (it can stay in the tray)</value></data>
   <data name="Api_Url" xml:space="preserve"><value>Base URL for clients</value></data>
   <data name="Api_Example" xml:space="preserve"><value>Request example</value></data>
   <data name="Api_Apply" xml:space="preserve"><value>Start or restart server</value></data>
@@ -674,4 +674,43 @@ Cancel — not now</value></data>
   <data name="Api_ModelId" xml:space="preserve"><value>Model for clients (the &quot;model&quot; field)</value></data>
   <data name="Api_ModelIdHint" xml:space="preserve"><value>The same name is returned by /v1/models. It changes when you pick another model in the chat — the server restarts with it</value></data>
   <data name="Api_ModelsExample" xml:space="preserve"><value>List of models (needs the key like every other path)</value></data>
+  <data name="Api_Listen" xml:space="preserve"><value>Listen address</value></data>
+  <data name="Api_ListenHint" xml:space="preserve"><value>Where other programs can reach the server from. «localhost» works too: the program also answers on IPv6 ::1</value></data>
+  <data name="Api_ListenLoopback" xml:space="preserve"><value>127.0.0.1 — this PC only</value></data>
+  <data name="Api_ListenAll" xml:space="preserve"><value>0.0.0.0 — all interfaces (network, Docker, WSL)</value></data>
+  <data name="Api_ListenAdapter" xml:space="preserve"><value>{0} — {1}</value></data>
+  <data name="Chat_ThinkingLow" xml:space="preserve"><value>Low</value></data>
+  <data name="Chat_ThinkingMedium" xml:space="preserve"><value>Medium</value></data>
+  <data name="Chat_ThinkingHigh" xml:space="preserve"><value>High</value></data>
+  <data name="Chat_ReasoningStyle" xml:space="preserve"><value>How the model reasons</value></data>
+  <data name="Chat_ReasoningStyleHint" xml:space="preserve"><value>Auto reads the model&apos;s chat template, name and provider. Pick a style manually if the detection is wrong</value></data>
+  <data name="Chat_ReasoningDetected" xml:space="preserve"><value>Detected: {0}</value></data>
+  <data name="Enum_ReasoningStyle_Auto" xml:space="preserve"><value>Auto</value></data>
+  <data name="Enum_ReasoningStyle_None" xml:space="preserve"><value>Does not reason (Gemma, Llama…)</value></data>
+  <data name="Enum_ReasoningStyle_AlwaysOn" xml:space="preserve"><value>Always reasons (DeepSeek-R1, QwQ, Magistral…)</value></data>
+  <data name="Enum_ReasoningStyle_TemplateFlag" xml:space="preserve"><value>Template flag (Qwen3, GLM, Hunyuan…)</value></data>
+  <data name="Enum_ReasoningStyle_ReasoningEffort" xml:space="preserve"><value>reasoning_effort (OpenAI o/GPT-5, Gemini, Grok)</value></data>
+  <data name="Enum_ReasoningStyle_GptOss" xml:space="preserve"><value>GPT-OSS (low / medium / high)</value></data>
+  <data name="Enum_ReasoningStyle_Granite" xml:space="preserve"><value>Granite (thinking flag)</value></data>
+  <data name="Enum_ReasoningStyle_PromptSwitch" xml:space="preserve"><value>/think and /no_think in the prompt (SmolLM3…)</value></data>
+  <data name="Engine_BuildSource" xml:space="preserve"><value>Where to get builds</value></data>
+  <data name="Engine_BuildSourceHint" xml:space="preserve"><value>Official llama.cpp builds need Windows 10 or newer. For Windows 7 use Win7 builds or a fork with Win7 support</value></data>
+  <data name="Enum_EngineSource_Official" xml:space="preserve"><value>Official llama.cpp (ggml-org, Windows 10+)</value></data>
+  <data name="Enum_EngineSource_AppWin7" xml:space="preserve"><value>Win7 builds of Offline Chatter</value></data>
+  <data name="Enum_EngineSource_Custom" xml:space="preserve"><value>Own GitHub repository</value></data>
+  <data name="Engine_CustomRepoHint" xml:space="preserve"><value>owner/repo or a GitHub link. This is third-party code: download only from repositories you trust. Files are checked against SHA-256 only if the release publishes it</value></data>
+  <data name="Engine_CustomRepoInvalid" xml:space="preserve"><value>Enter the repository as owner/repo or paste a GitHub link</value></data>
+  <data name="Appearance_TransparencyOffTitle" xml:space="preserve"><value>Windows draws the backdrop as a solid color</value></data>
+  <data name="Appearance_TransparencyOff" xml:space="preserve"><value>Transparency effects are turned off in Windows settings (Personalization → Colors). Blur, Acrylic and Mica only work when they are on</value></data>
+  <data name="Appearance_RemoteSession" xml:space="preserve"><value>This is a remote desktop session: Windows does not draw blur and Acrylic over RDP</value></data>
+  <data name="Appearance_OpenColors" xml:space="preserve"><value>Open color settings</value></data>
+  <data name="Preview_Open" xml:space="preserve"><value>Open preview</value></data>
+  <data name="Preview_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Preview_Save" xml:space="preserve"><value>Save as…</value></data>
+  <data name="Preview_ZoomIn" xml:space="preserve"><value>Zoom in (+)</value></data>
+  <data name="Preview_ZoomOut" xml:space="preserve"><value>Zoom out (−)</value></data>
+  <data name="Preview_Fit" xml:space="preserve"><value>Fit to window</value></data>
+  <data name="Preview_ActualSize" xml:space="preserve"><value>100 %</value></data>
+  <data name="Preview_Copied" xml:space="preserve"><value>Image copied</value></data>
+  <data name="Preview_Saved" xml:space="preserve"><value>Saved: {0}</value></data>
 </root>

@@ -295,7 +295,7 @@ Chat_Reasoning	Reasoning	Рассуждения
 Chat_ThinkingMode	Thinking mode	Режим размышлений
 Chat_ThinkingAuto	As the model decides	Как решит модель
 Chat_ThinkingOn	On	Включён
-Chat_ThinkingOff	Off (faster answers)	Выключен (быстрее ответы)
+Chat_ThinkingOff	Off	Выключено
 Chat_SystemPrompt	System prompt	Системный промпт
 Chat_OverrideTemperature	Own temperature for this chat	Своя температура для этого чата
 Chat_InspectorHint	Other sampling parameters come from the launch profile (Engine → Launch profile)	Остальные параметры сэмплинга берутся из профиля запуска (Движок → Профиль запуска)
@@ -489,7 +489,7 @@ Welcome_AllDone	All set — click «Go to chat»	Всё готово — наж�
 Welcome_Partial	Not everything is installed — see the messages above	Установлено не всё — см. сообщения выше.
 Welcome_FirstPrompt	Hi! Briefly tell me what you can do.	Привет! Коротко расскажи, что ты умеешь.
 Update_Title	Updates	Обновления
-Update_RepoHint	GitHub repository with app releases and Win7 builds of llama.cpp	Репозиторий GitHub с релизами программы и Win7-сборками llama.cpp
+Update_RepoHint	App releases and Win7 builds of llama.cpp come only from this repository	Релизы программы и Win7-сборки llama.cpp приходят только из этого репозитория
 Update_Check	Check	Проверить
 Update_Open	Open release page	Открыть страницу релиза
 Update_NoRepo	Enter the repository first	Сначала укажите репозиторий
@@ -570,7 +570,7 @@ Api_Show	Show	Показать
 Api_Copy	Copy	Копировать
 Api_Regenerate	New key	Новый ключ
 Api_Lan	Allow access from the local network	Разрешить доступ из локальной сети
-Api_LanHint	The server listens on all interfaces. Anyone in your network who knows the key can use the model.	Сервер слушает все интерфейсы. Любой в вашей сети, кто знает ключ, сможет пользоваться моделью.
+Api_LanHint	The server is reachable from other devices. Anyone who can reach this address and knows the key can use the model. The API works only while Offline Chatter is running (it can stay in the tray)	Сервер доступен с других устройств. Любой, кто дотянется до этого адреса и знает ключ, сможет пользоваться моделью. API работает, только пока запущен Offline Chatter (его можно свернуть в трей)
 Api_Url	Base URL for clients	Базовый адрес для клиентов
 Api_Example	Request example	Пример запроса
 Api_Apply	Start or restart server	Запустить или перезапустить сервер
@@ -669,3 +669,42 @@ Appearance_MfeAdded	Exception added. Restart Mica For Everyone so it reads the n
 Api_ModelId	Model for clients (the "model" field)	Модель для клиентов (поле «model»)
 Api_ModelIdHint	The same name is returned by /v1/models. It changes when you pick another model in the chat — the server restarts with it	Это же имя отдаёт /v1/models. Оно меняется, когда в чате выбрана другая модель — сервер перезапускается с ней
 Api_ModelsExample	List of models (needs the key like every other path)	Список моделей (как и остальные пути, нужен ключ)
+Api_Listen	Listen address	Адрес прослушивания
+Api_ListenHint	Where other programs can reach the server from. «localhost» works too: the program also answers on IPv6 ::1	Откуда к серверу смогут подключаться другие программы. «localhost» тоже работает: программа отвечает и по IPv6 ::1
+Api_ListenLoopback	127.0.0.1 — this PC only	127.0.0.1 — только этот ПК
+Api_ListenAll	0.0.0.0 — all interfaces (network, Docker, WSL)	0.0.0.0 — все интерфейсы (сеть, Docker, WSL)
+Api_ListenAdapter	{0} — {1}	{0} — {1}
+Chat_ThinkingLow	Low	Низкий
+Chat_ThinkingMedium	Medium	Средний
+Chat_ThinkingHigh	High	Высокий
+Chat_ReasoningStyle	How the model reasons	Как модель размышляет
+Chat_ReasoningStyleHint	Auto reads the model's chat template, name and provider. Pick a style manually if the detection is wrong	Авто смотрит на шаблон чата модели, её название и провайдера. Выберите вручную, если определилось неверно
+Chat_ReasoningDetected	Detected: {0}	Определено: {0}
+Enum_ReasoningStyle_Auto	Auto	Авто
+Enum_ReasoningStyle_None	Does not reason (Gemma, Llama…)	Не размышляет (Gemma, Llama…)
+Enum_ReasoningStyle_AlwaysOn	Always reasons (DeepSeek-R1, QwQ, Magistral…)	Размышляет всегда (DeepSeek-R1, QwQ, Magistral…)
+Enum_ReasoningStyle_TemplateFlag	Template flag (Qwen3, GLM, Hunyuan…)	Флаг шаблона (Qwen3, GLM, Hunyuan…)
+Enum_ReasoningStyle_ReasoningEffort	reasoning_effort (OpenAI o/GPT-5, Gemini, Grok)	reasoning_effort (OpenAI o/GPT-5, Gemini, Grok)
+Enum_ReasoningStyle_GptOss	GPT-OSS (low / medium / high)	GPT-OSS (низкий / средний / высокий)
+Enum_ReasoningStyle_Granite	Granite (thinking flag)	Granite (флаг thinking)
+Enum_ReasoningStyle_PromptSwitch	/think and /no_think in the prompt (SmolLM3…)	/think и /no_think в промпте (SmolLM3…)
+Engine_BuildSource	Where to get builds	Откуда брать сборки
+Engine_BuildSourceHint	Official llama.cpp builds need Windows 10 or newer. For Windows 7 use Win7 builds or a fork with Win7 support	Официальным сборкам llama.cpp нужна Windows 10 или новее. Для Windows 7 — Win7-сборки или форк с поддержкой Win7
+Enum_EngineSource_Official	Official llama.cpp (ggml-org, Windows 10+)	Официальный llama.cpp (ggml-org, Windows 10+)
+Enum_EngineSource_AppWin7	Win7 builds of Offline Chatter	Win7-сборки Offline Chatter
+Enum_EngineSource_Custom	Own GitHub repository	Свой репозиторий GitHub
+Engine_CustomRepoHint	owner/repo or a GitHub link. This is third-party code: download only from repositories you trust. Files are checked against SHA-256 only if the release publishes it	owner/repo или ссылка на GitHub. Это сторонний код: скачивайте только из репозиториев, которым доверяете. Файлы сверяются с SHA-256, только если релиз её публикует
+Engine_CustomRepoInvalid	Enter the repository as owner/repo or paste a GitHub link	Укажите репозиторий как owner/repo или вставьте ссылку на GitHub
+Appearance_TransparencyOffTitle	Windows draws the backdrop as a solid color	Windows рисует подложку сплошным цветом
+Appearance_TransparencyOff	Transparency effects are turned off in Windows settings (Personalization → Colors). Blur, Acrylic and Mica only work when they are on	В параметрах Windows выключены эффекты прозрачности («Персонализация → Цвета»). Размытие, Acrylic и Mica работают, только когда они включены
+Appearance_RemoteSession	This is a remote desktop session: Windows does not draw blur and Acrylic over RDP	Это сеанс удалённого рабочего стола: по RDP Windows не рисует размытие и Acrylic
+Appearance_OpenColors	Open color settings	Открыть параметры цвета
+Preview_Open	Open preview	Открыть просмотр
+Preview_Copy	Copy	Копировать
+Preview_Save	Save as…	Сохранить как…
+Preview_ZoomIn	Zoom in (+)	Крупнее (+)
+Preview_ZoomOut	Zoom out (−)	Мельче (−)
+Preview_Fit	Fit to window	По размеру окна
+Preview_ActualSize	100 %	100 %
+Preview_Copied	Image copied	Изображение скопировано
+Preview_Saved	Saved: {0}	Сохранено: {0}

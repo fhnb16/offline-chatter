@@ -55,7 +55,7 @@ tools/          gen-strings.ps1, screenshot.ps1, package.ps1 (zip/rar поста
 installer/      OfflineChatter.iss (Inno Setup 6)
 ```
 
-Поставка: в релизе только архивы (zip, rar) и установщик, без голого exe. Обновление внутри программы скачивает zip — менять формат или имена (`OfflineChatter-X.Y.N.zip`, папка `OfflineChatter\` внутри) можно только вместе с `UpdateChecker.IsPackage` / `ExtractPackage` и их тестами.
+Поставка: в релизе только архивы (zip, rar) и установщик, без голого exe. Источник релизов зашит в `UpdateChecker.Repo` (`fhnb16/offline-chatter`) и в настройках не меняется; список релизов и SHA-256 для обновления программы берутся только из официального `api.github.com` (зеркало API из настроек не используется), принимаются только файлы из `github.com/fhnb16/offline-chatter/releases/download/`. Обновление внутри программы скачивает zip — менять формат или имена (`OfflineChatter-X.Y.N.zip`, папка `OfflineChatter\` внутри) можно только вместе с `UpdateChecker.IsPackage` / `ExtractPackage` и их тестами.
 
 - **Core не зависит от WPF.** Всё, что можно протестировать без UI, кладётся в Core.
 - Весь P/Invoke находится в `Interop/`, в классах `NativeMethods` по DLL. Для каждой функции указана минимальная версия ОС.
@@ -68,6 +68,7 @@ installer/      OfflineChatter.iss (Inno Setup 6)
   - **подложку** окна (None / AeroGlass / Win10Blur / Win10Acrylic / Mica / MicaAlt / Acrylic);
   - **акцент** (системный или свой);
   - **светлую / тёмную** тему.
+- Стили, которые выглядят по-разному в скинах (`SearchBox`, `TabStrip`, `TabStripItem`), задаёт сам скин: Fluent.xaml — свои шаблоны, системные скины — `ThemeManager.AddNativeKeyedStyles` на основе родных стилей. В разметке ссылаться на них только через `DynamicResource`, иначе при смене скина останется старый вид. Свои шаблоны в Shared.xaml допустимы только для того, что одинаково во всех скинах.
 - Цвета в XAML берутся только через `DynamicResource` с ключами из `ThemeKeys` (`Theming/ThemeTokens.cs`, там же значения для светлой/тёмной темы и каждой подложки). Литералы цветов в разметке запрещены.
 - Каждая подложка обязана деградировать плавно: если ОС или режим не поддерживают эффект, используется сплошной фон. На Win7 также учитывается выключенная композиция DWM (Aero Basic / Classic) и событие `WM_DWMCOMPOSITIONCHANGED`.
 - Окна с собственным заголовком на Win11 обязаны поддерживать Snap Layouts (`HTMAXBUTTON` в `WM_NCHITTEST`).

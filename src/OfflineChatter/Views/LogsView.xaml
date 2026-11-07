@@ -16,7 +16,7 @@
                 </Grid.ColumnDefinitions>
                 <ComboBox ItemsSource="{Binding Sources}" SelectedItem="{Binding Source}" MinWidth="100" />
                 <ComboBox Grid.Column="1" ItemsSource="{Binding Levels}" SelectedItem="{Binding Level}" DisplayMemberPath="Title" MinWidth="110" Margin="6,0,0,0" />
-                <TextBox Grid.Column="2" Margin="6,0,0,0" Style="{StaticResource SearchBox}" Tag="{l:Loc Logs_Filter}"
+                <TextBox Grid.Column="2" Margin="6,0,0,0" Style="{DynamicResource SearchBox}" Tag="{l:Loc Logs_Filter}"
                          Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged, Delay=300}" />
             </Grid>
             <WrapPanel HorizontalAlignment="Right">

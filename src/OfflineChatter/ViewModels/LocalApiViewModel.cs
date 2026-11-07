@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -12,6 +13,8 @@ using OfflineChatter.Core.Storage;
 using OfflineChatter.Localization;
 
 namespace OfflineChatter.ViewModels;
+
+public sealed record ListenOption(string Address, string Title);
 
 /// <summary>
 /// Публичный OpenAI-совместимый API: запущенный llama-server доступен другим приложениям
@@ -31,14 +34,34 @@ public sealed partial class LocalApiViewModel : ObservableObject
         services.EnsureApiKey();
         _exposeApi = _e.ExposeApi;
         _port = (_e.Port > 0 ? _e.Port : DefaultPort).ToString(System.Globalization.CultureInfo.InvariantCulture);
-        _allowLan = _e.AllowLan;
+        ListenOptions = BuildListenOptions(_e.ListenAddress);
+        _listen = ListenOptions.FirstOrDefault(o => o.Address == _e.ListenAddress) ?? ListenOptions[0];
         _apiKey = Secrets.UnprotectOrEmpty(_e.ApiKeyProtected);
         services.Engine.Server.StateChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(RaiseStatus));
     }
 
     [ObservableProperty] private bool _exposeApi;
     [ObservableProperty] private string _port;
-    [ObservableProperty] private bool _allowLan;
+    /// <summary>Адрес прослушивания: только этот ПК, все интерфейсы или конкретный адаптер.</summary>
+    public IReadOnlyList<ListenOption> ListenOptions { get; }
+
+    [ObservableProperty] private ListenOption _listen;
+
+    public bool IsLanExposed => Listen.Address != EngineSettings.Loopback;
+
+    private static IReadOnlyList<ListenOption> BuildListenOptions(string current)
+    {
+        var list = new List<ListenOption>
+        {
+            new(EngineSettings.Loopback, L.Get("Api_ListenLoopback")),
+            new(EngineSettings.AnyAddress, L.Get("Api_ListenAll")),
+        };
+        foreach (var a in Core.Net.NetworkRoute.ListAdapters().Where(a => !string.IsNullOrEmpty(a.IPv4)))
+            list.Add(new ListenOption(a.IPv4!, L.F("Api_ListenAdapter", a.IPv4, a.Name)));
+        // Адаптер из настроек сейчас отключён — показываем, чтобы выбор не потерялся
+        if (!list.Any(o => o.Address == current)) list.Add(new ListenOption(current, L.F("Api_ListenAdapter", current, L.Get("Common_Unknown"))));
+        return list;
+    }
     [ObservableProperty] private string _apiKey;
     [ObservableProperty] private bool _isKeyVisible;
     [ObservableProperty] private string? _message;
@@ -54,7 +77,16 @@ public sealed partial class LocalApiViewModel : ObservableObject
     public string LocalUrl => $"http://127.0.0.1:{PortValue}/v1";
 
     /// <summary>Адрес для других устройств в сети (первый IPv4 активного адаптера с шлюзом).</summary>
-    public string? LanUrl => AllowLan && LanAddress() is { } ip ? $"http://{ip}:{PortValue}/v1" : null;
+    /// <summary>Адрес для других устройств: выбранный адаптер или, для 0.0.0.0, первый IPv4 с шлюзом.</summary>
+    public string? LanUrl => Listen.Address switch
+    {
+        EngineSettings.Loopback => null,
+        EngineSettings.AnyAddress => LanAddress() is { } ip ? $"http://{ip}:{PortValue}/v1" : null,
+        var ip => $"http://{ip}:{PortValue}/v1",
+    };
+
+    /// <summary>На петле работает и «localhost» (IPv6 ::1 пересылается программой).</summary>
+    public string LocalhostUrl => $"http://localhost:{PortValue}/v1";
 
     /// <summary>
     /// Идентификатор модели для клиентов: так её отдаёт /v1/models и так её указывают в поле "model".
@@ -119,7 +151,12 @@ public sealed partial class LocalApiViewModel : ObservableObject
     }
 
     partial void OnPortChanged(string value) => Commit();
-    partial void OnAllowLanChanged(bool value) => Commit();
+    partial void OnListenChanged(ListenOption value)
+    {
+        OnPropertyChanged(nameof(IsLanExposed));
+        Commit();
+        Message = L.Get("Api_ApplyHint");
+    }
     partial void OnApiKeyChanged(string value)
     {
         if (ExposeApi && string.IsNullOrWhiteSpace(value))
@@ -135,12 +172,13 @@ public sealed partial class LocalApiViewModel : ObservableObject
     {
         _e.ExposeApi = ExposeApi;
         _e.Port = PortValue;
-        _e.AllowLan = AllowLan;
+        _e.ListenAddress = Listen.Address;
         _e.ApiKeyProtected = ApiKey.Length == 0 ? string.Empty : Secrets.Protect(ApiKey.Trim());
         _s.Settings.Save();
         OnPropertyChanged(nameof(DisplayKey));
         OnPropertyChanged(nameof(LocalUrl));
         OnPropertyChanged(nameof(LanUrl));
+        OnPropertyChanged(nameof(LocalhostUrl));
         RaiseStatus();
     }
 

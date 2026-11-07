@@ -231,12 +231,43 @@ public sealed partial class EngineViewModel : PageViewModel
 
     [ObservableProperty] private bool _showAllVariants;
 
-    /// <summary>Канал Win7-compat: сборки llama.cpp из репозитория программы (workflow llama-win7.yml).</summary>
-    [ObservableProperty] private bool _useCompatChannel;
 
-    public bool HasCompatChannel => !string.IsNullOrWhiteSpace(_s.Settings.Current.UpdateRepo);
 
-    partial void OnUseCompatChannelChanged(bool value) => _ = RefreshReleasesAsync();
+    // ---------- Источник сборок ----------
+
+    public IReadOnlyList<EngineSource> BuildSources { get; } = Enum.GetValues(typeof(EngineSource)).Cast<EngineSource>().ToList();
+
+    public EngineSource BuildSource
+    {
+        get => _s.Settings.Current.Engine.BuildSource;
+        set
+        {
+            if (_s.Settings.Current.Engine.BuildSource == value) return;
+            _s.Settings.Current.Engine.BuildSource = value;
+            _s.Settings.Save();
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsCustomSource));
+            _ = RefreshReleasesAsync();
+        }
+    }
+
+    public bool IsCustomSource => BuildSource == EngineSource.Custom;
+
+    /// <summary>Свой репозиторий (owner/repo или ссылка на GitHub).</summary>
+    public string CustomBuildRepo
+    {
+        get => _s.Settings.Current.Engine.CustomBuildRepo;
+        set
+        {
+            _s.Settings.Current.Engine.CustomBuildRepo = value?.Trim() ?? string.Empty;
+            _s.Settings.Save();
+            OnPropertyChanged();
+            if (IsCustomSource && EngineSources.NormalizeRepo(value) != null) _ = RefreshReleasesAsync();
+        }
+    }
+
+    private (string? repo, bool onlyLlamaTags) CurrentSource() =>
+        EngineSources.Resolve(BuildSource, CustomBuildRepo, Core.Net.UpdateChecker.Repo);
 
     public bool HasInstalled => Installed.Count > 0;
     public bool CanInstall => SelectedVariant != null && !IsInstalling;
@@ -352,10 +383,17 @@ public sealed partial class EngineViewModel : PageViewModel
         ReleasesError = null;
         try
         {
-            _releases = await _s.Releases.ListAsync(20, CancellationToken.None, UseCompatChannel ? _s.Settings.Current.UpdateRepo : null);
+            var (repo, onlyLlama) = CurrentSource();
+            if (BuildSource == EngineSource.Custom && repo == null)
+            {
+                ReleasesError = L.Get("Engine_CustomRepoInvalid");
+                Releases.Clear();
+                return;
+            }
+            _releases = await _s.Releases.ListAsync(20, CancellationToken.None, repo, onlyLlama);
             Releases.Clear();
             foreach (var r in _releases) Releases.Add(r);
-            if (!UseCompatChannel && !_releases.Any(r => r.Tag == GitHubReleases.KnownGoodTag))
+            if (BuildSource == EngineSource.Official && !_releases.Any(r => r.Tag == GitHubReleases.KnownGoodTag))
             {
                 try { Releases.Add(await _s.Releases.GetByTagAsync(GitHubReleases.KnownGoodTag, CancellationToken.None)); }
                 catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or OperationCanceledException) { }
@@ -393,6 +431,12 @@ public sealed partial class EngineViewModel : PageViewModel
         {
             var progress = new Progress<InstallStage>(s => InstallStatus = L.Get("Enum_InstallStage_" + s));
             var (install, smoke) = await _s.EngineInstaller.InstallAsync(release, variant, progress, _installCts.Token);
+            var sourceRepo = ReferenceEquals(release, EngineUpdate?.Release) ? EngineUpdate!.Current.Manifest.SourceRepo : CurrentSource().repo;
+            if (sourceRepo != null)
+            {
+                install.Manifest.SourceRepo = sourceRepo;
+                EngineRegistry.WriteManifest(install.Directory, install.Manifest);
+            }
             if (_s.Engine.Registry.Active == null || smoke.Ok) _s.Engine.SetActive(install);
             else _s.Engine.NotifyChanged();
             InstallStatus = smoke.Ok

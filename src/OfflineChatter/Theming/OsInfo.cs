@@ -78,6 +78,30 @@ public static class OsInfo
     /// <summary>Win7 Aero Glass (или Vista). Требует включённой композиции DWM.</summary>
     public static bool SupportsAeroGlass => Generation == WindowsGeneration.Win7;
 
+    /// <summary>
+    /// «Эффекты прозрачности» в параметрах Windows 10/11 (Персонализация → Цвета). Когда они выключены,
+    /// DWM рисует Acrylic, размытие и Mica сплошным цветом — программа не может это обойти.
+    /// </summary>
+    public static bool TransparencyEffectsEnabled
+    {
+        get
+        {
+            if (!IsWin10OrNewer) return true;
+            try
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+                return key?.GetValue("EnableTransparency") is not int v || v != 0;
+            }
+            catch (Exception ex) when (ex is System.Security.SecurityException or UnauthorizedAccessException)
+            {
+                return true;
+            }
+        }
+    }
+
+    /// <summary>Сеанс удалённого рабочего стола: размытие и Acrylic по RDP не рисуются.</summary>
+    public static bool IsRemoteSession => System.Windows.SystemParameters.IsRemoteSession;
+
     public static bool IsCompositionEnabled
     {
         get

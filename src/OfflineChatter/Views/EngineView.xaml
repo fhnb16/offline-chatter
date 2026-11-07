@@ -176,8 +176,24 @@
                         </Button>
                     </Grid>
                     <CheckBox Content="{l:Loc Engine_ShowAll}" IsChecked="{Binding ShowAllVariants}" Margin="0,10,0,0" />
-                    <CheckBox Content="{l:Loc Engine_CompatChannel}" IsChecked="{Binding UseCompatChannel}" Margin="0,6,0,0"
-                              Visibility="{Binding HasCompatChannel, Converter={StaticResource BoolToVisibility}}" />
+                    <c:AdaptiveRow Margin="0,10,0,0" ControlMinWidth="240">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Engine_BuildSource}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Engine_BuildSourceHint}" Style="{StaticResource CaptionText}" />
+                        </StackPanel>
+                        <ComboBox ItemsSource="{Binding BuildSources}" SelectedItem="{Binding BuildSource}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDisplay}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </c:AdaptiveRow>
+                    <StackPanel Margin="0,8,0,0" Visibility="{Binding IsCustomSource, Converter={StaticResource BoolToVisibility}}">
+                        <TextBox Text="{Binding CustomBuildRepo, UpdateSourceTrigger=PropertyChanged, Delay=800}" FontFamily="{DynamicResource MonoFontFamily}"
+                                 ToolTip="owner/repo" />
+                        <TextBlock Text="{l:Loc Engine_CustomRepoHint}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}" Margin="0,4,0,0" />
+                    </StackPanel>
                     <ProgressBar IsIndeterminate="True" Margin="0,10,0,0" Visibility="{Binding IsLoadingReleases, Converter={StaticResource BoolToVisibility}}" />
                     <TextBlock Text="{Binding ReleasesError}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
                                Visibility="{Binding ReleasesError, Converter={StaticResource NullToCollapsed}}" Margin="0,8,0,0" />

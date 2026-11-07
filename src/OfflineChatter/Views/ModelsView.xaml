@@ -109,7 +109,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="Query" Style="{StaticResource SearchBox}" Tag="{l:Loc Models_SearchHint}"
+                <TextBox x:Name="Query" Style="{DynamicResource SearchBox}" Tag="{l:Loc Models_SearchHint}"
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
                     <TextBox.InputBindings>
                         <KeyBinding Key="Enter" Command="{Binding SearchCommand}" />

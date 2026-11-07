@@ -154,7 +154,7 @@ public sealed class EngineManager : IDisposable
         // Публичный API: постоянный порт и ключ, иначе — случайные (сервер нужен только самому приложению)
         var expose = _settings.ExposeApi;
         var key = expose ? Storage.Secrets.UnprotectOrEmpty(_settings.ApiKeyProtected) : null;
-        await Server.StartAsync(engine, options, flags, expose && _settings.AllowLan, expose ? _settings.Port : 0, ct, key).ConfigureAwait(false);
+        await Server.StartAsync(engine, options, flags, expose ? _settings.ListenAddress : EngineSettings.Loopback, expose ? _settings.Port : 0, ct, key).ConfigureAwait(false);
     }
 
     public void Dispose() => Server.Dispose();

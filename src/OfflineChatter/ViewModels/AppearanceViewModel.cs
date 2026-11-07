@@ -29,6 +29,7 @@ public sealed partial class AppearanceViewModel : ObservableObject
         {
             Reload();
             OnPropertyChanged(nameof(ResolvedSummary));
+            OnPropertyChanged(nameof(BackdropBlockedReason));
         };
     }
 
@@ -52,6 +53,23 @@ public sealed partial class AppearanceViewModel : ObservableObject
     [ObservableProperty] private string _customAccent = "#0078D4";
 
     public bool IsCustomAccent => Accent == AccentSource.Custom;
+
+    // ---------- Почему подложка может быть сплошной ----------
+
+    // Выбранная (а не применённая) подложка: при выключенной прозрачности применяется сплошная, а объяснить нужно почему
+    private bool WantsTranslucentBackdrop =>
+        Backdrop is BackdropKind.Acrylic or BackdropKind.Blur or BackdropKind.Mica or BackdropKind.MicaAlt
+        || Backdrop == BackdropKind.Auto && OsInfo.IsWin10OrNewer;
+
+    /// <summary>Причина, по которой Windows рисует выбранную подложку сплошным цветом, или null.</summary>
+    public string? BackdropBlockedReason =>
+        !WantsTranslucentBackdrop ? null
+        : OsInfo.IsRemoteSession ? L.Get("Appearance_RemoteSession")
+        : !OsInfo.TransparencyEffectsEnabled ? L.Get("Appearance_TransparencyOff")
+        : null;
+
+    [RelayCommand]
+    private void OpenColorSettings() => EngineViewModel.OpenUrl("ms-settings:colors");
 
     // ---------- Сторонние утилиты оформления ----------
 

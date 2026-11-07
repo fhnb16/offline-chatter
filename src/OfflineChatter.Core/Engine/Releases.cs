@@ -166,14 +166,15 @@ public sealed class GitHubReleases
 
     public GitHubReleases(HttpService http) => _http = http;
 
-    /// <param name="repo">По умолчанию официальный ggml-org/llama.cpp; для канала Win7-compat — репозиторий программы.</param>
-    public async Task<IReadOnlyList<EngineRelease>> ListAsync(int count, CancellationToken ct, string? repo = null)
+    /// <param name="repo">По умолчанию официальный ggml-org/llama.cpp; иначе — репозиторий программы или свой.</param>
+    /// <param name="onlyLlamaTags">Оставить только теги llama-* (в репозитории программы рядом лежат её собственные релизы).</param>
+    public async Task<IReadOnlyList<EngineRelease>> ListAsync(int count, CancellationToken ct, string? repo = null, bool onlyLlamaTags = true)
     {
         var api = _http.Settings.GitHubApiEndpoint.TrimEnd('/');
         var json = await _http.GetJsonAsync($"{api}/repos/{repo ?? Repo}/releases?per_page={Math.Min(100, count)}", ct).ConfigureAwait(false);
         var list = ((JArray)json).Select(Parse).ToList();
         // В репозитории программы рядом лежат релизы самой программы — берём только сборки llama.cpp
-        return repo == null ? list : list.Where(r => r.Tag.StartsWith("llama-", StringComparison.OrdinalIgnoreCase)).ToList();
+        return repo == null || !onlyLlamaTags ? list : list.Where(r => r.Tag.StartsWith("llama-", StringComparison.OrdinalIgnoreCase)).ToList();
     }
 
     public async Task<EngineRelease> GetByTagAsync(string tag, CancellationToken ct)

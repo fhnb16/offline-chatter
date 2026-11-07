@@ -267,11 +267,8 @@ public sealed partial class SettingsViewModel : PageViewModel
     public string OsName { get; }
     public string RuntimeInfo { get; }
 
-    public string UpdateRepo
-    {
-        get => _services.Settings.Current.UpdateRepo;
-        set { _services.Settings.Current.UpdateRepo = string.IsNullOrWhiteSpace(value) ? Core.Storage.AppSettings.DefaultUpdateRepo : value.Trim(); _services.Settings.Save(); OnPropertyChanged(); }
-    }
+    /// <summary>Источник релизов — только для показа: он зашит в программу и не меняется.</summary>
+    public string ReleasesSource => "github.com/" + UpdateChecker.Repo;
 
     [ObservableProperty] private string? _updateStatus;
     [ObservableProperty] private string? _updateNotes;
@@ -299,7 +296,7 @@ public sealed partial class SettingsViewModel : PageViewModel
         UpdateStatus = L.Get("Update_Checking");
         try
         {
-            var info = await UpdateChecker.CheckAsync(_services.Http, UpdateRepo, AppServices.CurrentVersion, CancellationToken.None);
+            var info = await UpdateChecker.CheckAsync(_services.Http, AppServices.CurrentVersion, CancellationToken.None);
             ApplyUpdateInfo(info);
             if (info.Available) _services.PendingUpdate = info;
         }

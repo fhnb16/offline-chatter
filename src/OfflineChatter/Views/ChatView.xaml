@@ -25,8 +25,14 @@
                                 <DataTemplate DataType="{x:Type vm:AttachmentView}">
                                     <Border Margin="0,0,6,6" CornerRadius="6" ClipToBounds="True" BorderThickness="1" BorderBrush="{DynamicResource CardBorderBrush}">
                                         <Grid>
-                                            <Image Source="{Binding Thumbnail}" MaxHeight="160" MaxWidth="240" Stretch="Uniform"
-                                                   Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibility}}" />
+                                            <Image Source="{Binding Thumbnail}" MaxHeight="160" MaxWidth="240" Stretch="Uniform" Cursor="Hand"
+                                                   ToolTip="{l:Loc Preview_Open}"
+                                                   Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibility}}">
+                                                <Image.InputBindings>
+                                                    <MouseBinding Gesture="LeftClick" CommandParameter="{Binding}"
+                                                                  Command="{Binding DataContext.PreviewAttachmentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                                </Image.InputBindings>
+                                            </Image>
                                             <StackPanel Orientation="Horizontal" Margin="8,5" Visibility="{Binding IsImage, Converter={StaticResource InverseBoolToVisibility}}">
                                                 <Path Data="{StaticResource IconAttach}" Style="{StaticResource IconPath}" />
                                                 <TextBlock Text="{Binding Name}" Margin="6,0,0,0" VerticalAlignment="Center" />
@@ -50,6 +56,10 @@
                                 </TextBox.Template>
                             </TextBox>
                         </Expander>
+                        <!-- Пока модель думает: последние строки рассуждений (блок выше свёрнут) -->
+                        <TextBlock Text="{Binding ReasoningTail}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource TextTertiaryBrush}"
+                                   FontStyle="Normal" MaxHeight="64" TextTrimming="CharacterEllipsis" Margin="22,-2,0,6"
+                                   Visibility="{Binding ReasoningTail, Converter={StaticResource NullToCollapsed}}" />
 
                         <!-- Тело -->
                         <r:MarkdownView x:Name="Body" Markdown="{Binding Content}" IsStreaming="{Binding IsStreaming}" />
@@ -238,7 +248,13 @@
                         <DataTemplate DataType="{x:Type vm:AttachmentView}">
                             <Border Margin="0,0,6,4" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource CardBorderBrush}" Background="{DynamicResource ControlFillBrush}">
                                 <StackPanel Orientation="Horizontal" Margin="4">
-                                    <Image Source="{Binding Thumbnail}" Height="40" MaxWidth="80" Stretch="Uniform" Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibility}}" />
+                                    <Image Source="{Binding Thumbnail}" Height="40" MaxWidth="80" Stretch="Uniform" Cursor="Hand" ToolTip="{l:Loc Preview_Open}"
+                                           Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibility}}">
+                                        <Image.InputBindings>
+                                            <MouseBinding Gesture="LeftClick" CommandParameter="{Binding}"
+                                                          Command="{Binding DataContext.PreviewAttachmentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                        </Image.InputBindings>
+                                    </Image>
                                     <TextBlock Text="{Binding Name}" Margin="6,0" VerticalAlignment="Center" MaxWidth="160" TextTrimming="CharacterEllipsis" />
                                     <Button Style="{StaticResource IconButton}" Width="22" Height="22" Command="{Binding DataContext.RemoveAttachmentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
                                         <Path Data="{StaticResource IconClose}" Style="{StaticResource IconPath}" Width="12" Height="12" />
@@ -304,6 +320,11 @@
 
                     <TextBlock Text="{l:Loc Chat_ThinkingMode}" Style="{StaticResource SectionHeaderText}" />
                     <ComboBox ItemsSource="{Binding ThinkingOptions}" SelectedItem="{Binding Thinking}" DisplayMemberPath="Title" />
+                    <TextBlock Text="{l:Loc Chat_ReasoningStyle}" Style="{StaticResource CaptionText}" Margin="0,8,0,4" />
+                    <ComboBox ItemsSource="{Binding ReasoningStyles}" SelectedItem="{Binding ReasoningStyle}" DisplayMemberPath="Title"
+                              ToolTip="{l:Loc Chat_ReasoningStyleHint}" />
+                    <TextBlock Text="{Binding ReasoningHint}" Style="{StaticResource CaptionText}" Margin="0,4,0,0"
+                               Visibility="{Binding ReasoningHint, Converter={StaticResource NullToCollapsed}}" />
 
                     <CheckBox Content="{l:Loc Tools_ChatToggle}" IsChecked="{Binding ToolsEnabled}" Margin="0,14,0,0" />
                     <CheckBox Content="{l:Loc Chat_OverrideTemperature}" IsChecked="{Binding OverrideTemperature}" Margin="0,10,0,4" />

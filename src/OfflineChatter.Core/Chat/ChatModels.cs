@@ -89,7 +89,21 @@ public sealed class ChatSession
     /// <summary>"local:{modelId}" или "provider:{providerId}:{model}".</summary>
     public string? ModelRef { get; set; }
     public string? SystemPrompt { get; set; }
+    /// <summary>Устарело: заменено <see cref="Reasoning"/> (читается для старых чатов).</summary>
     public bool? Thinking { get; set; }
+
+    /// <summary>Уровень размышлений; null — взять из <see cref="Thinking"/> или «Авто».</summary>
+    public ReasoningLevel? Reasoning { get; set; }
+
+    /// <summary>Как модель включает размышления; null — определить автоматически.</summary>
+    public ReasoningStyle? ReasoningStyle { get; set; }
+
+    public ReasoningLevel EffectiveReasoning => Reasoning ?? Thinking switch
+    {
+        true => ReasoningLevel.Medium,
+        false => ReasoningLevel.Off,
+        _ => ReasoningLevel.Auto,
+    };
 
     /// <summary>Разрешить модели вызывать инструменты (встроенные и MCP). null — по настройке по умолчанию.</summary>
     public bool? Tools { get; set; }

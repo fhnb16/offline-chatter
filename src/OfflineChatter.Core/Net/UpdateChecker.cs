@@ -34,10 +34,25 @@ public static class UpdateChecker
 {
     public const string ExeAssetName = "OfflineChatter.exe";
 
-    public static async Task<UpdateInfo> CheckAsync(HttpService http, string repo, Version current, CancellationToken ct)
+    /// <summary>
+    /// Единственный источник релизов программы и Win7-сборок llama.cpp. Зашит в код намеренно:
+    /// обновление подменяет exe, поэтому источник не должен меняться настройками или правкой config/settings.json.
+    /// </summary>
+    public const string Repo = "fhnb16/offline-chatter";
+
+    public static string ReleasesPage => $"https://github.com/{Repo}/releases";
+
+    /// <summary>
+    /// Список релизов и контрольные суммы — только из официального API, без зеркала из настроек:
+    /// иначе подменённое «зеркало» могло бы отдать чужой релиз вместе с подходящей суммой.
+    /// Сам файл можно качать через префикс-зеркало: он сверяется с суммой из официального API.
+    /// </summary>
+    public const string OfficialApi = "https://api.github.com";
+
+    public static async Task<UpdateInfo> CheckAsync(HttpService http, Version current, CancellationToken ct)
     {
-        var api = http.Settings.GitHubApiEndpoint.TrimEnd('/');
-        repo = repo.Trim().Trim('/');
+        const string api = OfficialApi;
+        const string repo = Repo;
         var json = await http.GetJsonAsync($"{api}/repos/{repo}/releases?per_page=20", ct).ConfigureAwait(false);
         return Pick(json as JArray ?? new JArray(), repo, current);
     }
@@ -56,6 +71,9 @@ public static class UpdateChecker
         if (best.r == null) return new UpdateInfo(false, string.Empty, page, null);
 
         var parsed = GitHubReleases.Parse(best.r);
+        // Принимаем только файлы самого релиза в официальном репозитории
+        var official = $"https://github.com/{repo}/releases/download/";
+        parsed = parsed with { Assets = parsed.Assets.Where(a => a.DownloadUrl.StartsWith(official, StringComparison.OrdinalIgnoreCase)).ToList() };
         var exe = parsed.Assets.FirstOrDefault(a => a.Name.Equals(ExeAssetName, StringComparison.OrdinalIgnoreCase));
         var cfg = parsed.Assets.FirstOrDefault(a => a.Name.Equals(ExeAssetName + ".config", StringComparison.OrdinalIgnoreCase));
         var package = parsed.Assets.FirstOrDefault(IsPackage);

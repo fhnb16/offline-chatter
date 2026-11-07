@@ -61,6 +61,7 @@ public static class ThemeKeys
     public const string QuoteBar = "QuoteBarBrush";
     public const string AppFontFamily = "AppFontFamily";
     public const string MonoFontFamily = "MonoFontFamily";
+    public const string CardCornerRadius = "CardCornerRadius";
 }
 
 internal static class ThemeTokens
@@ -184,6 +185,15 @@ internal static class ThemeTokens
             r[ThemeKeys.GlassTextEffect] = null;
         }
 
+        // Скругления как у родных элементов скина: Fluent — 8, Aero — 4, XP — 3, Classic — прямые углы
+        r[ThemeKeys.CardCornerRadius] = new CornerRadius(t.Skin switch
+        {
+            SkinKind.Fluent => 8,
+            SkinKind.Aero or SkinKind.Aero2 or SkinKind.AeroLite => 4,
+            SkinKind.Luna or SkinKind.Royale => 3,
+            _ => 0,
+        });
+
         AddFonts(r);
         return r;
     }
@@ -241,6 +251,7 @@ internal static class ThemeTokens
             [ThemeKeys.CodeComment] = gray,
             [ThemeKeys.CodeNumber] = text,
             [ThemeKeys.QuoteBar] = text,
+            [ThemeKeys.CardCornerRadius] = new CornerRadius(0),
         };
         AddFonts(r);
         return r;

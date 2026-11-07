@@ -95,16 +95,34 @@ public sealed partial class MessageViewModel : ObservableObject
     public string VariantText => $"{VariantIndex + 1} / {VariantCount}";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsThinking))]
+    [NotifyPropertyChangedFor(nameof(IsThinking), nameof(ReasoningTail))]
     private string _content;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasReasoning), nameof(ReasoningHeader), nameof(IsThinking))]
+    [NotifyPropertyChangedFor(nameof(HasReasoning), nameof(ReasoningHeader), nameof(IsThinking), nameof(ReasoningTail))]
     private string _reasoning;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsThinking), nameof(ReasoningHeader))]
+    [NotifyPropertyChangedFor(nameof(IsThinking), nameof(ReasoningHeader), nameof(ReasoningTail))]
     private bool _isStreaming;
+
+    /// <summary>
+    /// Пока модель размышляет — последние строки рассуждений: при долгом размышлении или медленном выводе
+    /// видно, что работа идёт, без раскрытия блока. После размышлений — null.
+    /// </summary>
+    public string? ReasoningTail
+    {
+        get
+        {
+            if (!IsThinking) return null;
+            var r = Reasoning.TrimEnd();
+            const int max = 280;
+            if (r.Length <= max) return r;
+            var tail = r.Substring(r.Length - max);
+            var cut = tail.IndexOfAny(new[] { ' ', '\n' });
+            return "…" + (cut > 0 && cut < 40 ? tail.Substring(cut + 1) : tail);
+        }
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
@@ -160,7 +178,9 @@ public sealed class ToolCallView
     public bool IsError => Call.IsError;
 }
 
-public sealed record ThinkingOption(bool? Value, string Title);
+public sealed record ThinkingOption(ReasoningLevel Value, string Title);
+
+public sealed record ReasoningStyleOption(ReasoningStyle Value, string Title);
 
 /// <summary>Страница чата: лента сообщений, ввод, генерация, ветвление, вложения, параметры беседы.</summary>
 public sealed partial class ChatPageViewModel : PageViewModel
@@ -229,10 +249,29 @@ public sealed partial class ChatPageViewModel : PageViewModel
 
     public IReadOnlyList<ThinkingOption> ThinkingOptions { get; } = new[]
     {
-        new ThinkingOption(null, L.Get("Chat_ThinkingAuto")),
-        new ThinkingOption(true, L.Get("Chat_ThinkingOn")),
-        new ThinkingOption(false, L.Get("Chat_ThinkingOff")),
+        new ThinkingOption(ReasoningLevel.Auto, L.Get("Chat_ThinkingAuto")),
+        new ThinkingOption(ReasoningLevel.Off, L.Get("Chat_ThinkingOff")),
+        new ThinkingOption(ReasoningLevel.Low, L.Get("Chat_ThinkingLow")),
+        new ThinkingOption(ReasoningLevel.Medium, L.Get("Chat_ThinkingMedium")),
+        new ThinkingOption(ReasoningLevel.High, L.Get("Chat_ThinkingHigh")),
     };
+
+    /// <summary>Как модель размышляет: «Авто» определяет по шаблону чата, названию модели и провайдеру.</summary>
+    public IReadOnlyList<ReasoningStyleOption> ReasoningStyles { get; } =
+        Enum.GetValues(typeof(ReasoningStyle)).Cast<ReasoningStyle>()
+            .Select(s => new ReasoningStyleOption(s, L.Get("Enum_ReasoningStyle_" + s))).ToList();
+
+    [ObservableProperty] private ReasoningStyleOption? _reasoningStyle;
+
+    /// <summary>Что определилось в последнем запросе (при «Авто»).</summary>
+    [ObservableProperty] private string? _reasoningHint;
+
+    partial void OnReasoningStyleChanged(ReasoningStyleOption? value)
+    {
+        if (SelectedChat == null || value == null) return;
+        SelectedChat.Session.ReasoningStyle = value.Value == Core.Chat.ReasoningStyle.Auto ? null : value.Value;
+        SaveChat();
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMessages), nameof(Title))]
@@ -352,7 +391,9 @@ public sealed partial class ChatPageViewModel : PageViewModel
         _lastChat = value;
         var s = value.Session;
         SystemPrompt = s.SystemPrompt ?? string.Empty;
-        Thinking = ThinkingOptions.FirstOrDefault(t => t.Value == s.Thinking) ?? ThinkingOptions[0];
+        Thinking = ThinkingOptions.FirstOrDefault(t => t.Value == s.EffectiveReasoning) ?? ThinkingOptions[0];
+        ReasoningStyle = ReasoningStyles.FirstOrDefault(r => r.Value == (s.ReasoningStyle ?? Core.Chat.ReasoningStyle.Auto)) ?? ReasoningStyles[0];
+        ReasoningHint = null;
         OverrideTemperature = s.Temperature.HasValue;
         ToolsEnabled = s.Tools ?? _s.Settings.Current.Tools.EnabledByDefault;
         Temperature = s.Temperature ?? 0.7;
@@ -373,7 +414,8 @@ public sealed partial class ChatPageViewModel : PageViewModel
     partial void OnThinkingChanged(ThinkingOption? value)
     {
         if (SelectedChat == null || value == null) return;
-        SelectedChat.Session.Thinking = value.Value;
+        SelectedChat.Session.Reasoning = value.Value;
+        SelectedChat.Session.Thinking = null;
         SaveChat();
     }
 
@@ -394,6 +436,9 @@ public sealed partial class ChatPageViewModel : PageViewModel
         SaveChat();
     }
 
+    /// <summary>Сообщения, которые сейчас генерируются (по id): переживают пересборку ленты.</summary>
+    private readonly Dictionary<string, MessageViewModel> _live = new();
+
     private void RebuildMessages()
     {
         Messages.Clear();
@@ -403,7 +448,9 @@ public sealed partial class ChatPageViewModel : PageViewModel
             foreach (var m in s.ActivePath().Where(m => m.Role is ChatRole.User or ChatRole.Assistant))
             {
                 var siblings = s.Siblings(m);
-                Messages.Add(new MessageViewModel(m, Math.Max(0, siblings.ToList().IndexOf(m)), siblings.Count));
+                // Ответ, который ещё генерируется, — тот же объект, что обновляет поток: иначе после возврата
+                // из настроек или другого чата пузырь оставался пустым до конца генерации
+                Messages.Add(_live.TryGetValue(m.Id, out var live) ? live : new MessageViewModel(m, Math.Max(0, siblings.ToList().IndexOf(m)), siblings.Count));
             }
         }
         OnPropertyChanged(nameof(HasMessages));
@@ -526,6 +573,13 @@ public sealed partial class ChatPageViewModel : PageViewModel
         OnPropertyChanged(nameof(HasPending));
     }
 
+    /// <summary>Открыть изображение во весь размер: масштаб, копирование, сохранение.</summary>
+    [RelayCommand]
+    private void PreviewAttachment(AttachmentView? a)
+    {
+        if (a != null) Views.ImagePreviewWindow.Show(a.Attachment);
+    }
+
     [RelayCommand]
     private void RemoveAttachment(AttachmentView a)
     {
@@ -640,8 +694,10 @@ public sealed partial class ChatPageViewModel : PageViewModel
         chat.Messages.Add(answer);
         chat.ActiveLeafId = answer.Id;
         RebuildMessages();
-        var vm = Messages.LastOrDefault(m => m.Message.Id == answer.Id);
-        if (vm != null) vm.IsStreaming = true;
+        // Объект ответа существует, даже если чат сейчас не открыт: при возврате лента возьмёт именно его
+        var vm = Messages.LastOrDefault(m => m.Message.Id == answer.Id) ?? new MessageViewModel(answer, 0, 1);
+        _live[answer.Id] = vm;
+        vm.IsStreaming = true;
 
         var content = new StringBuilder();
         var reasoning = new StringBuilder();
@@ -658,17 +714,14 @@ public sealed partial class ChatPageViewModel : PageViewModel
                 c = content.ToString();
                 r = reasoning.ToString();
             }
-            if (r.Length == 0 && c.StartsWith("<think>", StringComparison.Ordinal))
+            if (r.Length == 0 && ThinkSplitter.StartsWithWrapper(c))
             {
                 var split = ThinkSplitter.Split(c);
                 r = split.reasoning;
                 c = split.content;
             }
-            if (vm != null)
-            {
-                vm.Reasoning = r;
-                vm.Content = c;
-            }
+            vm.Reasoning = r;
+            vm.Content = c;
             if (firstToken is { } ft)
             {
                 var sec = (DateTime.UtcNow - ft).TotalSeconds;
@@ -692,9 +745,12 @@ public sealed partial class ChatPageViewModel : PageViewModel
                 RepeatPenalty = sampling.RepeatPenalty,
                 MaxTokens = chat.MaxTokens ?? (sampling.MaxTokens > 0 ? sampling.MaxTokens : null),
                 Seed = sampling.Seed,
-                Thinking = chat.Thinking,
+                Reasoning = chat.EffectiveReasoning,
+                ReasoningStyle = chat.ReasoningStyle ?? Core.Chat.ReasoningStyle.Auto,
                 Tools = useTools ? _s.Tools.ToOpenAiTools() : null,
             };
+            if (chat.ModelRef?.StartsWith("provider:", StringComparison.Ordinal) != true)
+                request.ChatTemplate = await _s.GetLocalChatTemplateAsync(ct);
             if (!string.IsNullOrWhiteSpace(chat.SystemPrompt))
                 request.Messages.Add(new ChatMessage { Role = ChatRole.System, Content = chat.SystemPrompt! });
             request.Messages.AddRange(chat.ActivePath().Where(m => m.Id != answer.Id && m.Error == null &&
@@ -713,9 +769,13 @@ public sealed partial class ChatPageViewModel : PageViewModel
                     firstToken ??= DateTime.UtcNow;
                 }
             }, ct);
+            // Подсказка в правой панели: как программа поняла модель при «Авто»
+            ReasoningHint = (chat.ReasoningStyle ?? Core.Chat.ReasoningStyle.Auto) == Core.Chat.ReasoningStyle.Auto
+                ? L.F("Chat_ReasoningDetected", L.Get("Enum_ReasoningStyle_" + client.AppliedReasoningStyle))
+                : null;
 
             var (r, c) = (result.Reasoning, result.Content);
-            if (r.Length == 0 && c.StartsWith("<think>", StringComparison.Ordinal))
+            if (r.Length == 0 && ThinkSplitter.StartsWithWrapper(c))
             {
                 var split = ThinkSplitter.Split(c);
                 r = split.reasoning;
@@ -754,17 +814,15 @@ public sealed partial class ChatPageViewModel : PageViewModel
         {
             flush.Stop();
             Flush();
-            if (vm != null)
-            {
-                vm.Content = answer.Content;
-                vm.Reasoning = answer.Reasoning ?? string.Empty;
-                vm.Error = answer.Error;
-                vm.IsStreaming = false;
-                vm.UpdateStats();
-                vm.RefreshTools();
-            }
+            vm.Content = answer.Content;
+            vm.Reasoning = answer.Reasoning ?? string.Empty;
+            vm.Error = answer.Error;
+            vm.IsStreaming = false;
+            vm.UpdateStats();
+            vm.RefreshTools();
+            _live.Remove(answer.Id);
             _s.Chats.Save(chat);
-            LiveStats = vm?.StatsText ?? L.Get("Chat_StatsEmpty");
+            LiveStats = vm.StatsText ?? L.Get("Chat_StatsEmpty");
         }
         return answer;
     }

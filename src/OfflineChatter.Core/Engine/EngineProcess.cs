@@ -76,14 +76,15 @@ public sealed class EngineProcess : IDisposable
     }
 
     /// <param name="fixedKey">Постоянный ключ (публичный API) или null — случайный на каждый запуск.</param>
-    public async Task StartAsync(EngineInstall engine, ServerLaunchOptions options, FlagCatalog? flags, bool allowLan, int port, CancellationToken ct, string? fixedKey = null)
+    /// <param name="host">Адрес прослушивания: 127.0.0.1, 0.0.0.0 или IPv4 адаптера.</param>
+    public async Task StartAsync(EngineInstall engine, ServerLaunchOptions options, FlagCatalog? flags, string host, int port, CancellationToken ct, string? fixedKey = null)
     {
         Stop();
         lock (_tail) _tail.Clear();
         Engine = engine;
         Options = options;
         LastError = null;
-        Host = allowLan ? "0.0.0.0" : "127.0.0.1";
+        Host = string.IsNullOrWhiteSpace(host) ? EngineSettings.Loopback : host;
         Port = port > 0 ? port : FreePort();
         ApiKey = string.IsNullOrEmpty(fixedKey) ? NewKey() : fixedKey;
         SetState(ServerState.Starting);

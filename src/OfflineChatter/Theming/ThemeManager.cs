@@ -209,6 +209,12 @@ public static class ThemeManager
             };
         }
 
+        // Windows не нарисует размытие и Mica: эффекты прозрачности выключены или это удалённый сеанс.
+        // Тогда берём собственную сплошную подложку темы — она выглядит так, как задумано, а не как системная заливка.
+        if (requested is BackdropKind.Blur or BackdropKind.Acrylic or BackdropKind.Mica or BackdropKind.MicaAlt
+            && (!OsInfo.TransparencyEffectsEnabled || OsInfo.IsRemoteSession))
+            return BackdropKind.None;
+
         return requested switch
         {
             BackdropKind.AeroGlass when OsInfo.SupportsAeroGlass && OsInfo.IsCompositionEnabled => BackdropKind.AeroGlass,
@@ -337,6 +343,19 @@ public static class ThemeManager
         item.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(0, 1, 0, 1)));
         item.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
         target[typeof(ListBoxItem)] = item;
+
+        // Вкладки страницы — родные вкладки скина (Aero, XP, Classic); содержимое вкладки рисует сама страница
+        var tabs = new Style(typeof(TabControl), native?[typeof(TabControl)] as Style);
+        tabs.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
+        tabs.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(0, 0, 0, 4)));
+        target["TabStrip"] = tabs;
+        target["TabStripItem"] = new Style(typeof(TabItem), native?[typeof(TabItem)] as Style);
+
+        // Поле поиска — обычное поле скина; значок и подсказку рисует SearchDecoration по фактическому началу текста
+        var search = new Style(typeof(TextBox), target[typeof(TextBox)] as Style);
+        search.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(24, 2, 6, 2)));
+        search.Setters.Add(new Setter(Controls.SearchDecoration.IsEnabledProperty, true));
+        target["SearchBox"] = search;
 
         var buttonBase = target[typeof(Button)] as Style;
         target["AccentButtonStyle"] = new Style(typeof(Button), buttonBase);

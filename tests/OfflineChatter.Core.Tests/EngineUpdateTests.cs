@@ -65,4 +65,21 @@ public class EngineUpdateTests
         // Две скачанные — чистить нечего
         Assert.Empty(EngineUpdates.CleanupCandidates(new[] { c, d, ext }, d.Id));
     }
+
+    [Theory]
+    [InlineData("poulphunter/llama.cpp-windows7", "poulphunter/llama.cpp-windows7")]
+    [InlineData("https://github.com/poulphunter/llama.cpp-windows7", "poulphunter/llama.cpp-windows7")]
+    [InlineData("https://github.com/owner/repo/releases/tag/b1", "owner/repo")]
+    [InlineData("github.com/owner/repo.git", "owner/repo")]
+    [InlineData("not a repo", null)]
+    [InlineData("", null)]
+    public void Normalizes_Custom_Repo(string input, string? expected) => Assert.Equal(expected, EngineSources.NormalizeRepo(input));
+
+    [Fact]
+    public void Resolves_Build_Sources()
+    {
+        Assert.Equal((null, false), EngineSources.Resolve(EngineSource.Official, "x/y", "app/repo"));
+        Assert.Equal(("app/repo", true), EngineSources.Resolve(EngineSource.AppWin7, null, "app/repo"));
+        Assert.Equal(("x/y", false), EngineSources.Resolve(EngineSource.Custom, "https://github.com/x/y", "app/repo"));
+    }
 }

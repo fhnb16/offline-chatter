@@ -19,6 +19,49 @@ public sealed class EngineManifest
     /// <summary>Строка из --version: "version: 0.9.0-dev (build 12176, commit 8820b088d)".</summary>
     public string? VersionText { get; set; }
     public int? Build { get; set; }
+
+    /// <summary>Репозиторий GitHub, откуда скачана сборка (null — официальный ggml-org/llama.cpp). Обновления ищутся там же.</summary>
+    public string? SourceRepo { get; set; }
+}
+
+/// <summary>Откуда скачивать сборки llama.cpp.</summary>
+public enum EngineSource
+{
+    /// <summary>ggml-org/llama.cpp — официальные сборки (Windows 10+).</summary>
+    Official,
+
+    /// <summary>Win7-сборки из репозитория программы (теги llama-*, workflow llama-win7.yml).</summary>
+    AppWin7,
+
+    /// <summary>Свой репозиторий GitHub owner/repo (например, форк с поддержкой Win7). Сторонний код — на ответственности пользователя.</summary>
+    Custom,
+}
+
+public static class EngineSources
+{
+    private static readonly System.Text.RegularExpressions.Regex RepoPattern = new(@"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$");
+
+    /// <summary>owner/repo из строки: принимает и ссылку https://github.com/owner/repo.</summary>
+    public static string? NormalizeRepo(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var t = text!.Trim().TrimEnd('/');
+        const string prefix = "github.com/";
+        var i = t.IndexOf(prefix, StringComparison.OrdinalIgnoreCase);
+        if (i >= 0) t = t.Substring(i + prefix.Length);
+        if (t.EndsWith(".git", StringComparison.OrdinalIgnoreCase)) t = t.Substring(0, t.Length - 4);
+        var parts = t.Split('/');
+        if (parts.Length >= 2) t = parts[0] + "/" + parts[1];
+        return RepoPattern.IsMatch(t) ? t : null;
+    }
+
+    /// <summary>Репозиторий и нужен ли фильтр тегов llama-* (в репозитории программы рядом лежат её собственные релизы).</summary>
+    public static (string? repo, bool onlyLlamaTags) Resolve(EngineSource source, string? customRepo, string appRepo) => source switch
+    {
+        EngineSource.AppWin7 => (appRepo, true),
+        EngineSource.Custom => (NormalizeRepo(customRepo), false),
+        _ => (null, false),
+    };
 }
 
 /// <summary>Установленный или подключённый движок.</summary>
@@ -60,8 +103,18 @@ public sealed class EngineSettings
     /// <summary>Подключённые пользователем папки со своими сборками llama.cpp.</summary>
     public List<string> ExternalEngines { get; set; } = new();
 
-    /// <summary>Разрешить доступ к серверу из локальной сети (иначе только 127.0.0.1).</summary>
+    /// <summary>Устарело: заменено <see cref="ListenAddress"/> (true переносится в "0.0.0.0").</summary>
     public bool AllowLan { get; set; }
+
+    /// <summary>
+    /// Адрес, который слушает публичный API: "127.0.0.1" — только этот ПК (плюс [::1] через пересылку),
+    /// "0.0.0.0" — все интерфейсы (локальная сеть, Docker, WSL), либо IPv4 конкретного адаптера.
+    /// Без публичного API сервер всегда слушает 127.0.0.1.
+    /// </summary>
+    public string ListenAddress { get; set; } = Loopback;
+
+    public const string Loopback = "127.0.0.1";
+    public const string AnyAddress = "0.0.0.0";
 
     /// <summary>0 — выбрать свободный порт автоматически.</summary>
     public int Port { get; set; }
@@ -77,6 +130,12 @@ public sealed class EngineSettings
 
     /// <summary>Проверять при запуске, нет ли новой сборки llama.cpp для активного движка.</summary>
     public bool CheckUpdates { get; set; } = true;
+
+    /// <summary>Откуда скачивать сборки в разделе «Движок».</summary>
+    public EngineSource BuildSource { get; set; } = EngineSource.Official;
+
+    /// <summary>Свой репозиторий сборок (owner/repo) для <see cref="EngineSource.Custom"/>.</summary>
+    public string CustomBuildRepo { get; set; } = string.Empty;
 
     /// <summary>Версия, которую пользователь решил пропустить (предложим только более новую).</summary>
     public string? IgnoredUpdateTag { get; set; }

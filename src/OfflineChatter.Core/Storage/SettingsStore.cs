@@ -99,6 +99,16 @@ public sealed class SettingsStore
         s.Engine ??= new Engine.EngineSettings();
         s.Engine.ExternalEngines ??= new System.Collections.Generic.List<string>();
         s.Engine.ApiKeyProtected ??= string.Empty;
+        s.Engine.CustomBuildRepo ??= string.Empty;
+        // Старая галочка «доступ из сети» → адрес прослушивания
+        if (s.Engine.AllowLan)
+        {
+            s.Engine.ListenAddress = Engine.EngineSettings.AnyAddress;
+            s.Engine.AllowLan = false;
+        }
+        if (!System.Net.IPAddress.TryParse(s.Engine.ListenAddress ?? string.Empty, out var listen)
+            || listen.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+            s.Engine.ListenAddress = Engine.EngineSettings.Loopback;
         if (s.Engine.Port is < 0 or > 65535) s.Engine.Port = 0;
         var n = s.Network;
         if (n.TimeoutSeconds is < 5 or > 600) n.TimeoutSeconds = 30;
@@ -112,7 +122,6 @@ public sealed class SettingsStore
         n.GitHubDownloadPrefix ??= string.Empty;
         n.NetworkInterface ??= string.Empty;
         if (string.IsNullOrWhiteSpace(s.Language)) s.Language = "auto";
-        if (string.IsNullOrWhiteSpace(s.UpdateRepo)) s.UpdateRepo = AppSettings.DefaultUpdateRepo;
         s.Window.HiddenPages ??= new System.Collections.Generic.List<string>();
         s.Attachments ??= new AttachmentSettings();
         if (s.Attachments.ImageMaxSide is < 0 or > 8192) s.Attachments.ImageMaxSide = 1536;

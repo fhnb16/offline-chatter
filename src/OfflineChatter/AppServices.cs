@@ -43,6 +43,7 @@ public sealed class AppServices : IDisposable
         var log = settings.Current.Logging;
         EngineLog = new JsonlLogger(paths.Logs, "engine", log.MaxFileSizeMb * 1024L * 1024L, log.MaxFiles, LogLevel.Info);
         Engine.Server.OutputLine += (_, line) => EngineLog.Write(LogLevel.Info, "llama-server", line);
+        Engine.Server.StateChanged += (_, _) => UpdateLoopbackForwarder();
     }
 
     public string Version { get; }
@@ -72,11 +73,11 @@ public sealed class AppServices : IDisposable
     public async System.Threading.Tasks.Task CheckUpdatesInBackgroundAsync()
     {
         var s = Settings.Current;
-        if (!s.Network.CheckUpdates || s.Network.OfflineMode || string.IsNullOrWhiteSpace(s.UpdateRepo)) return;
+        if (!s.Network.CheckUpdates || s.Network.OfflineMode) return;
         try
         {
             using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
-            var info = await UpdateChecker.CheckAsync(Http, s.UpdateRepo, CurrentVersion, cts.Token).ConfigureAwait(false);
+            var info = await UpdateChecker.CheckAsync(Http, CurrentVersion, cts.Token).ConfigureAwait(false);
             if (!info.Available) return;
             PendingUpdate = info;
             Log.Info("Update", "Update available", new { info.LatestTag });
@@ -108,8 +109,9 @@ public sealed class AppServices : IDisposable
         var s = Settings.Current;
         var active = Engine.Registry.Active;
         if (s.Network.OfflineMode || active == null || active.IsExternal) return null;
-        var repo = EngineUpdates.IsCompatBuild(active) ? s.UpdateRepo : null;
-        var releases = await Releases.ListAsync(10, ct, repo).ConfigureAwait(false);
+        // Обновления — из того же источника, откуда скачана сборка
+        var repo = active.Manifest.SourceRepo ?? (EngineUpdates.IsCompatBuild(active) ? UpdateChecker.Repo : null);
+        var releases = await Releases.ListAsync(10, ct, repo, onlyLlamaTags: repo == UpdateChecker.Repo).ConfigureAwait(false);
         var update = EngineUpdates.Find(active, releases, respectIgnored ? s.Engine.IgnoredUpdateTag : null);
         SetEngineUpdate(update);
         if (update != null) Log.Info("Engine", "Engine update available", new { current = active.Manifest.Tag, update.Tag, variant = update.Variant.Key });
@@ -138,7 +140,7 @@ public sealed class AppServices : IDisposable
         get
         {
             var e = Settings.Current.Engine;
-            return e.ExposeApi ? $"api:{e.Port}:{e.AllowLan}:{e.ApiKeyProtected.GetHashCode()}" : "api:off";
+            return e.ExposeApi ? $"api:{e.Port}:{e.ListenAddress}:{e.ApiKeyProtected.GetHashCode()}" : "api:off";
         }
     }
 
@@ -289,8 +291,63 @@ public sealed class AppServices : IDisposable
         Settings.Save();
     }
 
+    private string? _templateFor;
+    private string? _chatTemplate;
+
+    /// <summary>
+    /// Шаблон чата загруженной модели (/props llama-server) — по нему точнее всего видно, как модель включает
+    /// размышления. Кэшируется до перезапуска сервера; null — сервер не запущен или старая версия без поля.
+    /// </summary>
+    public async System.Threading.Tasks.Task<string?> GetLocalChatTemplateAsync(System.Threading.CancellationToken ct)
+    {
+        var srv = Engine.Server;
+        if (srv.State != ServerState.Ready) return null;
+        var key = srv.BaseUrl + "|" + srv.StartedAt?.Ticks;
+        if (_templateFor == key) return _chatTemplate;
+        try
+        {
+            using var req = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, srv.BaseUrl + "/props");
+            if (!string.IsNullOrEmpty(srv.ApiKey)) req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", srv.ApiKey);
+            using var resp = await LocalHttp.SendAsync(req, ct).ConfigureAwait(false);
+            if (!resp.IsSuccessStatusCode) return null;
+            var json = Newtonsoft.Json.Linq.JObject.Parse(await resp.Content.ReadAsStringAsync().ConfigureAwait(false));
+            _chatTemplate = (string?)json["chat_template"];
+            _templateFor = key;
+            return _chatTemplate;
+        }
+        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or Newtonsoft.Json.JsonException or OperationCanceledException)
+        {
+            return null;
+        }
+    }
+
+    private LoopbackForwarder? _forwarder;
+
+    /// <summary>
+    /// Публичный API на 127.0.0.1: дополнительно слушаем [::1] и пересылаем на сервер — «localhost» в Windows
+    /// разрешается сначала в IPv6, и клиенты, которые не пробуют IPv4, иначе получают «ошибку сети».
+    /// </summary>
+    private void UpdateLoopbackForwarder()
+    {
+        var srv = Engine.Server;
+        var wanted = Settings.Current.Engine.ExposeApi && srv.State == ServerState.Ready && srv.Host == EngineSettings.Loopback;
+        if (wanted && _forwarder != null && _forwarderPort == srv.Port) return;
+        _forwarder?.Dispose();
+        _forwarder = null;
+        if (!wanted) return;
+        var f = new LoopbackForwarder(srv.Port);
+        if (f.Start())
+        {
+            _forwarder = f;
+            _forwarderPort = srv.Port;
+        }
+    }
+
+    private int _forwarderPort;
+
     public void Dispose()
     {
+        _forwarder?.Dispose();
         Tools.Dispose();
         Engine.Dispose();
         Http.Dispose();

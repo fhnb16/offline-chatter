@@ -29,8 +29,21 @@ public sealed class ChatRequest
     public int? MaxTokens { get; set; }
     public int? Seed { get; set; }
 
-    /// <summary>Включить «мышление» (chat_template_kwargs.enable_thinking для llama.cpp).</summary>
-    public bool? Thinking { get; set; }
+    /// <summary>Упрощённо: true — средний уровень размышлений, false — выключить, null — как решит модель.</summary>
+    public bool? Thinking
+    {
+        get => Reasoning switch { ReasoningLevel.Auto => null, ReasoningLevel.Off => false, _ => true };
+        set => Reasoning = value switch { null => ReasoningLevel.Auto, true => ReasoningLevel.Medium, false => ReasoningLevel.Off };
+    }
+
+    /// <summary>Уровень размышлений.</summary>
+    public ReasoningLevel Reasoning { get; set; } = ReasoningLevel.Auto;
+
+    /// <summary>Как модель включает размышления (Auto — определить).</summary>
+    public ReasoningStyle ReasoningStyle { get; set; } = ReasoningStyle.Auto;
+
+    /// <summary>Шаблон чата модели (из /props llama-server) — для точного определения стиля.</summary>
+    public string? ChatTemplate { get; set; }
 
     /// <summary>Описания инструментов в формате OpenAI (этап 9).</summary>
     public JArray? Tools { get; set; }
@@ -102,11 +115,14 @@ public sealed class ChatClient
         {
             body["cache_prompt"] = true;
             body["timings_per_token"] = false;
-            if (r.Thinking is { } th) body["chat_template_kwargs"] = new JObject { ["enable_thinking"] = th };
             if (r.SlotId is { } slot) body["id_slot"] = slot;
         }
+        AppliedReasoningStyle = Reasoning.Apply(body, r.ReasoningStyle, r.Reasoning, r.Model, r.ChatTemplate, _quirks.IsLlamaCpp, _baseUrl);
         return body;
     }
+
+    /// <summary>Какой стиль размышлений применился в последнем запросе (для подсказки в интерфейсе).</summary>
+    public ReasoningStyle AppliedReasoningStyle { get; private set; }
 
     private JObject SerializeMessage(ChatMessage m)
     {
@@ -308,16 +324,50 @@ public sealed class ChatClient
     }
 }
 
-/// <summary>Разделение «&lt;think&gt;…&lt;/think&gt;» в тексте для серверов, которые не выделяют рассуждения сами.</summary>
+/// <summary>
+/// Отделение рассуждений от ответа в тексте — для серверов и моделей, которые не выделяют их сами
+/// (reasoning_content пустой). Поддерживаются обёртки:
+/// &lt;think&gt;…&lt;/think&gt; (DeepSeek-R1, Qwen), &lt;thinking&gt;…&lt;/thinking&gt;,
+/// &lt;|channel&gt;thought…&lt;channel|&gt; (Gemma 4), &lt;|channel|&gt;analysis&lt;|message|&gt;…&lt;|end|&gt; (GPT-OSS).
+/// Пока закрывающего тега нет, весь текст считается рассуждениями (open = true).
+/// </summary>
 public static class ThinkSplitter
 {
+    private static readonly (string open, string close)[] Wrappers =
+    {
+        ("<think>", "</think>"),
+        ("<thinking>", "</thinking>"),
+        ("<|channel>thought", "<channel|>"),
+        ("<|channel|>analysis<|message|>", "<|end|>"),
+    };
+
+    /// <summary>Похоже ли начало текста на обёртку рассуждений (для решения, разбирать ли поток).</summary>
+    public static bool StartsWithWrapper(string text)
+    {
+        var t = text.TrimStart();
+        return Wrappers.Any(w => t.StartsWith(w.open, StringComparison.Ordinal) || w.open.StartsWith(t, StringComparison.Ordinal) && t.Length > 0);
+    }
+
     public static (string reasoning, string content, bool open) Split(string text)
     {
-        const string open = "<think>", close = "</think>";
-        var start = text.IndexOf(open, StringComparison.Ordinal);
-        if (start < 0 || text.Substring(0, start).Trim().Length > 0) return (string.Empty, text, false);
-        var end = text.IndexOf(close, start, StringComparison.Ordinal);
-        if (end < 0) return (text.Substring(start + open.Length), string.Empty, true);
-        return (text.Substring(start + open.Length, end - start - open.Length).Trim(), text.Substring(end + close.Length).TrimStart(), false);
+        foreach (var (openTag, closeTag) in Wrappers)
+        {
+            var start = text.IndexOf(openTag, StringComparison.Ordinal);
+            if (start < 0 || text.Substring(0, start).Trim().Length > 0) continue;
+            var end = text.IndexOf(closeTag, start + openTag.Length, StringComparison.Ordinal);
+            if (end < 0) return (text.Substring(start + openTag.Length).TrimStart(), string.Empty, true);
+            var content = StripFinalChannel(text.Substring(end + closeTag.Length).TrimStart());
+            return (text.Substring(start + openTag.Length, end - start - openTag.Length).Trim(), content, false);
+        }
+        return (string.Empty, text, false);
+    }
+
+    /// <summary>GPT-OSS после рассуждений открывает канал ответа: «&lt;|start|&gt;assistant&lt;|channel|&gt;final&lt;|message|&gt;».</summary>
+    private static string StripFinalChannel(string content)
+    {
+        const string marker = "<|channel|>final<|message|>";
+        var i = content.IndexOf(marker, StringComparison.Ordinal);
+        if (i >= 0 && i < 64) content = content.Substring(i + marker.Length);
+        return content.Replace("<|return|>", string.Empty).TrimStart();
     }
 }

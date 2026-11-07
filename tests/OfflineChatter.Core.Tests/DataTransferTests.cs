@@ -145,9 +145,9 @@ public sealed class DataTransferTests : IDisposable
         var releases = JArray.Parse(@"[
           {""tag_name"":""llama-b9000-win7"",""draft"":false,""assets"":[]},
           {""tag_name"":""v0.3.0"",""draft"":true,""assets"":[]},
-          {""tag_name"":""v0.2.5"",""draft"":false,""html_url"":""https://x/rel"",""assets"":[
-             {""name"":""OfflineChatter.exe"",""size"":10,""browser_download_url"":""https://x/OfflineChatter.exe"",""digest"":""sha256:abcd""},
-             {""name"":""OfflineChatter.exe.config"",""size"":1,""browser_download_url"":""https://x/OfflineChatter.exe.config""}]},
+          {""tag_name"":""v0.2.5"",""draft"":false,""html_url"":""https://github.com/fhnb16/offline-chatter/releases/download/v0/rel"",""assets"":[
+             {""name"":""OfflineChatter.exe"",""size"":10,""browser_download_url"":""https://github.com/fhnb16/offline-chatter/releases/download/v0/OfflineChatter.exe"",""digest"":""sha256:abcd""},
+             {""name"":""OfflineChatter.exe.config"",""size"":1,""browser_download_url"":""https://github.com/fhnb16/offline-chatter/releases/download/v0/OfflineChatter.exe.config""}]},
           {""tag_name"":""v0.1.0"",""draft"":false,""assets"":[]}
         ]");
         var info = UpdateChecker.Pick(releases, "fhnb16/offline-chatter", new Version(0, 2, 0));
@@ -157,7 +157,7 @@ public sealed class DataTransferTests : IDisposable
         Assert.Equal("abcd", info.Exe!.Sha256);
         Assert.NotNull(info.Config);
 
-        Assert.False(UpdateChecker.Pick(releases, "r", new Version(0, 2, 5)).Available);
+        Assert.False(UpdateChecker.Pick(releases, UpdateChecker.Repo, new Version(0, 2, 5)).Available);
     }
 
     [Fact]
@@ -165,11 +165,11 @@ public sealed class DataTransferTests : IDisposable
     {
         var releases = JArray.Parse(@"[
           {""tag_name"":""v0.3.1"",""draft"":false,""assets"":[
-             {""name"":""OfflineChatter-0.3.1-Setup.exe"",""size"":10,""browser_download_url"":""https://x/s.exe"",""digest"":""sha256:11""},
-             {""name"":""OfflineChatter-0.3.1.rar"",""size"":10,""browser_download_url"":""https://x/a.rar"",""digest"":""sha256:22""},
-             {""name"":""OfflineChatter-0.3.1.zip"",""size"":10,""browser_download_url"":""https://x/a.zip"",""digest"":""sha256:33""}]}
+             {""name"":""OfflineChatter-0.3.1-Setup.exe"",""size"":10,""browser_download_url"":""https://github.com/fhnb16/offline-chatter/releases/download/v0/s.exe"",""digest"":""sha256:11""},
+             {""name"":""OfflineChatter-0.3.1.rar"",""size"":10,""browser_download_url"":""https://github.com/fhnb16/offline-chatter/releases/download/v0/a.rar"",""digest"":""sha256:22""},
+             {""name"":""OfflineChatter-0.3.1.zip"",""size"":10,""browser_download_url"":""https://github.com/fhnb16/offline-chatter/releases/download/v0/a.zip"",""digest"":""sha256:33""}]}
         ]");
-        var info = UpdateChecker.Pick(releases, "r", new Version(0, 3, 0));
+        var info = UpdateChecker.Pick(releases, UpdateChecker.Repo, new Version(0, 3, 0));
         Assert.True(info.CanInstall);
         Assert.Null(info.Exe);
         Assert.Equal("OfflineChatter-0.3.1.zip", info.Package!.Name);
@@ -184,6 +184,51 @@ public sealed class DataTransferTests : IDisposable
         var (exe, config) = UpdateChecker.ExtractPackage(zip, Path.Combine(_dir, "x"));
         Assert.Equal("new-exe", File.ReadAllText(exe));
         Assert.Equal("cfg", File.ReadAllText(config!));
+    }
+
+    [Fact]
+    public void Update_Ignores_Assets_From_Other_Hosts()
+    {
+        var releases = JArray.Parse(@"[
+          {""tag_name"":""v9.0.0"",""draft"":false,""assets"":[
+             {""name"":""OfflineChatter-9.0.0.zip"",""size"":10,""browser_download_url"":""https://evil.example/OfflineChatter-9.0.0.zip"",""digest"":""sha256:aa""},
+             {""name"":""OfflineChatter.exe"",""size"":10,""browser_download_url"":""https://github.com/someone/fork/releases/download/v9/OfflineChatter.exe"",""digest"":""sha256:bb""}]}
+        ]");
+        var info = UpdateChecker.Pick(releases, UpdateChecker.Repo, new Version(0, 1, 0));
+        Assert.True(info.Available);      // о новой версии сообщаем…
+        Assert.False(info.CanInstall);    // …но ставить нечего: файлы не из официального репозитория
+        Assert.Null(info.Package);
+        Assert.Null(info.Exe);
+    }
+
+    [Theory]
+    [InlineData(true, "", "0.0.0.0")]
+    [InlineData(false, "", "127.0.0.1")]
+    [InlineData(false, "not-an-ip", "127.0.0.1")]
+    [InlineData(false, "::1", "127.0.0.1")]
+    [InlineData(false, "192.168.1.10", "192.168.1.10")]
+    public void Listen_Address_Is_Migrated_And_Validated(bool allowLan, string listen, string expected)
+    {
+        var s = new AppSettings();
+        s.Engine.AllowLan = allowLan;
+        s.Engine.ListenAddress = listen;
+        SettingsStore.Normalize(s);
+        Assert.Equal(expected, s.Engine.ListenAddress);
+        Assert.False(s.Engine.AllowLan);
+    }
+
+    [Fact]
+    public void Release_Source_Is_Fixed_And_Not_In_Settings()
+    {
+        Assert.Equal("fhnb16/offline-chatter", UpdateChecker.Repo);
+        Assert.Null(typeof(AppSettings).GetProperty("UpdateRepo"));
+        // Старый config со своим репозиторием читается, но поле игнорируется и при сохранении пропадает
+        var file = Path.Combine(_dir, "settings.json");
+        File.WriteAllText(file, "{\"UpdateRepo\":\"evil/repo\",\"Language\":\"ru\"}");
+        var store = new SettingsStore(file);
+        Assert.Equal("ru", store.Load().Language);
+        store.Save();
+        Assert.DoesNotContain("evil/repo", File.ReadAllText(file));
     }
 
     [Fact]
@@ -208,13 +253,12 @@ public sealed class DataTransferTests : IDisposable
     }
 
     [Fact]
-    public void Settings_Default_Update_Repo_And_Hidden_Pages()
+    public void Settings_Restore_Hidden_Pages_And_Attachments()
     {
-        var s = new AppSettings { UpdateRepo = "" };
+        var s = new AppSettings();
         s.Window.HiddenPages = null!;
         s.Attachments = null!;
         SettingsStore.Normalize(s);
-        Assert.Equal(AppSettings.DefaultUpdateRepo, s.UpdateRepo);
         Assert.NotNull(s.Window.HiddenPages);
         Assert.Equal(1536, s.Attachments.ImageMaxSide);
     }

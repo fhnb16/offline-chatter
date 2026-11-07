@@ -24,7 +24,9 @@ public sealed class MarkdownView : RichTextBox
     public static readonly DependencyProperty IsStreamingProperty = DependencyProperty.Register(
         nameof(IsStreaming), typeof(bool), typeof(MarkdownView), new PropertyMetadata(false, (d, e) =>
         {
-            if (!(bool)e.NewValue) ((MarkdownView)d).RenderFull();
+            var view = (MarkdownView)d;
+            if (!(bool)e.NewValue) view.RenderFull();
+            else view.RestartIncremental();
         }));
 
     private readonly MarkdownRenderer _renderer = new();
@@ -113,6 +115,19 @@ public sealed class MarkdownView : RichTextBox
         foreach (var b in _renderer.Render(text)) Document.Blocks.Add(b);
         _stableLength = text.Length;
         _rendered = text;
+    }
+
+    /// <summary>
+    /// Генерация уже идёт, а представление создано заново (возврат в чат из настроек): привязка текста срабатывает
+    /// раньше привязки флага, и первый кусок рисовался как «готовый». Начинаем инкрементальную отрисовку с нуля.
+    /// </summary>
+    private void RestartIncremental()
+    {
+        Document.Blocks.Clear();
+        _tail.Clear();
+        _stableLength = 0;
+        _rendered = string.Empty;
+        if (!string.IsNullOrEmpty(Markdown)) _timer.Start();
     }
 
     private void RenderIncremental()
