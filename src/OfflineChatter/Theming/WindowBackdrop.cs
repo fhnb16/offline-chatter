@@ -107,18 +107,18 @@ internal static class WindowBackdrop
     public static string? LastMargins { get; private set; }
 
     /// <summary>
-    /// Обход лагов Acrylic на Win10 1903+: на время перетаскивания или ресайза
-    /// включаем простое размытие, после — снова Acrylic.
+    /// Обход лагов Acrylic на Win10 1903+: на время перетаскивания или ресайза включаем простое размытие.
+    /// Обратно Acrylic ставит ThemeManager по WM_EXITSIZEMOVE через <see cref="Apply"/>.
     /// </summary>
-    public static void OnSizeMove(IntPtr hwnd, ResolvedTheme theme, bool entering)
+    public static bool SwapsOnSizeMove(ResolvedTheme theme) =>
+        theme.Backdrop == BackdropKind.Acrylic && !OsInfo.SupportsSystemBackdrop && OsInfo.SupportsWin10Acrylic;
+
+    public static void OnEnterSizeMove(IntPtr hwnd, ResolvedTheme theme)
     {
-        if (theme.Backdrop != BackdropKind.Acrylic || OsInfo.SupportsSystemBackdrop || !OsInfo.SupportsWin10Acrylic) return;
+        if (!SwapsOnSizeMove(theme)) return;
         try
         {
-            if (entering)
-                SetAccent(hwnd, AccentState.EnableBlurBehind, 0, flags: AccentBorderFlags);
-            else
-                SetAccent(hwnd, AccentState.EnableAcrylicBlurBehind, AcrylicTint(theme.IsDark), flags: AccentBorderFlags);
+            SetAccent(hwnd, AccentState.EnableBlurBehind, 0, flags: AccentBorderFlags);
         }
         catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
         {

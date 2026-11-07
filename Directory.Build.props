@@ -4,7 +4,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <Deterministic>true</Deterministic>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Product>Offline Chatter</Product>
     <Company>Offline Chatter</Company>
     <Copyright>Apache License 2.0</Copyright>

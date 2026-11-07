@@ -418,11 +418,19 @@ public static class ThemeManager
                 break;
 
             case User32.WM_ENTERSIZEMOVE:
-                if (Current != null) WindowBackdrop.OnSizeMove(hwnd, Current, entering: true);
+                if (Current != null) WindowBackdrop.OnEnterSizeMove(hwnd, Current);
                 break;
 
             case User32.WM_EXITSIZEMOVE:
-                if (Current != null) WindowBackdrop.OnSizeMove(hwnd, Current, entering: false);
+                // Acrylic возвращаем тем же путём, что и при выборе подложки (сброс эффекта, Acrylic, пересчёт рамки),
+                // и уже после выхода из цикла перетаскивания: простая смена Blur → Acrylic на Win10 не перерисовывалась
+                if (Current != null && WindowBackdrop.SwapsOnSizeMove(Current))
+                    Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        if (Current == null || !WindowBackdrop.SwapsOnSizeMove(Current)) return;
+                        var win = HwndSource.FromHwnd(hwnd)?.RootVisual as Window;
+                        WindowBackdrop.Apply(hwnd, Current, win != null && ShellChrome.GetIsExtended(win), force: true);
+                    }), DispatcherPriority.Background);
                 break;
         }
         return IntPtr.Zero;
