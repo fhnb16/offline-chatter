@@ -54,6 +54,7 @@ $env:OC_E2E=1; dotnet test                   # + сквозной: устано�
 |---|---|
 | `OfflineChatter-X.Y.N.zip`, `.rar` | папка `OfflineChatter\` с exe и готовой структурой: `models\` (сюда — свои GGUF), `engine\`, `chats\`, README |
 | `OfflineChatter-X.Y.N-Setup.exe` | установщик: по умолчанию для текущего пользователя в `%LOCALAPPDATA%\Programs\OfflineChatter`, без прав администратора; ярлык в «Пуск» |
+| `OfflineChatter-X.Y.N-Setup-NET48.exe` | тот же установщик со встроенным офлайн-установщиком .NET Framework 4.8 (~120 МБ) — для Windows 7 SP1 / 8.1 и машин без сети. .NET ставится, только если его нет (один запрос прав администратора); на Windows 7 без обновлений перед этим добавляется корневой сертификат Microsoft Root Certificate Authority 2011 — без него установщик .NET не проходит проверку подписи ([рекомендация Microsoft](https://learn.microsoft.com/en-us/previous-versions/dotnet/framework/install/on-windows-7)) |
 | `SHA256SUMS.txt` | контрольные суммы |
 
 Голый exe в релиз не кладётся: и обновление внутри программы скачивает zip (Windows 11 и антивирусы спокойнее относятся к архивам). Если запустить программу из «Загрузок», с рабочего стола или прямо из архива, она предложит перенести себя в `%LOCALAPPDATA%\Programs\OfflineChatter`. Локально поставка собирается так: `pwsh tools/package.ps1 -BinDir src/OfflineChatter/bin/Release/net48 -Version 0.1.0 -Out out`, установщик — `iscc installer/OfflineChatter.iss`.

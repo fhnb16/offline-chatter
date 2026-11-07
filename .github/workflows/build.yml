@@ -4,7 +4,8 @@
 # Тег создаётся автоматически (gh release create --target <commit>): без тега GitHub релиз не публикует.
 # Версия: X.Y — из <Version> в Directory.Build.props, N — номер запуска workflow.
 # В релизе: OfflineChatter-X.Y.N.zip и .rar (папка OfflineChatter\ с exe и готовой структурой models\, engine\, chats\),
-# установщик OfflineChatter-X.Y.N-Setup.exe и SHA256SUMS.txt. Голого exe нет.
+# установщики OfflineChatter-X.Y.N-Setup.exe и -Setup-NET48.exe (со встроенным офлайн-установщиком .NET Framework 4.8
+# для Windows 7/8.1 и машин без сети) и SHA256SUMS.txt. Голого exe нет.
 # Программа сама находит релиз (настройки → «О программе»), качает zip, сверяет SHA-256 с полем digest ассета
 # и берёт exe из архива.
 #
@@ -84,6 +85,34 @@ jobs:
           choco install winrar innosetup -y --no-progress
           if ($LASTEXITCODE -ne 0) { Write-Warning "choco exited with $LASTEXITCODE" }
 
+      # Офлайн-установщик .NET Framework 4.8 (~120 МБ) — в кэше Actions, чтобы не качать на каждой сборке.
+      # Перед использованием проверяется подпись Microsoft: подменённый файл в установщик не попадёт.
+      - name: Cache .NET Framework 4.8 offline installer
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/ndp48
+          key: ndp48-x86-x64-allos-enu-v1
+
+      - name: Get .NET Framework 4.8 offline installer
+        shell: pwsh
+        run: |
+          $dir = Join-Path $env:RUNNER_TEMP 'ndp48'
+          $file = Join-Path $dir 'NDP48-x86-x64-AllOS-ENU.exe'
+          if (-not (Test-Path $file)) {
+            New-Item -ItemType Directory -Force $dir | Out-Null
+            Invoke-WebRequest 'https://go.microsoft.com/fwlink/?linkid=2088631' -OutFile $file
+          }
+          $sig = Get-AuthenticodeSignature $file
+          Write-Host "$($sig.Status) — $($sig.SignerCertificate.Subject)"
+          if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') {
+            [IO.File]::Delete($file)
+            throw '.NET Framework installer signature check failed'
+          }
+          # Корневой сертификат, который установщик добавляет на Win7 без обновлений, — сверяем отпечаток
+          $root = [Security.Cryptography.X509Certificates.X509Certificate2]::new("$PWD\installer\certs\MicRooCerAut2011.cer")
+          if ($root.Thumbprint -ne '8F43288AD272F3103B6FB1428485EA3014C0BCFE') { throw 'Unexpected root certificate in installer/certs' }
+          "NET48_INSTALLER=$file" >> $env:GITHUB_ENV
+
       - name: Package (zip, rar, installer)
         shell: pwsh
         env:
@@ -103,6 +132,9 @@ jobs:
           }
           & $iscc @isccArgs installer/OfflineChatter.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC failed with $LASTEXITCODE" }
+          # Второй установщик — со встроенным .NET Framework 4.8
+          & $iscc @isccArgs "/DNet48=$env:NET48_INSTALLER" installer/OfflineChatter.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC (NET48) failed with $LASTEXITCODE" }
           # Только архивы и установщик: голый exe в релиз не кладём (Windows 11 и антивирусы агрессивнее к скачанным exe)
           New-Item -ItemType Directory -Force release | Out-Null
           Get-ChildItem out -File | Where-Object { $_.Extension -in '.zip', '.rar', '.exe' } | Copy-Item -Destination release
