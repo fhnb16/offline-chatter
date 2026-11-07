@@ -315,7 +315,7 @@
                     <TextBlock Text="{l:Loc Chat_SystemPrompt}" Style="{StaticResource SectionHeaderText}" />
                     <ComboBox ItemsSource="{Binding PromptPresets}" SelectedItem="{Binding SelectedPreset}" DisplayMemberPath="Name" Margin="0,0,0,6"
                               ToolTip="{l:Loc Prompts_Apply}" />
-                    <TextBox Text="{Binding SystemPrompt, UpdateSourceTrigger=PropertyChanged, Delay=500}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" MaxHeight="200"
+                    <TextBox Text="{Binding SystemPrompt, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" MaxHeight="200"
                              VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
 
                     <TextBlock Text="{l:Loc Chat_ThinkingMode}" Style="{StaticResource SectionHeaderText}" />

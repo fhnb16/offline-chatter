@@ -194,6 +194,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
     {
         _s = services;
         _isInspectorVisible = services.Settings.Current.Window.InspectorVisible;
+        if (System.Windows.Application.Current is { } app) app.Exit += (_, _) => FlushPromptSave();
         foreach (var c in services.Chats.LoadAll()) Chats.Add(new ChatListItem(c));
         _filtered = CollectionViewSource.GetDefaultView(Chats);
         _filtered.Filter = o => o is ChatListItem c && ChatStore.Matches(c.Session, SearchText);
@@ -381,6 +382,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
 
     partial void OnSelectedChatChanged(ChatListItem? value)
     {
+        FlushPromptSave();
         CancelEdit();
         if (value == null)
         {
@@ -407,8 +409,33 @@ public sealed partial class ChatPageViewModel : PageViewModel
     {
         SyncPreset();
         if (SelectedChat == null) return;
+        // Значение — в сессию сразу (отправка сразу после правки должна уйти с новым промптом),
+        // запись файла — с задержкой, чтобы не сохранять чат на каждую букву
         SelectedChat.Session.SystemPrompt = string.IsNullOrWhiteSpace(value) ? null : value;
-        SaveChat();
+        QueuePromptSave(SelectedChat.Session);
+    }
+
+    private System.Windows.Threading.DispatcherTimer? _promptSaveTimer;
+    private ChatSession? _promptSaveSession;
+
+    private void QueuePromptSave(ChatSession session)
+    {
+        if (_promptSaveSession != null && !ReferenceEquals(_promptSaveSession, session)) FlushPromptSave();
+        _promptSaveSession = session;
+        if (_promptSaveTimer == null)
+        {
+            _promptSaveTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
+            _promptSaveTimer.Tick += (_, _) => FlushPromptSave();
+        }
+        _promptSaveTimer.Stop();
+        _promptSaveTimer.Start();
+    }
+
+    private void FlushPromptSave()
+    {
+        _promptSaveTimer?.Stop();
+        if (_promptSaveSession is { } s) _s.Chats.Save(s);
+        _promptSaveSession = null;
     }
 
     partial void OnThinkingChanged(ThinkingOption? value)
@@ -470,11 +497,14 @@ public sealed partial class ChatPageViewModel : PageViewModel
             _filtered.Refresh();
             return;
         }
+        // Чат не выбран (первый запуск, чат удалён), а в панели уже введён системный промпт — его и берём:
+        // раньше он заменялся пресетом по умолчанию и до модели не доходил
+        var typed = SelectedChat == null && !string.IsNullOrWhiteSpace(SystemPrompt) ? SystemPrompt : null;
         var session = new ChatSession
         {
             Title = L.Get("Chat_NewTitle"),
             ModelRef = SelectedModel?.Ref,
-            SystemPrompt = _s.Prompts.Find(_s.Settings.Current.DefaultPromptPresetId)?.Text,
+            SystemPrompt = typed ?? _s.Prompts.Find(_s.Settings.Current.DefaultPromptPresetId)?.Text,
         };
         var item = new ChatListItem(session);
         Chats.Insert(0, item);
