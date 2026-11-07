@@ -30,6 +30,7 @@ public sealed partial class AppearanceViewModel : ObservableObject
             Reload();
             OnPropertyChanged(nameof(ResolvedSummary));
             OnPropertyChanged(nameof(BackdropBlockedReason));
+            OnPropertyChanged(nameof(BackdropDiagnostics));
         };
     }
 
@@ -65,8 +66,43 @@ public sealed partial class AppearanceViewModel : ObservableObject
     public string? BackdropBlockedReason =>
         !WantsTranslucentBackdrop ? null
         : OsInfo.IsRemoteSession ? L.Get("Appearance_RemoteSession")
+        : OsInfo.IsSoftwareRendering ? L.Get("Appearance_SoftwareRendering")
         : !OsInfo.TransparencyEffectsEnabled ? L.Get("Appearance_TransparencyOff")
         : null;
+
+    /// <summary>Всё, что нужно для разбора «чёрной подложки» на чужой машине, одной строкой.</summary>
+    public string BackdropDiagnostics
+    {
+        get
+        {
+            var t = ThemeManager.Current;
+            return string.Join(" | ", new[]
+            {
+                OsInfo.DisplayName,
+                "build " + OsInfo.Build,
+                "render tier " + (System.Windows.Media.RenderCapability.Tier >> 16),
+                "transparency " + (OsInfo.TransparencyEffectsEnabled ? "on" : "off"),
+                "remote " + (OsInfo.IsRemoteSession ? "yes" : "no"),
+                "composition " + (OsInfo.IsCompositionEnabled ? "on" : "off"),
+                "requested " + Backdrop,
+                "applied " + (t?.Backdrop.ToString() ?? "?"),
+                "skin " + (t?.Skin.ToString() ?? "?"),
+                "dark " + (t?.IsDark == true ? "yes" : "no"),
+                "accent " + (WindowBackdrop.LastAccent ?? "not used"),
+            });
+        }
+    }
+
+    [RelayCommand]
+    private void CopyBackdropDiagnostics()
+    {
+        try
+        {
+            System.Windows.Clipboard.SetText(BackdropDiagnostics);
+            ExternalToolStatus = L.Get("Chat_Copied");
+        }
+        catch (System.Runtime.InteropServices.COMException) { }
+    }
 
     [RelayCommand]
     private void OpenColorSettings() => EngineViewModel.OpenUrl("ms-settings:colors");

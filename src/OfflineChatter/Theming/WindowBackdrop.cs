@@ -58,7 +58,7 @@ internal static class WindowBackdrop
                     break;
 
                 case BackdropKind.Blur:
-                    SetAccent(hwnd, AccentState.EnableBlurBehind, 0, flags: 0);
+                    SetAccent(hwnd, AccentState.EnableBlurBehind, 0, flags: AccentBorderFlags);
                     break;
 
                 case BackdropKind.Acrylic when OsInfo.SupportsSystemBackdrop:
@@ -66,7 +66,7 @@ internal static class WindowBackdrop
                     break;
 
                 case BackdropKind.Acrylic:
-                    SetAccent(hwnd, AccentState.EnableAcrylicBlurBehind, AcrylicTint(theme.IsDark), flags: 2);
+                    SetAccent(hwnd, AccentState.EnableAcrylicBlurBehind, AcrylicTint(theme.IsDark), flags: AccentBorderFlags);
                     break;
 
                 case BackdropKind.Mica when OsInfo.SupportsSystemBackdrop:
@@ -100,9 +100,9 @@ internal static class WindowBackdrop
         try
         {
             if (entering)
-                SetAccent(hwnd, AccentState.EnableBlurBehind, 0, flags: 0);
+                SetAccent(hwnd, AccentState.EnableBlurBehind, 0, flags: AccentBorderFlags);
             else
-                SetAccent(hwnd, AccentState.EnableAcrylicBlurBehind, AcrylicTint(theme.IsDark), flags: 2);
+                SetAccent(hwnd, AccentState.EnableAcrylicBlurBehind, AcrylicTint(theme.IsDark), flags: AccentBorderFlags);
         }
         catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
         {
@@ -238,11 +238,22 @@ internal static class WindowBackdrop
                 Data = ptr,
                 SizeOfData = size,
             };
-            User32.SetWindowCompositionAttribute(hwnd, ref data);
+            var ok = User32.SetWindowCompositionAttribute(hwnd, ref data);
+            LastAccent = $"{state} flags=0x{flags:X} tint=0x{tint:X8} -> {(ok != 0 ? "ok" : "error " + Marshal.GetLastWin32Error())}";
+            if (state != AccentState.Disabled) Log.Info("Theme", "SetWindowCompositionAttribute", new { result = LastAccent });
         }
         finally
         {
             Marshal.FreeHGlobal(ptr);
         }
     }
+
+    /// <summary>Последний вызов SetWindowCompositionAttribute и его результат (для «Сведений о подложке»).</summary>
+    public static string? LastAccent { get; private set; }
+
+    /// <summary>
+    /// Флаги как у рабочих WPF-приложений на Win10 (EarTrumpet): 0x20|0x40|0x80|0x100 — рамка по всем краям.
+    /// С флагом 2 на части сборок акрил рисовался без размытия.
+    /// </summary>
+    private const int AccentBorderFlags = 0x1E0;
 }

@@ -708,3 +708,7 @@ Preview_Fit	Fit to window	По размеру окна
 Preview_ActualSize	100 %	100 %
 Preview_Copied	Image copied	Изображение скопировано
 Preview_Saved	Saved: {0}	Сохранено: {0}
+Appearance_SoftwareRendering	The window is drawn without the graphics card (virtual machine without 3D, remote session or a basic display driver). Without hardware acceleration Windows loses window transparency, so a solid backdrop is used	Окно рисуется без видеокарты (виртуальная машина без 3D, удалённый сеанс или базовый драйвер дисплея). Без аппаратного ускорения Windows теряет прозрачность окна, поэтому используется сплошная подложка
+Appearance_Diagnostics	Backdrop details	Сведения о подложке
+Appearance_DiagnosticsHint	If the backdrop looks wrong, copy this line and send it to the developer	Если подложка выглядит неправильно, скопируйте эту строку и отправьте разработчику
+Appearance_CopyDiagnostics	Copy	Копировать

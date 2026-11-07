@@ -214,6 +214,9 @@ public static class ThemeManager
         if (requested is BackdropKind.Blur or BackdropKind.Acrylic or BackdropKind.Mica or BackdropKind.MicaAlt
             && (!OsInfo.TransparencyEffectsEnabled || OsInfo.IsRemoteSession))
             return BackdropKind.None;
+        // Без аппаратного ускорения WPF не передаёт DWM прозрачность — любая подложка, включая стекло Win7, стала бы чёрной
+        if (requested is not BackdropKind.None && OsInfo.IsSoftwareRendering)
+            return BackdropKind.None;
 
         return requested switch
         {

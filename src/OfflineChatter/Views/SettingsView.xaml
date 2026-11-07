@@ -189,7 +189,21 @@
                                 <TextBlock Text="{l:Loc Appearance_Hex}" Style="{StaticResource CaptionText}" />
                                 <TextBox Text="{Binding CustomAccent, UpdateSourceTrigger=PropertyChanged}" ToolTip="#RRGGBB" />
                             </c:AdaptiveRow>
-                        </StackPanel>
+                            <!-- Для разбора «чёрной подложки» на чужой машине: всё нужное одной строкой -->
+                    <Expander Margin="0,8,0,0">
+                        <Expander.Header>
+                            <TextBlock Text="{l:Loc Appearance_Diagnostics}" Style="{StaticResource BodyText}" />
+                        </Expander.Header>
+                        <Border Style="{StaticResource SettingCard}" Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="{l:Loc Appearance_DiagnosticsHint}" Style="{StaticResource CaptionText}" Margin="0,0,0,8" />
+                                <TextBox Text="{Binding BackdropDiagnostics, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
+                                         FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" />
+                                <Button Content="{l:Loc Appearance_CopyDiagnostics}" Command="{Binding CopyBackdropDiagnosticsCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </Expander>
+                </StackPanel>
                     </Border>
                 </StackPanel>
 

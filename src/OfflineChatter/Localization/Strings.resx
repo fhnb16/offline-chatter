@@ -713,4 +713,8 @@ Cancel — not now</value></data>
   <data name="Preview_ActualSize" xml:space="preserve"><value>100 %</value></data>
   <data name="Preview_Copied" xml:space="preserve"><value>Image copied</value></data>
   <data name="Preview_Saved" xml:space="preserve"><value>Saved: {0}</value></data>
+  <data name="Appearance_SoftwareRendering" xml:space="preserve"><value>The window is drawn without the graphics card (virtual machine without 3D, remote session or a basic display driver). Without hardware acceleration Windows loses window transparency, so a solid backdrop is used</value></data>
+  <data name="Appearance_Diagnostics" xml:space="preserve"><value>Backdrop details</value></data>
+  <data name="Appearance_DiagnosticsHint" xml:space="preserve"><value>If the backdrop looks wrong, copy this line and send it to the developer</value></data>
+  <data name="Appearance_CopyDiagnostics" xml:space="preserve"><value>Copy</value></data>
 </root>

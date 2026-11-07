@@ -99,6 +99,12 @@ public static class OsInfo
         }
     }
 
+    /// <summary>
+    /// WPF рисует без видеокарты (виртуальная машина без 3D, удалённый сеанс, старый или «базовый» драйвер).
+    /// Тогда прозрачность окна теряется: прозрачные места становятся чёрными — подложки DWM использовать нельзя.
+    /// </summary>
+    public static bool IsSoftwareRendering => (System.Windows.Media.RenderCapability.Tier >> 16) == 0;
+
     /// <summary>Сеанс удалённого рабочего стола: размытие и Acrylic по RDP не рисуются.</summary>
     public static bool IsRemoteSession => System.Windows.SystemParameters.IsRemoteSession;
 

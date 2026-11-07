@@ -713,4 +713,8 @@
   <data name="Preview_ActualSize" xml:space="preserve"><value>100 %</value></data>
   <data name="Preview_Copied" xml:space="preserve"><value>Изображение скопировано</value></data>
   <data name="Preview_Saved" xml:space="preserve"><value>Сохранено: {0}</value></data>
+  <data name="Appearance_SoftwareRendering" xml:space="preserve"><value>Окно рисуется без видеокарты (виртуальная машина без 3D, удалённый сеанс или базовый драйвер дисплея). Без аппаратного ускорения Windows теряет прозрачность окна, поэтому используется сплошная подложка</value></data>
+  <data name="Appearance_Diagnostics" xml:space="preserve"><value>Сведения о подложке</value></data>
+  <data name="Appearance_DiagnosticsHint" xml:space="preserve"><value>Если подложка выглядит неправильно, скопируйте эту строку и отправьте разработчику</value></data>
+  <data name="Appearance_CopyDiagnostics" xml:space="preserve"><value>Копировать</value></data>
 </root>

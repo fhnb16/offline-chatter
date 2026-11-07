@@ -155,7 +155,7 @@ internal static class User32
     public static extern int GetSystemMetrics(int index);
 
     /// <summary>Недокументированная, Win7+ (ACCENT_POLICY работает с Win10).</summary>
-    [DllImport("user32.dll", PreserveSig = true)]
+    [DllImport("user32.dll", PreserveSig = true, SetLastError = true)]
     public static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
 }
 
