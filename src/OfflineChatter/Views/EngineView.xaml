@@ -31,26 +31,54 @@
             <!-- ===== Сервер ===== -->
             <Border Style="{StaticResource SettingCard}">
                 <StackPanel>
-                    <DockPanel>
-                        <Button DockPanel.Dock="Right" Command="{Binding StopServerCommand}" Content="{l:Loc Engine_Stop}" />
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Loc Engine_Server}" Style="{StaticResource SubtitleText}" />
-                            <Border Style="{StaticResource StatusPill}" Margin="10,0,0,0">
-                                <TextBlock Text="{Binding ServerState}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
-                            </Border>
-                        </StackPanel>
-                    </DockPanel>
-                    <TextBlock Text="{Binding ServerDetails}" Style="{StaticResource CaptionText}" Margin="0,8,0,0"
-                               Visibility="{Binding ServerDetails, Converter={StaticResource NullToCollapsed}}" />
-                    <Expander Header="{l:Loc Engine_ServerLog}" Margin="0,8,0,0">
+                    <c:AdaptiveRow Breakpoint="560">
+                        <Grid DataContext="{Binding Server}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Style="{StaticResource ServerStateDot}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,6,0,0" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Style="{StaticResource SubtitleText}" TextTrimming="CharacterEllipsis">
+                                    <Run Text="{l:Loc Engine_Server}" /><Run Text=" · " Foreground="{DynamicResource TextTertiaryBrush}" /><Run Text="{Binding StateText, Mode=OneWay}" />
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource CaptionText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
+                                    <Run Text="{Binding ModelTitle, Mode=OneWay}" Foreground="{DynamicResource TextPrimaryBrush}" /><Run Text=" · " /><Run Text="{Binding EngineShort, Mode=OneWay}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+                        <WrapPanel HorizontalAlignment="Right">
+                            <Button Style="{DynamicResource SubtleButtonStyle}" Command="{Binding Server.CopyAllCommand}" ToolTip="{l:Loc Ins_Copy}" Margin="0,0,6,4">
+                                <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
+                            </Button>
+                            <Button Command="{Binding StopServerCommand}" Content="{l:Loc Engine_Stop}" Margin="0,0,0,4" />
+                        </WrapPanel>
+                    </c:AdaptiveRow>
+                    <views:ServerInsightView DataContext="{Binding Server}" Margin="0,12,0,0" />
+                    <Expander Header="{l:Loc Engine_ServerLog}" Margin="0,4,0,0">
                         <StackPanel>
                             <TextBox Text="{Binding ServerCommandLine, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
                                      FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" Margin="0,0,0,6"
                                      Visibility="{Binding ServerCommandLine, Converter={StaticResource NullToCollapsed}}" />
-                            <TextBox Text="{Binding ServerLogTail, Mode=OneWay}" IsReadOnly="True" TextWrapping="NoWrap"
-                                     FontFamily="{DynamicResource MonoFontFamily}" FontSize="11" Height="220"
-                                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
-                            <Button HorizontalAlignment="Left" Margin="0,6,0,0" Command="{Binding RefreshLogCommand}" Content="{l:Loc Common_Refresh}" />
+                            <Border Style="{StaticResource Card}" Padding="2">
+                                <ListBox ItemsSource="{Binding ServerLines}" Height="260" c:AutoScroll.ToEnd="True"
+                                         FontFamily="{DynamicResource MonoFontFamily}" FontSize="11" BorderThickness="0" Background="Transparent"
+                                         VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                            <Setter Property="Padding" Value="4,0" />
+                                            <Setter Property="Margin" Value="0" />
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                </ListBox>
+                            </Border>
+                            <Button HorizontalAlignment="Left" Margin="0,6,0,0" Command="{Binding CopyLogCommand}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
+                                    <TextBlock Text="{l:Loc Logs_Copy}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </Expander>
                 </StackPanel>

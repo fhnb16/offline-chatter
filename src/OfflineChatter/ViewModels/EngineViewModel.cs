@@ -81,7 +81,42 @@ public sealed partial class EngineViewModel : PageViewModel
         };
         _s.Engine.Server.StateChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(OnServerChanged));
         _s.EngineUpdateChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(OnEngineUpdateChanged));
+
+        // Вывод сервера: строки копятся в очереди и раз в 300 мс добавляются в список (без перерисовки на каждую строку)
+        _s.Engine.Server.OutputLine += (_, line) => _pendingLines.Enqueue(line);
+        _logTimer = new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(300) };
+        _logTimer.Tick += (_, _) => DrainLog();
+        _logTimer.Start();
+        foreach (var l in _s.Engine.Server.Tail.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)) ServerLines.Add(l);
         RefreshInstalled();
+    }
+
+    private const int MaxLogLines = 1000;
+    private readonly System.Collections.Concurrent.ConcurrentQueue<string> _pendingLines = new();
+    private readonly System.Windows.Threading.DispatcherTimer _logTimer;
+
+    /// <summary>Вывод llama-server текущего запуска (последние строки).</summary>
+    public ObservableCollection<string> ServerLines { get; } = new();
+
+    /// <summary>Состояние сервера и подробности (общие с чатом и боковой панелью).</summary>
+    public ServerInsightViewModel Server => _main.Server;
+
+    private void DrainLog()
+    {
+        var added = 0;
+        while (added < 500 && _pendingLines.TryDequeue(out var line))
+        {
+            ServerLines.Add(line);
+            added++;
+        }
+        while (ServerLines.Count > MaxLogLines) ServerLines.RemoveAt(0);
+    }
+
+    [RelayCommand]
+    private void CopyLog()
+    {
+        try { Clipboard.SetText(string.Join(Environment.NewLine, ServerLines)); }
+        catch (System.Runtime.InteropServices.COMException) { }
     }
 
     // ---------- Обновление движка ----------
@@ -273,38 +308,32 @@ public sealed partial class EngineViewModel : PageViewModel
     public bool CanInstall => SelectedVariant != null && !IsInstalling;
 
     // ---------- Сервер ----------
-    public string ServerState => L.Get("Enum_ServerState_" + _s.Engine.Server.State);
     public bool IsServerRunning => _s.Engine.Server.State is Core.Engine.ServerState.Ready or Core.Engine.ServerState.Loading or Core.Engine.ServerState.Starting;
-    public string? ServerDetails
-    {
-        get
-        {
-            var srv = _s.Engine.Server;
-            if (srv.State == Core.Engine.ServerState.Failed) return srv.LastError;
-            if (srv.State == Core.Engine.ServerState.Stopped) return null;
-            var model = srv.Options?.ModelPath != null ? System.IO.Path.GetFileName(srv.Options.ModelPath) : "?";
-            return L.F("Engine_ServerDetails", srv.BaseUrl, srv.Pid?.ToString() ?? "—", model,
-                srv.LoadTime is { } t ? Units.FormatDuration(t) : "—");
-        }
-    }
     public string? ServerCommandLine => _s.Engine.Server.CommandLine;
-    public string ServerLogTail => _s.Engine.Server.Tail;
 
     public override void OnNavigatedTo()
     {
         _ = LoadHardwareAsync();
         if (Releases.Count == 0 && !IsLoadingReleases) _ = RefreshReleasesAsync();
-        OnPropertyChanged(nameof(ServerLogTail));
         _ = Profiles.UpdatePreviewAsync();
     }
 
+    private ServerState _lastState = Core.Engine.ServerState.Stopped;
+
     private void OnServerChanged()
     {
-        OnPropertyChanged(nameof(ServerState));
+        var state = _s.Engine.Server.State;
+        // Новый запуск — новый вывод: старые строки и непрочитанная очередь больше не относятся к делу
+        if (state == Core.Engine.ServerState.Starting && _lastState != Core.Engine.ServerState.Starting)
+        {
+            DrainLog();
+            ServerLines.Clear();
+            foreach (var l in _s.Engine.Server.Tail.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)) ServerLines.Add(l);
+            while (_pendingLines.TryDequeue(out _)) { }
+        }
+        _lastState = state;
         OnPropertyChanged(nameof(IsServerRunning));
-        OnPropertyChanged(nameof(ServerDetails));
         OnPropertyChanged(nameof(ServerCommandLine));
-        OnPropertyChanged(nameof(ServerLogTail));
         StopServerCommand.NotifyCanExecuteChanged();
     }
 
@@ -516,9 +545,6 @@ public sealed partial class EngineViewModel : PageViewModel
 
     [RelayCommand(CanExecute = nameof(CanStop))]
     private void StopServer() => _s.Engine.Server.Stop();
-
-    [RelayCommand]
-    private void RefreshLog() => OnPropertyChanged(nameof(ServerLogTail));
 
     public static void OpenUrl(string url)
     {

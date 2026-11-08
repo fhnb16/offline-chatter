@@ -164,7 +164,21 @@ public sealed class AppServices : IDisposable
         var model = ActiveModel;
         if (model == null) return Localization.L.Get("Chat_NoModel");
         if (Engine.Registry.Active == null) return Localization.L.Get("Chat_NoEngine");
-        return await EnsureServerAsync(model, ct).ConfigureAwait(false) ? null : Engine.Server.LastError ?? "?";
+        return await EnsureServerAsync(model, ct).ConfigureAwait(false) ? null : ServerErrorText ?? "?";
+    }
+
+    /// <summary>Ошибка последнего запуска llama-server; известные причины — своим текстом на языке интерфейса.</summary>
+    public string? ServerErrorText
+    {
+        get
+        {
+            var srv = Engine.Server;
+            if (srv.LastErrorCode != "StrictGpu") return srv.LastError;
+            var f = srv.Facts;
+            return Localization.L.F("Ins_StrictFailed",
+                f.OffloadedLayers?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?",
+                f.TotalLayers?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?");
+        }
     }
 
     /// <summary>Последние ошибки подключения MCP по имени сервера (для UI).</summary>
@@ -216,7 +230,7 @@ public sealed class AppServices : IDisposable
         if (!(Engine.Server.State == ServerState.Ready && Engine.Server.Options?.ModelPath == model.Path))
             status?.Invoke(Localization.L.F("Chat_StartingModel", model.DisplayName));
         if (!await EnsureServerAsync(model, ct).ConfigureAwait(false))
-            return (null, null, Localization.L.F("Chat_ServerFailed", Engine.Server.LastError ?? "?"));
+            return (null, null, Localization.L.F("Chat_ServerFailed", ServerErrorText ?? "?"));
         return (ChatClient.ForLocal(LocalHttp, Engine.Server.BaseUrl + "/v1", Engine.Server.ApiKey, "llama.cpp"), Engine.Server.Options?.Alias, null);
     }
     private string? _runningSignature;

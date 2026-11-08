@@ -138,7 +138,6 @@
   <data name="Engine_Server" xml:space="preserve"><value>llama-server</value></data>
   <data name="Engine_Stop" xml:space="preserve"><value>Остановить</value></data>
   <data name="Engine_ServerLog" xml:space="preserve"><value>Командная строка и вывод сервера</value></data>
-  <data name="Engine_ServerDetails" xml:space="preserve"><value>{0} · PID {1} · {2} · загрузка {3}</value></data>
   <data name="Engine_Hardware" xml:space="preserve"><value>Железо</value></data>
   <data name="Engine_HardwareProbing" xml:space="preserve"><value>Определяю железо…</value></data>
   <data name="Engine_Cores" xml:space="preserve"><value>{0} ядер / {1} потоков</value></data>
@@ -248,11 +247,8 @@
   <data name="Profiles_DefaultForAll" xml:space="preserve"><value>Использовать для моделей без своего профиля</value></data>
   <data name="Profiles_Name" xml:space="preserve"><value>Название</value></data>
   <data name="Profiles_Context" xml:space="preserve"><value>Размер контекста (пусто — авто)</value></data>
-  <data name="Profiles_GpuLayers" xml:space="preserve"><value>Слоёв на GPU (пусто — авто, -1 — все, 0 — только CPU)</value></data>
-  <data name="Profiles_GpuLayersHint" xml:space="preserve"><value>«Авто» использует --fit из llama.cpp, если есть, иначе нашу оценку VRAM</value></data>
   <data name="Profiles_UseFit" xml:space="preserve"><value>Автоподбор под память средствами llama.cpp (--fit)</value></data>
   <data name="Profiles_Threads" xml:space="preserve"><value>Потоков CPU (пусто — по физическим ядрам)</value></data>
-  <data name="Profiles_AutoHint" xml:space="preserve"><value>Пусто — автоматически</value></data>
   <data name="Profiles_Batch" xml:space="preserve"><value>Batch / micro-batch</value></data>
   <data name="Profiles_Parallel" xml:space="preserve"><value>Параллельных слотов</value></data>
   <data name="Profiles_KvCache" xml:space="preserve"><value>Тип KV-кэша (K / V)</value></data>
@@ -360,11 +356,7 @@
   <data name="Logs_Filter" xml:space="preserve"><value>Фильтр по тексту</value></data>
   <data name="Logs_Count" xml:space="preserve"><value>Показано {0} из {1}</value></data>
   <data name="Logs_BundleSaved" xml:space="preserve"><value>Сохранено (секретов внутри нет): {0}</value></data>
-  <data name="Res_Title" xml:space="preserve"><value>Ресурсы llama-server</value></data>
-  <data name="Res_ServerStopped" xml:space="preserve"><value>Сервер не запущен</value></data>
-  <data name="Res_Cpu" xml:space="preserve"><value>ЦП: {0}%</value></data>
-  <data name="Res_Ram" xml:space="preserve"><value>ОЗУ: {0}</value></data>
-  <data name="Res_Vram" xml:space="preserve"><value>Видеопамять: {0} из {1}</value></data>
+  <data name="Res_Title" xml:space="preserve"><value>Сервер и модель</value></data>
   <data name="Export_Title" xml:space="preserve"><value>Экспорт — формат выберите в поле «Тип файла»</value></data>
   <data name="Export_Chat" xml:space="preserve"><value>Экспорт чата (DOCX, DOC, RTF, HTML, Markdown, JSON)</value></data>
   <data name="Export_Message" xml:space="preserve"><value>Экспорт сообщения</value></data>
@@ -735,4 +727,113 @@
 Всё равно установить?</value></data>
   <data name="Update_SignatureDeclined" xml:space="preserve"><value>Обновление не установлено: вы отказались от версии без доверенной подписи</value></data>
   <data name="Update_FileChanged" xml:space="preserve"><value>Обновление не установлено: скачанный файл изменился, пока ожидались права администратора</value></data>
+  <data name="Enum_GpuOffloadMode_Auto" xml:space="preserve"><value>Автоматически</value></data>
+  <data name="Enum_GpuOffloadMode_All" xml:space="preserve"><value>Все слои на GPU</value></data>
+  <data name="Enum_GpuOffloadMode_Partial" xml:space="preserve"><value>Часть на GPU, остальное на CPU</value></data>
+  <data name="Enum_GpuOffloadMode_CpuOnly" xml:space="preserve"><value>Только CPU</value></data>
+  <data name="Profiles_GpuTitle" xml:space="preserve"><value>Видеокарта</value></data>
+  <data name="Profiles_GpuSubtitle" xml:space="preserve"><value>Сколько слоёв модели держать в видеопамяти</value></data>
+  <data name="Profiles_GpuLayersN" xml:space="preserve"><value>Слоёв на GPU: {0}</value></data>
+  <data name="Profiles_GpuLayersOf" xml:space="preserve"><value>{0} из {1} слоёв на GPU · {2} %</value></data>
+  <data name="Profiles_GpuRatioHint" xml:space="preserve"><value>Отправить на GPU такую долю слоёв</value></data>
+  <data name="Profiles_GpuHint_Auto" xml:space="preserve"><value>llama.cpp сам решает, сколько слоёв поместится в видеопамять (--fit); без --fit — по оценке программы</value></data>
+  <data name="Profiles_GpuHint_All" xml:space="preserve"><value>Вся модель в видеопамяти — самый быстрый вариант, если хватает VRAM. Передаётся как -ngl all (в старых сборках 999).</value></data>
+  <data name="Profiles_GpuHint_Partial" xml:space="preserve"><value>Каждый слой на GPU ускоряет генерацию, но занимает видеопамять. Подходит, когда модель не помещается целиком.</value></data>
+  <data name="Profiles_GpuPerLayer" xml:space="preserve"><value>Примерно {0} на слой.</value></data>
+  <data name="Profiles_GpuHint_CpuOnly" xml:space="preserve"><value>Видеокарта не используется. Пригодится, если видеопамять занята другим или GPU-сборка работает нестабильно.</value></data>
+  <data name="Profiles_GpuHint_CpuEngine" xml:space="preserve"><value>Активная сборка llama.cpp — только для CPU, слои остаются на процессоре. Сборку Vulkan или CUDA можно установить ниже.</value></data>
+  <data name="Profiles_StrictGpu" xml:space="preserve"><value>Строго на GPU: ничего не переносить на CPU</value></data>
+  <data name="Profiles_StrictGpuHint" xml:space="preserve"><value>Отключает --fit, KV-кэш остаётся в видеопамяти. Если модель не поместится целиком, сервер остановится с ошибкой, а не будет работать медленнее. На NVIDIA также выберите в панели управления «CUDA - Sysmem Fallback Policy» → «Prefer No Sysmem Fallback» (политика резервной системной памяти): иначе драйвер может незаметно переносить данные в ОЗУ.</value></data>
+  <data name="Profiles_CpuTitle" xml:space="preserve"><value>Процессор</value></data>
+  <data name="Profiles_CpuSubtitle" xml:space="preserve"><value>Потоки, которыми модель считается на CPU</value></data>
+  <data name="Profiles_ThreadsAuto" xml:space="preserve"><value>Авто · {0} (по физическим ядрам)</value></data>
+  <data name="Profiles_ThreadsOf" xml:space="preserve"><value>{0} из {1} потоков</value></data>
+  <data name="Profiles_ThreadsOverPhysical" xml:space="preserve"><value>Больше, чем физических ядер ({0}): генерация обычно не ускоряется, а замедляется</value></data>
+  <data name="Profiles_ThreadsHint" xml:space="preserve"><value>Скорость генерации упирается в память, поэтому лучше всего обычно число физических ядер. Если вся модель на GPU, потоки почти не влияют. Крайнее левое положение — автоматически.</value></data>
+  <data name="Status_NoEngine" xml:space="preserve"><value>Нет сборки llama.cpp</value></data>
+  <data name="Status_NotLoaded" xml:space="preserve"><value>не загружена</value></data>
+  <data name="Status_TipModel" xml:space="preserve"><value>Модель: {0}</value></data>
+  <data name="Status_TipEngine" xml:space="preserve"><value>Сборка: {0}</value></data>
+  <data name="Status_TipState" xml:space="preserve"><value>Сервер: {0}</value></data>
+  <data name="Status_TipOpen" xml:space="preserve"><value>Щелчок — раздел «Движок»</value></data>
+  <data name="Ins_Copy" xml:space="preserve"><value>Скопировать сведения</value></data>
+  <data name="Ins_GroupServer" xml:space="preserve"><value>Сервер</value></data>
+  <data name="Ins_GroupLoad" xml:space="preserve"><value>Нагрузка</value></data>
+  <data name="Ins_GroupActivity" xml:space="preserve"><value>Работа модели</value></data>
+  <data name="Ins_GroupLaunch" xml:space="preserve"><value>Параметры запуска</value></data>
+  <data name="Ins_GroupModel" xml:space="preserve"><value>Модель</value></data>
+  <data name="Ins_State" xml:space="preserve"><value>Состояние</value></data>
+  <data name="Ins_Error" xml:space="preserve"><value>Ошибка</value></data>
+  <data name="Ins_Build" xml:space="preserve"><value>Сборка</value></data>
+  <data name="Ins_Backend" xml:space="preserve"><value>Бэкенд</value></data>
+  <data name="Ins_Source" xml:space="preserve"><value>Источник</value></data>
+  <data name="Ins_Devices" xml:space="preserve"><value>Устройства</value></data>
+  <data name="Ins_Address" xml:space="preserve"><value>Адрес</value></data>
+  <data name="Ins_Uptime" xml:space="preserve"><value>Работает</value></data>
+  <data name="Ins_LoadTime" xml:space="preserve"><value>Загрузка модели</value></data>
+  <data name="Ins_Cpu" xml:space="preserve"><value>ЦП</value></data>
+  <data name="Ins_Ram" xml:space="preserve"><value>ОЗУ процесса</value></data>
+  <data name="Ins_Vram" xml:space="preserve"><value>Видеопамять (NVIDIA)</value></data>
+  <data name="Ins_Weights" xml:space="preserve"><value>Веса</value></data>
+  <data name="Ins_KvCache" xml:space="preserve"><value>KV-кэш</value></data>
+  <data name="Ins_Compute" xml:space="preserve"><value>Буферы вычислений</value></data>
+  <data name="Ins_Requests" xml:space="preserve"><value>Запросов</value></data>
+  <data name="Ins_NoRequests" xml:space="preserve"><value>Запросов ещё не было</value></data>
+  <data name="Ins_LastAt" xml:space="preserve"><value>последний в {0}</value></data>
+  <data name="Ins_LastPrompt" xml:space="preserve"><value>Последний промпт</value></data>
+  <data name="Ins_LastGen" xml:space="preserve"><value>Последний ответ</value></data>
+  <data name="Ins_TotalPrompt" xml:space="preserve"><value>Промпты, всего</value></data>
+  <data name="Ins_TotalGen" xml:space="preserve"><value>Ответы, всего</value></data>
+  <data name="Ins_Tokens" xml:space="preserve"><value>{0} ток</value></data>
+  <data name="Ins_DraftAccept" xml:space="preserve"><value>Принято из черновика</value></data>
+  <data name="Ins_ChatFormat" xml:space="preserve"><value>Формат чата</value></data>
+  <data name="Ins_Context" xml:space="preserve"><value>Контекст</value></data>
+  <data name="Ins_PerSlot" xml:space="preserve"><value>на слот {0}</value></data>
+  <data name="Ins_Trained" xml:space="preserve"><value>обучена на {0}</value></data>
+  <data name="Ins_GpuLayers" xml:space="preserve"><value>Слои на GPU</value></data>
+  <data name="Ins_AllOnGpu" xml:space="preserve"><value>вся модель на GPU</value></data>
+  <data name="Ins_PartOnGpu" xml:space="preserve"><value>часть на CPU</value></data>
+  <data name="Ins_NoneOnGpu" xml:space="preserve"><value>всё на CPU</value></data>
+  <data name="Ins_CpuOnly" xml:space="preserve"><value>Сборка для CPU</value></data>
+  <data name="Ins_Strict" xml:space="preserve"><value>строго</value></data>
+  <data name="Ins_Fit" xml:space="preserve"><value>авто (--fit)</value></data>
+  <data name="Ins_Default" xml:space="preserve"><value>по умолчанию llama.cpp</value></data>
+  <data name="Ins_Threads" xml:space="preserve"><value>Потоки</value></data>
+  <data name="Ins_BatchThreads" xml:space="preserve"><value>батч {0}</value></data>
+  <data name="Ins_Batch" xml:space="preserve"><value>Батч / ubatch</value></data>
+  <data name="Ins_Slots" xml:space="preserve"><value>Слоты</value></data>
+  <data name="Ins_FlashAttn" xml:space="preserve"><value>Flash attention</value></data>
+  <data name="Ins_Mmap" xml:space="preserve"><value>Загрузка весов</value></data>
+  <data name="Ins_Reasoning" xml:space="preserve"><value>Формат рассуждений</value></data>
+  <data name="Ins_Mmproj" xml:space="preserve"><value>Проектор зрения</value></data>
+  <data name="Ins_DraftModel" xml:space="preserve"><value>Черновая модель</value></data>
+  <data name="Ins_CpuFeatures" xml:space="preserve"><value>Инструкции CPU</value></data>
+  <data name="Ins_Skipped" xml:space="preserve"><value>Пропущенные флаги</value></data>
+  <data name="Ins_ModelName" xml:space="preserve"><value>Название</value></data>
+  <data name="Ins_Family" xml:space="preserve"><value>Семейство</value></data>
+  <data name="Ins_Params" xml:space="preserve"><value>Параметры</value></data>
+  <data name="Ins_Quant" xml:space="preserve"><value>Квантование</value></data>
+  <data name="Ins_FileSize" xml:space="preserve"><value>Размер файла</value></data>
+  <data name="Ins_Layers" xml:space="preserve"><value>Слоёв</value></data>
+  <data name="Ins_TrainCtx" xml:space="preserve"><value>Контекст обучения</value></data>
+  <data name="Ins_Embedding" xml:space="preserve"><value>Размер эмбеддинга</value></data>
+  <data name="Ins_Heads" xml:space="preserve"><value>Головы внимания</value></data>
+  <data name="Ins_Experts" xml:space="preserve"><value>Эксперты (MoE)</value></data>
+  <data name="Ins_ExpertsActive" xml:space="preserve"><value>активных {0}</value></data>
+  <data name="Ins_Hybrid" xml:space="preserve"><value>Гибридное внимание</value></data>
+  <data name="Ins_HybridValue" xml:space="preserve"><value>полное внимание в каждом {0}-м слое</value></data>
+  <data name="Ins_SlidingWindow" xml:space="preserve"><value>Скользящее окно</value></data>
+  <data name="Ins_Vocab" xml:space="preserve"><value>Токенизатор</value></data>
+  <data name="Ins_Template" xml:space="preserve"><value>Шаблон чата</value></data>
+  <data name="Ins_TemplateNone" xml:space="preserve"><value>Нет, сервер возьмёт встроенный</value></data>
+  <data name="Ins_TemplateYes" xml:space="preserve"><value>Встроен</value></data>
+  <data name="Ins_TemplateTools" xml:space="preserve"><value>инструменты</value></data>
+  <data name="Ins_TemplateThinking" xml:space="preserve"><value>рассуждения</value></data>
+  <data name="Ins_TemplateImages" xml:space="preserve"><value>изображения</value></data>
+  <data name="Ins_Vision" xml:space="preserve"><value>Зрение</value></data>
+  <data name="Ins_License" xml:space="preserve"><value>Лицензия</value></data>
+  <data name="Ins_Author" xml:space="preserve"><value>Автор</value></data>
+  <data name="Ins_QuantizedBy" xml:space="preserve"><value>Квантовал</value></data>
+  <data name="Ins_Path" xml:space="preserve"><value>Файл</value></data>
+  <data name="Ins_StrictFailed" xml:space="preserve"><value>Строго на GPU: в видеопамять поместилось только {0} из {1} слоёв, поэтому сервер остановлен. Уменьшите контекст, выберите квант поменьше или отключите строгий режим в профиле запуска.</value></data>
 </root>

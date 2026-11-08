@@ -28,7 +28,8 @@ public sealed partial class MainViewModel : ObservableObject
         };
         RebuildNav();
         Downloads = new DownloadsViewModel(services.Downloads);
-        Chat = new ChatPageViewModel(services);
+        Server = new ServerInsightViewModel(services);
+        Chat = new ChatPageViewModel(services, Server);
         Register(Chat);
         Register(new SettingsViewModel(services, this));
         Register(new EngineViewModel(services, this));
@@ -60,6 +61,12 @@ public sealed partial class MainViewModel : ObservableObject
     public DownloadsViewModel Downloads { get; }
 
     public ChatPageViewModel Chat { get; }
+
+    /// <summary>Состояние llama-server, активная сборка и модель (боковая панель, чат, раздел «Движок»).</summary>
+    public ServerInsightViewModel Server { get; }
+
+    [RelayCommand]
+    private void OpenEngine() => Navigate(PageKind.Engine);
 
     /// <summary>Все разделы (для настройки боковой панели).</summary>
     public IReadOnlyList<NavItem> AllNavItems { get; }
@@ -205,6 +212,8 @@ public sealed partial class MainViewModel : ObservableObject
 
         CurrentPage = page;
         page.OnNavigatedTo();
+        // Модель по умолчанию могли сменить в «Моделях» или мастере — строка состояния должна это показать
+        Server.OnActiveModelChanged();
     }
 
     [RelayCommand]

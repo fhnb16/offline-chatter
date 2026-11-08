@@ -1,0 +1,45 @@
+<UserControl x:Class="OfflineChatter.Views.ServerInsightView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:OfflineChatter.ViewModels"
+             xmlns:c="clr-namespace:OfflineChatter.Controls">
+    <!-- DataContext: ServerInsightViewModel. Группы «подпись — значение»; в узкой панели — в одну колонку, на широкой — рядом -->
+    <ItemsControl ItemsSource="{Binding Groups}" Focusable="False">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <c:ResponsiveGrid MinColumnWidth="300" MaxColumns="3" Spacing="24" />
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type vm:InsightGroup}">
+                <StackPanel Margin="0,0,0,12">
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource SectionHeaderText}" Margin="0,0,0,6" />
+                    <ItemsControl ItemsSource="{Binding Rows}" Focusable="False">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:InsightRow}">
+                                <Grid Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="3*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Label}" Style="{StaticResource CaptionText}" />
+                                    <TextBlock x:Name="Value" Grid.Column="2" Text="{Binding Value}" FontSize="12" TextWrapping="Wrap"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                                </Grid>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding Mono}" Value="True">
+                                        <Setter TargetName="Value" Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsWarn}" Value="True">
+                                        <Setter TargetName="Value" Property="Foreground" Value="{DynamicResource StatusWarnBrush}" />
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>

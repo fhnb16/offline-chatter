@@ -113,6 +113,28 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
+    <!-- Точка состояния llama-server (DataContext — ServerInsightViewModel): готов, загружается, ошибка, остановлен -->
+    <Style x:Key="ServerStateDot" TargetType="Ellipse">
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Height" Value="8" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Fill" Value="{DynamicResource TextTertiaryBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding State}" Value="Ready">
+                <Setter Property="Fill" Value="{DynamicResource StatusOkBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding State}" Value="Starting">
+                <Setter Property="Fill" Value="{DynamicResource StatusWarnBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding State}" Value="Loading">
+                <Setter Property="Fill" Value="{DynamicResource StatusWarnBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding State}" Value="Failed">
+                <Setter Property="Fill" Value="{DynamicResource StatusErrorBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
     <!-- Текст на стекле Win7 получает свечение; на остальных подложках эффект = null -->
     <Style x:Key="GlassText" TargetType="TextBlock">
         <Setter Property="Effect" Value="{DynamicResource GlassTextEffect}" />

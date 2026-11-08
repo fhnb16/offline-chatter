@@ -1,7 +1,9 @@
 <UserControl x:Class="OfflineChatter.Views.ProfilesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:l="clr-namespace:OfflineChatter.Localization">
+             xmlns:l="clr-namespace:OfflineChatter.Localization"
+             xmlns:vm="clr-namespace:OfflineChatter.ViewModels"
+             xmlns:c="clr-namespace:OfflineChatter.Controls">
     <!-- DataContext: ProfilesViewModel -->
     <UserControl.Resources>
         <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
@@ -20,6 +22,67 @@
             </DockPanel>
             <CheckBox Content="{l:Loc Profiles_DefaultForAll}" IsChecked="{Binding IsDefaultForAll}" Margin="0,8,0,0" />
 
+            <!-- Где считается модель: видеокарта (слои) и процессор (потоки) -->
+            <c:ResponsiveGrid MinColumnWidth="320" MaxColumns="2" Margin="0,12,0,0">
+                <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+                    <StackPanel>
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Right" Text="-ngl" Style="{StaticResource StatText}" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Loc Profiles_GpuTitle}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
+                        </DockPanel>
+                        <TextBlock Text="{l:Loc Profiles_GpuSubtitle}" Style="{StaticResource CaptionText}" Margin="0,2,0,8" />
+                        <ComboBox ItemsSource="{Binding GpuModes}" SelectedItem="{Binding GpuMode}" IsEnabled="{Binding IsGpuEngine}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDisplay}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <StackPanel Margin="0,8,0,0" Visibility="{Binding IsPartialMode, Converter={StaticResource BoolToVisibility}}" IsEnabled="{Binding IsGpuEngine}">
+                            <TextBlock Text="{Binding GpuLayersText}" Style="{StaticResource StatText}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Slider Minimum="1" Maximum="{Binding LayerCount}" Value="{Binding GpuLayersSlider}" TickFrequency="1" IsSnapToTickEnabled="True"
+                                    SmallChange="1" LargeChange="4" Margin="0,4,0,0" />
+                            <ItemsControl ItemsSource="{Binding GpuRatios}" Focusable="False" Margin="0,4,0,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:GpuRatioOption}">
+                                        <Button Content="{Binding Title}" Margin="0,0,4,4" Padding="8,2" ToolTip="{l:Loc Profiles_GpuRatioHint}"
+                                                Command="{Binding DataContext.SetGpuRatioCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                        <CheckBox Content="{l:Loc Profiles_UseFit}" IsChecked="{Binding UseFit}" Margin="0,8,0,0"
+                                  Visibility="{Binding IsAutoMode, Converter={StaticResource BoolToVisibility}}" />
+                        <CheckBox Content="{l:Loc Profiles_StrictGpu}" IsChecked="{Binding StrictGpu}" Margin="0,8,0,0" ToolTip="{l:Loc Profiles_StrictGpuHint}"
+                                  Visibility="{Binding IsAllMode, Converter={StaticResource BoolToVisibility}}" IsEnabled="{Binding IsGpuEngine}" />
+                        <TextBlock Text="{Binding GpuModeHint}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />
+                        <TextBlock Text="{l:Loc Profiles_StrictGpuHint}" Style="{StaticResource CaptionText}" Margin="0,4,0,0"
+                                   Visibility="{Binding ShowStrictHint, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+                </Border>
+                <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+                    <StackPanel>
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Right" Text="-t" Style="{StaticResource StatText}" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Loc Profiles_CpuTitle}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
+                        </DockPanel>
+                        <TextBlock Text="{l:Loc Profiles_CpuSubtitle}" Style="{StaticResource CaptionText}" Margin="0,2,0,8" />
+                        <TextBlock Text="{Binding ThreadsText}" Style="{StaticResource StatText}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <Slider Minimum="0" Maximum="{Binding MaxThreads}" Value="{Binding ThreadsSlider}" TickFrequency="1" IsSnapToTickEnabled="True"
+                                SmallChange="1" LargeChange="2" Margin="0,4,0,0" />
+                        <TextBlock Text="{Binding ThreadsWarning}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}" Margin="0,4,0,0"
+                                   Visibility="{Binding ThreadsWarning, Converter={StaticResource NullToCollapsed}}" />
+                        <TextBlock Text="{l:Loc Profiles_ThreadsHint}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />
+                    </StackPanel>
+                </Border>
+            </c:ResponsiveGrid>
+
             <Grid Margin="0,4,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -35,11 +98,6 @@
                     <TextBox Text="{Binding Name}" />
                     <TextBlock Text="{l:Loc Profiles_Context}" Style="{StaticResource FieldLabel}" />
                     <TextBox Text="{Binding ContextSize}" ToolTip="4096 · 8192 · 16384 · 32768 · 65536 · 131072" />
-                    <TextBlock Text="{l:Loc Profiles_GpuLayers}" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding GpuLayers}" ToolTip="{l:Loc Profiles_GpuLayersHint}" />
-                    <CheckBox Content="{l:Loc Profiles_UseFit}" IsChecked="{Binding UseFit}" Margin="0,8,0,0" />
-                    <TextBlock Text="{l:Loc Profiles_Threads}" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding Threads}" ToolTip="{l:Loc Profiles_AutoHint}" />
                 </StackPanel>
 
                 <!-- Батчи и кэш -->

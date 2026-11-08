@@ -138,7 +138,6 @@
   <data name="Engine_Server" xml:space="preserve"><value>llama-server</value></data>
   <data name="Engine_Stop" xml:space="preserve"><value>Stop</value></data>
   <data name="Engine_ServerLog" xml:space="preserve"><value>Command line and server output</value></data>
-  <data name="Engine_ServerDetails" xml:space="preserve"><value>{0} · PID {1} · {2} · loaded in {3}</value></data>
   <data name="Engine_Hardware" xml:space="preserve"><value>Hardware</value></data>
   <data name="Engine_HardwareProbing" xml:space="preserve"><value>Detecting hardware…</value></data>
   <data name="Engine_Cores" xml:space="preserve"><value>{0} cores / {1} threads</value></data>
@@ -248,11 +247,8 @@ No — only remove from the list</value></data>
   <data name="Profiles_DefaultForAll" xml:space="preserve"><value>Use this profile for models without their own</value></data>
   <data name="Profiles_Name" xml:space="preserve"><value>Name</value></data>
   <data name="Profiles_Context" xml:space="preserve"><value>Context size (empty — auto)</value></data>
-  <data name="Profiles_GpuLayers" xml:space="preserve"><value>Layers on GPU (empty — auto, -1 — all, 0 — CPU only)</value></data>
-  <data name="Profiles_GpuLayersHint" xml:space="preserve"><value>Auto uses llama.cpp --fit when available, otherwise our VRAM estimate</value></data>
   <data name="Profiles_UseFit" xml:space="preserve"><value>Let llama.cpp fit parameters to memory (--fit)</value></data>
   <data name="Profiles_Threads" xml:space="preserve"><value>CPU threads (empty — physical cores)</value></data>
-  <data name="Profiles_AutoHint" xml:space="preserve"><value>Empty — automatic</value></data>
   <data name="Profiles_Batch" xml:space="preserve"><value>Batch / micro-batch</value></data>
   <data name="Profiles_Parallel" xml:space="preserve"><value>Parallel slots</value></data>
   <data name="Profiles_KvCache" xml:space="preserve"><value>KV cache type (K / V)</value></data>
@@ -360,11 +356,7 @@ No — only remove from the list</value></data>
   <data name="Logs_Filter" xml:space="preserve"><value>Filter by text</value></data>
   <data name="Logs_Count" xml:space="preserve"><value>Shown {0} of {1}</value></data>
   <data name="Logs_BundleSaved" xml:space="preserve"><value>Saved (no secrets inside): {0}</value></data>
-  <data name="Res_Title" xml:space="preserve"><value>llama-server resources</value></data>
-  <data name="Res_ServerStopped" xml:space="preserve"><value>Server is not running</value></data>
-  <data name="Res_Cpu" xml:space="preserve"><value>CPU: {0}%</value></data>
-  <data name="Res_Ram" xml:space="preserve"><value>RAM: {0}</value></data>
-  <data name="Res_Vram" xml:space="preserve"><value>VRAM: {0} of {1}</value></data>
+  <data name="Res_Title" xml:space="preserve"><value>Server and model</value></data>
   <data name="Export_Title" xml:space="preserve"><value>Export — choose the format in «Save as type»</value></data>
   <data name="Export_Chat" xml:space="preserve"><value>Export chat (DOCX, DOC, RTF, HTML, Markdown, JSON)</value></data>
   <data name="Export_Message" xml:space="preserve"><value>Export this message</value></data>
@@ -735,4 +727,113 @@ Install anyway?</value></data>
 Install anyway?</value></data>
   <data name="Update_SignatureDeclined" xml:space="preserve"><value>The update was not installed: you declined a version without a trusted signature</value></data>
   <data name="Update_FileChanged" xml:space="preserve"><value>The update was not installed: the downloaded file changed while waiting for administrator rights</value></data>
+  <data name="Enum_GpuOffloadMode_Auto" xml:space="preserve"><value>Automatic</value></data>
+  <data name="Enum_GpuOffloadMode_All" xml:space="preserve"><value>All layers on GPU</value></data>
+  <data name="Enum_GpuOffloadMode_Partial" xml:space="preserve"><value>Part on GPU, the rest on CPU</value></data>
+  <data name="Enum_GpuOffloadMode_CpuOnly" xml:space="preserve"><value>CPU only</value></data>
+  <data name="Profiles_GpuTitle" xml:space="preserve"><value>Video card</value></data>
+  <data name="Profiles_GpuSubtitle" xml:space="preserve"><value>How many model layers to keep in video memory</value></data>
+  <data name="Profiles_GpuLayersN" xml:space="preserve"><value>{0} layers on GPU</value></data>
+  <data name="Profiles_GpuLayersOf" xml:space="preserve"><value>{0} of {1} layers on GPU · {2} %</value></data>
+  <data name="Profiles_GpuRatioHint" xml:space="preserve"><value>Put this share of the layers on the GPU</value></data>
+  <data name="Profiles_GpuHint_Auto" xml:space="preserve"><value>llama.cpp decides how many layers fit in video memory (--fit); without --fit the program uses its own estimate</value></data>
+  <data name="Profiles_GpuHint_All" xml:space="preserve"><value>The whole model in video memory, the fastest option when VRAM is enough. Passed as -ngl all (999 for older builds).</value></data>
+  <data name="Profiles_GpuHint_Partial" xml:space="preserve"><value>Every layer on the GPU speeds up generation but takes video memory. Use it when the model does not fit entirely.</value></data>
+  <data name="Profiles_GpuPerLayer" xml:space="preserve"><value>About {0} per layer.</value></data>
+  <data name="Profiles_GpuHint_CpuOnly" xml:space="preserve"><value>The video card is not used. Useful when VRAM is busy or the GPU build is unstable.</value></data>
+  <data name="Profiles_GpuHint_CpuEngine" xml:space="preserve"><value>The active llama.cpp build is CPU-only, so layers stay on the CPU. A Vulkan or CUDA build can be installed below.</value></data>
+  <data name="Profiles_StrictGpu" xml:space="preserve"><value>Strictly on GPU: move nothing to the CPU</value></data>
+  <data name="Profiles_StrictGpuHint" xml:space="preserve"><value>Turns off --fit and keeps the KV cache in video memory. If the model does not fit entirely, the server stops with an error instead of running slower. On NVIDIA also set &quot;CUDA - Sysmem Fallback Policy&quot; to &quot;Prefer No Sysmem Fallback&quot; in the control panel, otherwise the driver may quietly spill into RAM.</value></data>
+  <data name="Profiles_CpuTitle" xml:space="preserve"><value>Processor</value></data>
+  <data name="Profiles_CpuSubtitle" xml:space="preserve"><value>Threads that compute the model on the CPU</value></data>
+  <data name="Profiles_ThreadsAuto" xml:space="preserve"><value>Auto · {0} (physical cores)</value></data>
+  <data name="Profiles_ThreadsOf" xml:space="preserve"><value>{0} of {1} threads</value></data>
+  <data name="Profiles_ThreadsOverPhysical" xml:space="preserve"><value>More than the {0} physical cores: generation usually gets slower, not faster</value></data>
+  <data name="Profiles_ThreadsHint" xml:space="preserve"><value>Generation is limited by memory speed, so the number of physical cores is usually best. With the whole model on the GPU threads barely matter. Far left means automatic.</value></data>
+  <data name="Status_NoEngine" xml:space="preserve"><value>No llama.cpp build</value></data>
+  <data name="Status_NotLoaded" xml:space="preserve"><value>not loaded</value></data>
+  <data name="Status_TipModel" xml:space="preserve"><value>Model: {0}</value></data>
+  <data name="Status_TipEngine" xml:space="preserve"><value>Build: {0}</value></data>
+  <data name="Status_TipState" xml:space="preserve"><value>Server: {0}</value></data>
+  <data name="Status_TipOpen" xml:space="preserve"><value>Click to open the Engine section</value></data>
+  <data name="Ins_Copy" xml:space="preserve"><value>Copy details</value></data>
+  <data name="Ins_GroupServer" xml:space="preserve"><value>Server</value></data>
+  <data name="Ins_GroupLoad" xml:space="preserve"><value>Load</value></data>
+  <data name="Ins_GroupActivity" xml:space="preserve"><value>Model work</value></data>
+  <data name="Ins_GroupLaunch" xml:space="preserve"><value>Launch parameters</value></data>
+  <data name="Ins_GroupModel" xml:space="preserve"><value>Model</value></data>
+  <data name="Ins_State" xml:space="preserve"><value>State</value></data>
+  <data name="Ins_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="Ins_Build" xml:space="preserve"><value>Build</value></data>
+  <data name="Ins_Backend" xml:space="preserve"><value>Backend</value></data>
+  <data name="Ins_Source" xml:space="preserve"><value>Source</value></data>
+  <data name="Ins_Devices" xml:space="preserve"><value>Devices</value></data>
+  <data name="Ins_Address" xml:space="preserve"><value>Address</value></data>
+  <data name="Ins_Uptime" xml:space="preserve"><value>Running for</value></data>
+  <data name="Ins_LoadTime" xml:space="preserve"><value>Model load</value></data>
+  <data name="Ins_Cpu" xml:space="preserve"><value>CPU</value></data>
+  <data name="Ins_Ram" xml:space="preserve"><value>Process RAM</value></data>
+  <data name="Ins_Vram" xml:space="preserve"><value>VRAM (NVIDIA)</value></data>
+  <data name="Ins_Weights" xml:space="preserve"><value>Weights</value></data>
+  <data name="Ins_KvCache" xml:space="preserve"><value>KV cache</value></data>
+  <data name="Ins_Compute" xml:space="preserve"><value>Compute buffers</value></data>
+  <data name="Ins_Requests" xml:space="preserve"><value>Requests</value></data>
+  <data name="Ins_NoRequests" xml:space="preserve"><value>No requests yet</value></data>
+  <data name="Ins_LastAt" xml:space="preserve"><value>last at {0}</value></data>
+  <data name="Ins_LastPrompt" xml:space="preserve"><value>Last prompt</value></data>
+  <data name="Ins_LastGen" xml:space="preserve"><value>Last answer</value></data>
+  <data name="Ins_TotalPrompt" xml:space="preserve"><value>Prompts, total</value></data>
+  <data name="Ins_TotalGen" xml:space="preserve"><value>Answers, total</value></data>
+  <data name="Ins_Tokens" xml:space="preserve"><value>{0} tok</value></data>
+  <data name="Ins_DraftAccept" xml:space="preserve"><value>Draft acceptance</value></data>
+  <data name="Ins_ChatFormat" xml:space="preserve"><value>Chat format</value></data>
+  <data name="Ins_Context" xml:space="preserve"><value>Context</value></data>
+  <data name="Ins_PerSlot" xml:space="preserve"><value>per slot {0}</value></data>
+  <data name="Ins_Trained" xml:space="preserve"><value>trained {0}</value></data>
+  <data name="Ins_GpuLayers" xml:space="preserve"><value>Layers on GPU</value></data>
+  <data name="Ins_AllOnGpu" xml:space="preserve"><value>whole model on GPU</value></data>
+  <data name="Ins_PartOnGpu" xml:space="preserve"><value>part on CPU</value></data>
+  <data name="Ins_NoneOnGpu" xml:space="preserve"><value>all on CPU</value></data>
+  <data name="Ins_CpuOnly" xml:space="preserve"><value>CPU build</value></data>
+  <data name="Ins_Strict" xml:space="preserve"><value>strict</value></data>
+  <data name="Ins_Fit" xml:space="preserve"><value>auto (--fit)</value></data>
+  <data name="Ins_Default" xml:space="preserve"><value>llama.cpp default</value></data>
+  <data name="Ins_Threads" xml:space="preserve"><value>Threads</value></data>
+  <data name="Ins_BatchThreads" xml:space="preserve"><value>batch {0}</value></data>
+  <data name="Ins_Batch" xml:space="preserve"><value>Batch / ubatch</value></data>
+  <data name="Ins_Slots" xml:space="preserve"><value>Slots</value></data>
+  <data name="Ins_FlashAttn" xml:space="preserve"><value>Flash attention</value></data>
+  <data name="Ins_Mmap" xml:space="preserve"><value>Weights loading</value></data>
+  <data name="Ins_Reasoning" xml:space="preserve"><value>Reasoning format</value></data>
+  <data name="Ins_Mmproj" xml:space="preserve"><value>Vision projector</value></data>
+  <data name="Ins_DraftModel" xml:space="preserve"><value>Draft model</value></data>
+  <data name="Ins_CpuFeatures" xml:space="preserve"><value>CPU instructions</value></data>
+  <data name="Ins_Skipped" xml:space="preserve"><value>Skipped flags</value></data>
+  <data name="Ins_ModelName" xml:space="preserve"><value>Name</value></data>
+  <data name="Ins_Family" xml:space="preserve"><value>Family</value></data>
+  <data name="Ins_Params" xml:space="preserve"><value>Parameters</value></data>
+  <data name="Ins_Quant" xml:space="preserve"><value>Quantization</value></data>
+  <data name="Ins_FileSize" xml:space="preserve"><value>File size</value></data>
+  <data name="Ins_Layers" xml:space="preserve"><value>Layers</value></data>
+  <data name="Ins_TrainCtx" xml:space="preserve"><value>Trained context</value></data>
+  <data name="Ins_Embedding" xml:space="preserve"><value>Embedding size</value></data>
+  <data name="Ins_Heads" xml:space="preserve"><value>Attention heads</value></data>
+  <data name="Ins_Experts" xml:space="preserve"><value>Experts (MoE)</value></data>
+  <data name="Ins_ExpertsActive" xml:space="preserve"><value>{0} active</value></data>
+  <data name="Ins_Hybrid" xml:space="preserve"><value>Hybrid attention</value></data>
+  <data name="Ins_HybridValue" xml:space="preserve"><value>full attention every {0} layers</value></data>
+  <data name="Ins_SlidingWindow" xml:space="preserve"><value>Sliding window</value></data>
+  <data name="Ins_Vocab" xml:space="preserve"><value>Tokenizer</value></data>
+  <data name="Ins_Template" xml:space="preserve"><value>Chat template</value></data>
+  <data name="Ins_TemplateNone" xml:space="preserve"><value>None, the server uses a built-in one</value></data>
+  <data name="Ins_TemplateYes" xml:space="preserve"><value>Built in</value></data>
+  <data name="Ins_TemplateTools" xml:space="preserve"><value>tools</value></data>
+  <data name="Ins_TemplateThinking" xml:space="preserve"><value>reasoning</value></data>
+  <data name="Ins_TemplateImages" xml:space="preserve"><value>images</value></data>
+  <data name="Ins_Vision" xml:space="preserve"><value>Vision</value></data>
+  <data name="Ins_License" xml:space="preserve"><value>License</value></data>
+  <data name="Ins_Author" xml:space="preserve"><value>Author</value></data>
+  <data name="Ins_QuantizedBy" xml:space="preserve"><value>Quantized by</value></data>
+  <data name="Ins_Path" xml:space="preserve"><value>File</value></data>
+  <data name="Ins_StrictFailed" xml:space="preserve"><value>Strict GPU mode: only {0} of {1} layers fit in video memory, so the server was stopped. Reduce the context, pick a smaller quantization or turn off strict mode in the launch profile.</value></data>
 </root>

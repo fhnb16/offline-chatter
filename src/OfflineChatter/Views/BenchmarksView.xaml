@@ -101,7 +101,7 @@
             </DockPanel>
             <ProgressBar IsIndeterminate="True" Margin="0,6,0,0" Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}" />
             <Expander Header="{l:Loc Bench_Output}" Margin="0,6,0,0">
-                <TextBox Text="{Binding Output, Mode=OneWay}" IsReadOnly="True" Height="180" FontFamily="{DynamicResource MonoFontFamily}" FontSize="11"
+                <TextBox Text="{Binding Output, Mode=OneWay}" IsReadOnly="True" Height="180" c:AutoScroll.ToEnd="True" FontFamily="{DynamicResource MonoFontFamily}" FontSize="11"
                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" VerticalContentAlignment="Top" TextWrapping="NoWrap" />
             </Expander>
 

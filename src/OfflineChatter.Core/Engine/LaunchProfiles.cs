@@ -36,6 +36,11 @@ public sealed class LaunchProfile
     public int? ContextSize { get; set; }
     /// <summary>null — авто (--fit или своя оценка), -1 — все слои на GPU, 0 — только CPU.</summary>
     public int? GpuLayers { get; set; }
+    /// <summary>
+    /// Строго на GPU (только вместе с «все слои»): без --fit, KV-кэш в видеопамяти, а если модель не поместилась
+    /// целиком — сервер останавливается с ошибкой, а не работает медленнее с частью слоёв на CPU.
+    /// </summary>
+    public bool StrictGpu { get; set; }
     public int? Threads { get; set; }
     public int? BatchSize { get; set; }
     public int? UBatchSize { get; set; }
@@ -164,7 +169,8 @@ public static class ProfileDiff
     }
 }
 
-public sealed record ResolvedLaunch(ServerLaunchOptions Options, MemoryEstimate Estimate, FitVerdict Verdict, IReadOnlyList<string> Notes);
+public sealed record ResolvedLaunch(ServerLaunchOptions Options, MemoryEstimate Estimate, FitVerdict Verdict, IReadOnlyList<string> Notes,
+    GgufInfo? Info = null);
 
 /// <summary>
 /// Превращает профиль + модель + железо + возможности версии llama.cpp в конкретные аргументы.
@@ -201,9 +207,17 @@ public static class ProfileResolver
         var fitSupported = flags?.Supports("--fit") == true;
         int? ngl = p.GpuLayers;
         bool? fit = null;
+        var strict = false;
         if (!gpuCapable)
         {
             ngl = flags == null || flags.Supports("--n-gpu-layers") ? 0 : null;
+        }
+        else if (p.StrictGpu && ngl is < 0)
+        {
+            // --fit при нехватке памяти сам переносит часть модели на CPU — в строгом режиме это запрещено
+            strict = true;
+            if (fitSupported) fit = false;
+            notes.Add("strict GPU");
         }
         else if (ngl == null)
         {
@@ -243,6 +257,7 @@ public static class ProfileResolver
             ReasoningFormat = p.ReasoningFormat,
             DraftModelPath = string.IsNullOrWhiteSpace(p.DraftModelPath) ? null : p.DraftModelPath,
             ExtraArgs = p.ExtraArgs,
+            RequireFullOffload = strict,
         };
 
         var estimate = MemoryEstimator.Estimate(info, model.SizeBytes, ctx, p.CacheTypeK, p.CacheTypeV,
@@ -259,6 +274,6 @@ public static class ProfileResolver
         {
             verdict = MemoryEstimator.Verdict(estimate.Total, ram);
         }
-        return new ResolvedLaunch(options, estimate, verdict, notes);
+        return new ResolvedLaunch(options, estimate, verdict, notes, info);
     }
 }

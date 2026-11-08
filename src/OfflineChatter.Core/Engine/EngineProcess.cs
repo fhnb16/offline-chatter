@@ -37,6 +37,7 @@ public sealed class EngineProcess : IDisposable
     private readonly HttpClient _local;
     private readonly object _gate = new();
     private readonly LinkedList<string> _tail = new();
+    private ServerLogFacts _facts = new();
     private Process? _process;
     private IntPtr _job;
     private CancellationTokenSource? _watchCts;
@@ -49,6 +50,8 @@ public sealed class EngineProcess : IDisposable
 
     public ServerState State { get; private set; } = ServerState.Stopped;
     public string? LastError { get; private set; }
+    /// <summary>Причина ошибки, которую UI показывает своим текстом: StrictGpu или null.</summary>
+    public string? LastErrorCode { get; private set; }
     public int Port { get; private set; }
     public string Host { get; private set; } = "127.0.0.1";
     public string? ApiKey { get; private set; }
@@ -75,15 +78,26 @@ public sealed class EngineProcess : IDisposable
         get { lock (_tail) return string.Join(Environment.NewLine, _tail); }
     }
 
+    /// <summary>Сведения из вывода текущего запуска (копия: можно читать из любого потока).</summary>
+    public ServerLogFacts Facts
+    {
+        get { lock (_tail) return _facts.Clone(); }
+    }
+
     /// <param name="fixedKey">Постоянный ключ (публичный API) или null — случайный на каждый запуск.</param>
     /// <param name="host">Адрес прослушивания: 127.0.0.1, 0.0.0.0 или IPv4 адаптера.</param>
     public async Task StartAsync(EngineInstall engine, ServerLaunchOptions options, FlagCatalog? flags, string host, int port, CancellationToken ct, string? fixedKey = null)
     {
         Stop();
-        lock (_tail) _tail.Clear();
+        lock (_tail)
+        {
+            _tail.Clear();
+            _facts = new ServerLogFacts();
+        }
         Engine = engine;
         Options = options;
         LastError = null;
+        LastErrorCode = null;
         Host = string.IsNullOrWhiteSpace(host) ? EngineSettings.Loopback : host;
         Port = port > 0 ? port : FreePort();
         ApiKey = string.IsNullOrEmpty(fixedKey) ? NewKey() : fixedKey;
@@ -148,6 +162,15 @@ public sealed class EngineProcess : IDisposable
                 if (resp.IsSuccessStatusCode)
                 {
                     LoadTime = sw.Elapsed;
+                    if (Options?.RequireFullOffload == true && Facts is { FullyOffloaded: false } f)
+                    {
+                        // Строго на GPU: часть слоёв осталась на CPU — останавливаем, чтобы не работать медленно молча
+                        var msg = $"Strict GPU mode: only {f.OffloadedLayers}/{f.TotalLayers} layers fit in video memory, the rest would run on the CPU. " +
+                                  "Reduce the context size, use a smaller quantization or turn off strict GPU mode.";
+                        KillAfterFailure(p);
+                        Fail(msg, "StrictGpu");
+                        return;
+                    }
                     Log.Info("Engine", "llama-server ready", new { port = Port, loadMs = (long)sw.Elapsed.TotalMilliseconds });
                     SetState(ServerState.Ready);
                     return;
@@ -170,7 +193,8 @@ public sealed class EngineProcess : IDisposable
         lock (_tail)
         {
             _tail.AddLast(line);
-            while (_tail.Count > 200) _tail.RemoveFirst();
+            while (_tail.Count > 400) _tail.RemoveFirst();
+            _facts.Feed(line);
         }
         OutputLine?.Invoke(this, line);
     }
@@ -186,11 +210,31 @@ public sealed class EngineProcess : IDisposable
         Fail($"llama-server exited with code {code} (0x{code:X8})" + (lastLines.Length > 0 ? Environment.NewLine + lastLines : string.Empty));
     }
 
-    private void Fail(string message)
+    private void Fail(string message, string? code = null)
     {
         LastError = message;
+        LastErrorCode = code;
         Log.Error("Engine", message);
         SetState(ServerState.Failed);
+    }
+
+    /// <summary>Завершить процесс без перехода в Stopped: состояние станет Failed с объяснением.</summary>
+    private void KillAfterFailure(Process p)
+    {
+        _process = null;
+        try
+        {
+            if (!p.HasExited)
+            {
+                p.Kill();
+                p.WaitForExit(5000);
+            }
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            Log.Warn("Engine", "Error while stopping llama-server", ex);
+        }
+        DeletePidFile();
     }
 
     public void Stop()

@@ -190,9 +190,10 @@ public sealed partial class ChatPageViewModel : PageViewModel
     private CancellationTokenSource? _genCts;
     private readonly ICollectionView _filtered;
 
-    public ChatPageViewModel(AppServices services)
+    public ChatPageViewModel(AppServices services, ServerInsightViewModel server)
     {
         _s = services;
+        Server = server;
         _isInspectorVisible = services.Settings.Current.Window.InspectorVisible;
         if (System.Windows.Application.Current is { } app) app.Exit += (_, _) => FlushPromptSave();
         foreach (var c in services.Chats.LoadAll()) Chats.Add(new ChatListItem(c));
@@ -206,38 +207,13 @@ public sealed partial class ChatPageViewModel : PageViewModel
             OnPropertyChanged(nameof(PromptPresets));
             SyncPreset();
         };
-        _s.Engine.Server.StateChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(() => OnPropertyChanged(nameof(EngineStatus))));
 
         if (Chats.Count == 0) NewChat();
         else SelectedChat = Chats[0];
-
-        // Нагрузка llama-server (CPU, ОЗУ, видеопамять) — раз в секунду, пока открыта правая панель
-        _resourceTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(1) };
-        _resourceTimer.Tick += (_, _) => SampleResources();
-        _resourceTimer.Start();
     }
 
-    private readonly DispatcherTimer _resourceTimer;
-    private readonly ResourceMonitor _monitor = new();
-
-    [ObservableProperty] private string? _resourceText;
-
-    private void SampleResources()
-    {
-        if (!IsInspectorVisible) return;
-        var srv = _s.Engine.Server;
-        if (srv.State is Core.Engine.ServerState.Stopped or Core.Engine.ServerState.Failed)
-        {
-            ResourceText = L.Get("Res_ServerStopped");
-            return;
-        }
-        var r = _monitor.Sample(srv.Pid);
-        var parts = new List<string>();
-        if (r.CpuPercent is { } cpu) parts.Add(L.F("Res_Cpu", cpu.ToString("0")));
-        if (r.WorkingSet is { } ws) parts.Add(L.F("Res_Ram", Units.FormatBytes(ws)));
-        if (r.VramUsed is { } vu && r.VramTotal is { } vt) parts.Add(L.F("Res_Vram", Units.FormatBytes(vu), Units.FormatBytes(vt)));
-        ResourceText = string.Join(Environment.NewLine, parts);
-    }
+    /// <summary>Состояние llama-server, сборка и модель (шапка и правая панель).</summary>
+    public ServerInsightViewModel Server { get; }
 
     public override PageKind Kind => PageKind.Chat;
     public override string Title => SelectedChat?.Title ?? L.Get("Nav_Chat");
@@ -319,7 +295,6 @@ public sealed partial class ChatPageViewModel : PageViewModel
     public bool HasMessages => Messages.Count > 0;
     public bool HasPending => PendingAttachments.Count > 0;
 
-    public string EngineStatus => L.Get("Enum_ServerState_" + _s.Engine.Server.State);
     public string ModelName => SelectedModel?.Title ?? L.Get("Model_NotSelected");
 
     /// <summary>Подсказка в поле ввода — по выбранной клавише отправки.</summary>
@@ -375,6 +350,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
         {
             _s.Settings.Current.Models.ActiveModelId = value.Ref.Substring(6);
             _s.Settings.Save();
+            Server.OnActiveModelChanged();
         }
     }
 

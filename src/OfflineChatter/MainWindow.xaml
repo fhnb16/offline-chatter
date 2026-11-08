@@ -178,6 +178,21 @@
 
                 <!-- Состояние: офлайн-режим и доступное обновление (тихие строки, без цветных плашек) -->
                 <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                    <!-- Активная модель и сборка llama.cpp с точкой состояния сервера; щелчок — раздел «Движок» -->
+                    <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                            Command="{Binding OpenEngineCommand}" ToolTip="{Binding Server.Summary}" ToolTipService.Placement="Right">
+                        <Grid DataContext="{Binding Server}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Style="{StaticResource ServerStateDot}" HorizontalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0" Style="{StaticResource ExpandedOnly}">
+                                <TextBlock Text="{Binding ModelTitle}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="{Binding StatusLine}" Style="{StaticResource StatText}" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Grid>
+                    </Button>
                     <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                             Command="{Binding OpenDownloadsCommand}" Visibility="{Binding Downloads.IsActive, Converter={StaticResource BoolToVisibility}}">
                         <StackPanel Style="{StaticResource RailTip}" Tag="{Binding Downloads.ActiveSummary}">

@@ -14,7 +14,11 @@ public sealed class ServerLaunchOptions
     public string? Alias { get; set; }
 
     public int? ContextSize { get; set; }
-    /// <summary>null — не задавать (llama.cpp сам подберёт через --fit, если поддерживается).</summary>
+    /// <summary>
+    /// null — не задавать (llama.cpp сам подберёт через --fit, если поддерживается); отрицательное — все слои.
+    /// «-ngl -1» у llama.cpp означает «по умолчанию», а это в разных версиях то CPU, то автоподбор, — поэтому
+    /// «все» передаётся как «all» (новые сборки) или 999 (старые).
+    /// </summary>
     public int? GpuLayers { get; set; }
     public int? Threads { get; set; }
     public int? BatchSize { get; set; }
@@ -34,6 +38,12 @@ public sealed class ServerLaunchOptions
     public string? ReasoningFormat { get; set; }
     public string? DraftModelPath { get; set; }
     public int? DraftGpuLayers { get; set; }
+
+    /// <summary>
+    /// Строго на GPU: если после загрузки не все слои оказались в видеопамяти, сервер останавливается с ошибкой
+    /// (вместо тихой и медленной работы с частью модели на CPU). В аргументы не попадает.
+    /// </summary>
+    public bool RequireFullOffload { get; set; }
 
     public bool Metrics { get; set; } = true;
     public string? SlotSavePath { get; set; }
@@ -74,7 +84,7 @@ public sealed class ServerLaunchOptions
         Add("--port", I(port));
         if (!string.IsNullOrEmpty(apiKey)) Add("--api-key", apiKey);
         if (ContextSize is { } c) Add("--ctx-size", I(c), "-c");
-        if (GpuLayers is { } ngl) Add("--n-gpu-layers", I(ngl), "-ngl");
+        if (GpuLayers is { } ngl) Add("--n-gpu-layers", ngl < 0 ? AllLayersValue(flags) : I(ngl), "-ngl");
         if (Threads is { } t) Add("--threads", I(t), "-t");
         if (BatchSize is { } b) Add("--batch-size", I(b), "-b");
         if (UBatchSize is { } ub) Add("--ubatch-size", I(ub), "-ub");
@@ -98,6 +108,13 @@ public sealed class ServerLaunchOptions
 
         if (!string.IsNullOrWhiteSpace(ExtraArgs)) args.AddRange(SplitCommandLine(ExtraArgs!));
         return args;
+    }
+
+    /// <summary>Значение «все слои на GPU» для этой версии: «all», если справка его упоминает, иначе 999.</summary>
+    public static string AllLayersValue(FlagCatalog? flags)
+    {
+        var f = flags?.Find("--n-gpu-layers") ?? flags?.Find("-ngl");
+        return f != null && f.Description.IndexOf("'all'", StringComparison.Ordinal) >= 0 ? "all" : "999";
     }
 
     /// <summary>Склейка аргументов по правилам CommandLineToArgvW.</summary>

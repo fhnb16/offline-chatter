@@ -146,7 +146,6 @@ Enum_DownloadState_Canceled	Canceled	Отменено
 Engine_Server	llama-server	llama-server
 Engine_Stop	Stop	Остановить
 Engine_ServerLog	Command line and server output	Командная строка и вывод сервера
-Engine_ServerDetails	{0} · PID {1} · {2} · loaded in {3}	{0} · PID {1} · {2} · загрузка {3}
 Engine_Hardware	Hardware	Железо
 Engine_HardwareProbing	Detecting hardware…	Определяю железо…
 Engine_Cores	{0} cores / {1} threads	{0} ядер / {1} потоков
@@ -254,11 +253,8 @@ Profiles_ResetOrDelete	Reset / delete	Сбросить / удалить
 Profiles_DefaultForAll	Use this profile for models without their own	Использовать для моделей без своего профиля
 Profiles_Name	Name	Название
 Profiles_Context	Context size (empty — auto)	Размер контекста (пусто — авто)
-Profiles_GpuLayers	Layers on GPU (empty — auto, -1 — all, 0 — CPU only)	Слоёв на GPU (пусто — авто, -1 — все, 0 — только CPU)
-Profiles_GpuLayersHint	Auto uses llama.cpp --fit when available, otherwise our VRAM estimate	«Авто» использует --fit из llama.cpp, если есть, иначе нашу оценку VRAM
 Profiles_UseFit	Let llama.cpp fit parameters to memory (--fit)	Автоподбор под память средствами llama.cpp (--fit)
 Profiles_Threads	CPU threads (empty — physical cores)	Потоков CPU (пусто — по физическим ядрам)
-Profiles_AutoHint	Empty — automatic	Пусто — автоматически
 Profiles_Batch	Batch / micro-batch	Batch / micro-batch
 Profiles_Parallel	Parallel slots	Параллельных слотов
 Profiles_KvCache	KV cache type (K / V)	Тип KV-кэша (K / V)
@@ -372,11 +368,7 @@ Logs_Bundle	Diagnostics archive…	Архив диагностики…
 Logs_Filter	Filter by text	Фильтр по тексту
 Logs_Count	Shown {0} of {1}	Показано {0} из {1}
 Logs_BundleSaved	Saved (no secrets inside): {0}	Сохранено (секретов внутри нет): {0}
-Res_Title	llama-server resources	Ресурсы llama-server
-Res_ServerStopped	Server is not running	Сервер не запущен
-Res_Cpu	CPU: {0}%	ЦП: {0}%
-Res_Ram	RAM: {0}	ОЗУ: {0}
-Res_Vram	VRAM: {0} of {1}	Видеопамять: {0} из {1}
+Res_Title	Server and model	Сервер и модель
 
 # ---------- Экспорт ----------
 Export_Title	Export — choose the format in «Save as type»	Экспорт — формат выберите в поле «Тип файла»
@@ -722,3 +714,112 @@ Update_SignatureAsk_SignatureUntrusted	Version {0} is signed by {1}, but Windows
 Update_SignatureAsk_CertificateChanged	Version {0} is signed with a different self-signed certificate ({1}). The file matches the checksum published on GitHub, but the new certificate cannot be verified.\n\nInstall anyway?	Версия {0} подписана другим самоподписанным сертификатом («{1}»). Файл совпадает с контрольной суммой, опубликованной на GitHub, но проверить новый сертификат нельзя.\n\nВсё равно установить?
 Update_SignatureDeclined	The update was not installed: you declined a version without a trusted signature	Обновление не установлено: вы отказались от версии без доверенной подписи
 Update_FileChanged	The update was not installed: the downloaded file changed while waiting for administrator rights	Обновление не установлено: скачанный файл изменился, пока ожидались права администратора
+Enum_GpuOffloadMode_Auto	Automatic	Автоматически
+Enum_GpuOffloadMode_All	All layers on GPU	Все слои на GPU
+Enum_GpuOffloadMode_Partial	Part on GPU, the rest on CPU	Часть на GPU, остальное на CPU
+Enum_GpuOffloadMode_CpuOnly	CPU only	Только CPU
+Profiles_GpuTitle	Video card	Видеокарта
+Profiles_GpuSubtitle	How many model layers to keep in video memory	Сколько слоёв модели держать в видеопамяти
+Profiles_GpuLayersN	{0} layers on GPU	Слоёв на GPU: {0}
+Profiles_GpuLayersOf	{0} of {1} layers on GPU · {2} %	{0} из {1} слоёв на GPU · {2} %
+Profiles_GpuRatioHint	Put this share of the layers on the GPU	Отправить на GPU такую долю слоёв
+Profiles_GpuHint_Auto	llama.cpp decides how many layers fit in video memory (--fit); without --fit the program uses its own estimate	llama.cpp сам решает, сколько слоёв поместится в видеопамять (--fit); без --fit — по оценке программы
+Profiles_GpuHint_All	The whole model in video memory, the fastest option when VRAM is enough. Passed as -ngl all (999 for older builds).	Вся модель в видеопамяти — самый быстрый вариант, если хватает VRAM. Передаётся как -ngl all (в старых сборках 999).
+Profiles_GpuHint_Partial	Every layer on the GPU speeds up generation but takes video memory. Use it when the model does not fit entirely.	Каждый слой на GPU ускоряет генерацию, но занимает видеопамять. Подходит, когда модель не помещается целиком.
+Profiles_GpuPerLayer	About {0} per layer.	Примерно {0} на слой.
+Profiles_GpuHint_CpuOnly	The video card is not used. Useful when VRAM is busy or the GPU build is unstable.	Видеокарта не используется. Пригодится, если видеопамять занята другим или GPU-сборка работает нестабильно.
+Profiles_GpuHint_CpuEngine	The active llama.cpp build is CPU-only, so layers stay on the CPU. A Vulkan or CUDA build can be installed below.	Активная сборка llama.cpp — только для CPU, слои остаются на процессоре. Сборку Vulkan или CUDA можно установить ниже.
+Profiles_StrictGpu	Strictly on GPU: move nothing to the CPU	Строго на GPU: ничего не переносить на CPU
+Profiles_StrictGpuHint	Turns off --fit and keeps the KV cache in video memory. If the model does not fit entirely, the server stops with an error instead of running slower. On NVIDIA also set "CUDA - Sysmem Fallback Policy" to "Prefer No Sysmem Fallback" in the control panel, otherwise the driver may quietly spill into RAM.	Отключает --fit, KV-кэш остаётся в видеопамяти. Если модель не поместится целиком, сервер остановится с ошибкой, а не будет работать медленнее. На NVIDIA также выберите в панели управления «CUDA - Sysmem Fallback Policy» → «Prefer No Sysmem Fallback» (политика резервной системной памяти): иначе драйвер может незаметно переносить данные в ОЗУ.
+Profiles_CpuTitle	Processor	Процессор
+Profiles_CpuSubtitle	Threads that compute the model on the CPU	Потоки, которыми модель считается на CPU
+Profiles_ThreadsAuto	Auto · {0} (physical cores)	Авто · {0} (по физическим ядрам)
+Profiles_ThreadsOf	{0} of {1} threads	{0} из {1} потоков
+Profiles_ThreadsOverPhysical	More than the {0} physical cores: generation usually gets slower, not faster	Больше, чем физических ядер ({0}): генерация обычно не ускоряется, а замедляется
+Profiles_ThreadsHint	Generation is limited by memory speed, so the number of physical cores is usually best. With the whole model on the GPU threads barely matter. Far left means automatic.	Скорость генерации упирается в память, поэтому лучше всего обычно число физических ядер. Если вся модель на GPU, потоки почти не влияют. Крайнее левое положение — автоматически.
+Status_NoEngine	No llama.cpp build	Нет сборки llama.cpp
+Status_NotLoaded	not loaded	не загружена
+Status_TipModel	Model: {0}	Модель: {0}
+Status_TipEngine	Build: {0}	Сборка: {0}
+Status_TipState	Server: {0}	Сервер: {0}
+Status_TipOpen	Click to open the Engine section	Щелчок — раздел «Движок»
+Ins_Copy	Copy details	Скопировать сведения
+Ins_GroupServer	Server	Сервер
+Ins_GroupLoad	Load	Нагрузка
+Ins_GroupActivity	Model work	Работа модели
+Ins_GroupLaunch	Launch parameters	Параметры запуска
+Ins_GroupModel	Model	Модель
+Ins_State	State	Состояние
+Ins_Error	Error	Ошибка
+Ins_Build	Build	Сборка
+Ins_Backend	Backend	Бэкенд
+Ins_Source	Source	Источник
+Ins_Devices	Devices	Устройства
+Ins_Address	Address	Адрес
+Ins_Uptime	Running for	Работает
+Ins_LoadTime	Model load	Загрузка модели
+Ins_Cpu	CPU	ЦП
+Ins_Ram	Process RAM	ОЗУ процесса
+Ins_Vram	VRAM (NVIDIA)	Видеопамять (NVIDIA)
+Ins_Weights	Weights	Веса
+Ins_KvCache	KV cache	KV-кэш
+Ins_Compute	Compute buffers	Буферы вычислений
+Ins_Requests	Requests	Запросов
+Ins_NoRequests	No requests yet	Запросов ещё не было
+Ins_LastAt	last at {0}	последний в {0}
+Ins_LastPrompt	Last prompt	Последний промпт
+Ins_LastGen	Last answer	Последний ответ
+Ins_TotalPrompt	Prompts, total	Промпты, всего
+Ins_TotalGen	Answers, total	Ответы, всего
+Ins_Tokens	{0} tok	{0} ток
+Ins_DraftAccept	Draft acceptance	Принято из черновика
+Ins_ChatFormat	Chat format	Формат чата
+Ins_Context	Context	Контекст
+Ins_PerSlot	per slot {0}	на слот {0}
+Ins_Trained	trained {0}	обучена на {0}
+Ins_GpuLayers	Layers on GPU	Слои на GPU
+Ins_AllOnGpu	whole model on GPU	вся модель на GPU
+Ins_PartOnGpu	part on CPU	часть на CPU
+Ins_NoneOnGpu	all on CPU	всё на CPU
+Ins_CpuOnly	CPU build	Сборка для CPU
+Ins_Strict	strict	строго
+Ins_Fit	auto (--fit)	авто (--fit)
+Ins_Default	llama.cpp default	по умолчанию llama.cpp
+Ins_Threads	Threads	Потоки
+Ins_BatchThreads	batch {0}	батч {0}
+Ins_Batch	Batch / ubatch	Батч / ubatch
+Ins_Slots	Slots	Слоты
+Ins_FlashAttn	Flash attention	Flash attention
+Ins_Mmap	Weights loading	Загрузка весов
+Ins_Reasoning	Reasoning format	Формат рассуждений
+Ins_Mmproj	Vision projector	Проектор зрения
+Ins_DraftModel	Draft model	Черновая модель
+Ins_CpuFeatures	CPU instructions	Инструкции CPU
+Ins_Skipped	Skipped flags	Пропущенные флаги
+Ins_ModelName	Name	Название
+Ins_Family	Family	Семейство
+Ins_Params	Parameters	Параметры
+Ins_Quant	Quantization	Квантование
+Ins_FileSize	File size	Размер файла
+Ins_Layers	Layers	Слоёв
+Ins_TrainCtx	Trained context	Контекст обучения
+Ins_Embedding	Embedding size	Размер эмбеддинга
+Ins_Heads	Attention heads	Головы внимания
+Ins_Experts	Experts (MoE)	Эксперты (MoE)
+Ins_ExpertsActive	{0} active	активных {0}
+Ins_Hybrid	Hybrid attention	Гибридное внимание
+Ins_HybridValue	full attention every {0} layers	полное внимание в каждом {0}-м слое
+Ins_SlidingWindow	Sliding window	Скользящее окно
+Ins_Vocab	Tokenizer	Токенизатор
+Ins_Template	Chat template	Шаблон чата
+Ins_TemplateNone	None, the server uses a built-in one	Нет, сервер возьмёт встроенный
+Ins_TemplateYes	Built in	Встроен
+Ins_TemplateTools	tools	инструменты
+Ins_TemplateThinking	reasoning	рассуждения
+Ins_TemplateImages	images	изображения
+Ins_Vision	Vision	Зрение
+Ins_License	License	Лицензия
+Ins_Author	Author	Автор
+Ins_QuantizedBy	Quantized by	Квантовал
+Ins_Path	File	Файл
+Ins_StrictFailed	Strict GPU mode: only {0} of {1} layers fit in video memory, so the server was stopped. Reduce the context, pick a smaller quantization or turn off strict mode in the launch profile.	Строго на GPU: в видеопамять поместилось только {0} из {1} слоёв, поэтому сервер остановлен. Уменьшите контекст, выберите квант поменьше или отключите строгий режим в профиле запуска.
