@@ -25,6 +25,7 @@ public sealed partial class WelcomeViewModel : PageViewModel
     private EngineVariant? _cpu;
     private EngineVariant? _recommended;
     private HfRepoFiles? _files;
+    private string? _engineSourceRepo;
 
     public WelcomeViewModel(AppServices services, MainViewModel main)
     {
@@ -77,20 +78,47 @@ public sealed partial class WelcomeViewModel : PageViewModel
         {
             try
             {
-                _release = await _s.Releases.GetByTagAsync(GitHubReleases.KnownGoodTag, CancellationToken.None);
-                var variants = AssetMatcher.WindowsVariants(_release);
-                var arch = _hw.IsArm64 ? CpuArch.Arm64 : CpuArch.X64;
-                _cpu = variants.FirstOrDefault(v => v.Backend == EngineBackend.Cpu && v.Arch == arch);
-                _recommended = AssetMatcher.Recommend(variants, _hw, OsInfo.IsWin7);
-                HasGpuOption = _recommended != null && _recommended.Backend != EngineBackend.Cpu;
-                GpuOptionText = HasGpuOption
-                    ? L.F("Welcome_GpuOption", L.Get("Enum_EngineBackend_" + _recommended!.Backend) + (_recommended.BackendVersion != null ? " " + _recommended.BackendVersion : string.Empty), Units.FormatBytes(_recommended.TotalSize))
-                    : null;
-                EngineText = _cpu != null ? L.F("Welcome_EngineCpu", _release.Tag, Units.FormatBytes(_cpu.TotalSize)) : L.Get("Welcome_EngineUnavailable");
+                var source = _s.Settings.Current.Engine.BuildSource ?? EngineSources.Default(OsInfo.IsWin7);
+                var (repo, onlyLlamaTags) = EngineSources.Resolve(source, _s.Settings.Current.Engine.CustomBuildRepo);
+                if (source == EngineSource.Custom && repo == null)
+                    throw new InvalidOperationException(L.Get("Engine_CustomRepoInvalid"));
+
+                if (source == EngineSource.Official)
+                {
+                    _release = await _s.Releases.GetByTagAsync(GitHubReleases.KnownGoodTag, CancellationToken.None);
+                }
+                else
+                {
+                    var releases = await _s.Releases.ListAsync(20, CancellationToken.None, repo, onlyLlamaTags);
+                    var arch = _hw.IsArm64 ? CpuArch.Arm64 : CpuArch.X64;
+                    _release = releases.FirstOrDefault(r => AssetMatcher.WindowsVariants(r)
+                        .Any(v => v.Backend == EngineBackend.Cpu && v.Arch == arch));
+                }
+                _engineSourceRepo = repo;
+                if (_release == null)
+                {
+                    EngineText = L.Get("Welcome_EngineUnavailable");
+                }
+                else
+                {
+                    var variants = AssetMatcher.WindowsVariants(_release);
+                    var arch = _hw.IsArm64 ? CpuArch.Arm64 : CpuArch.X64;
+                    _cpu = variants.FirstOrDefault(v => v.Backend == EngineBackend.Cpu && v.Arch == arch);
+                    _recommended = AssetMatcher.Recommend(variants, _hw, OsInfo.IsWin7);
+                    HasGpuOption = _recommended != null && _recommended.Backend != EngineBackend.Cpu;
+                    GpuOptionText = HasGpuOption
+                        ? L.F("Welcome_GpuOption", L.Get("Enum_EngineBackend_" + _recommended!.Backend) + (_recommended.BackendVersion != null ? " " + _recommended.BackendVersion : string.Empty), Units.FormatBytes(_recommended.TotalSize))
+                        : null;
+                    EngineText = _cpu != null ? L.F("Welcome_EngineCpu", _release.Tag, Units.FormatBytes(_cpu.TotalSize)) : L.Get("Welcome_EngineUnavailable");
+                }
             }
             catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or IOException or OperationCanceledException or Newtonsoft.Json.JsonException)
             {
                 EngineText = L.F("Engine_ReleasesError", ex.GetBaseException().Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                EngineText = ex.Message;
             }
         }
 
@@ -130,6 +158,13 @@ public sealed partial class WelcomeViewModel : PageViewModel
                 {
                     var progress = new Progress<InstallStage>(st => Status = L.Get("Welcome_Step_Engine") + ": " + L.Get("Enum_InstallStage_" + st));
                     var (install, smoke) = await _s.EngineInstaller.InstallAsync(_release, variant, progress, CancellationToken.None);
+                    if (_engineSourceRepo != null)
+                    {
+                        install.Manifest.SourceRepo = _engineSourceRepo;
+                        EngineRegistry.WriteManifest(install.Directory, install.Manifest);
+                    }
+                    _s.Settings.Current.Engine.BuildSource ??= EngineSources.Default(OsInfo.IsWin7);
+                    _s.Settings.Save();
                     _s.Engine.SetActive(install);
                     EngineReady = smoke.Ok;
                     EngineText = smoke.Ok ? L.F("Welcome_EngineReady", install.DisplayName) : L.F("Engine_InstalledButBroken", L.Get("Enum_EngineHealth_" + smoke.Health));

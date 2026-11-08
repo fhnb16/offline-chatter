@@ -68,6 +68,10 @@ public static class AssetMatcher
         @"^cudart-llama-(?:b\d+-)?bin-win-cuda-(?<ver>[\d.]+)-(?<arch>x64|arm64)\.zip$",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
+    private static readonly Regex Win7CpuAsset = new(
+        @"^llama\.cpp-v\d+\.\d+\.\d+-win7-x64\.zip$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
     public static IReadOnlyList<EngineVariant> WindowsVariants(EngineRelease release)
     {
         var runtimes = release.Assets
@@ -78,6 +82,12 @@ public static class AssetMatcher
         var list = new List<EngineVariant>();
         foreach (var asset in release.Assets)
         {
+            if (Win7CpuAsset.IsMatch(asset.Name))
+            {
+                list.Add(new EngineVariant(EngineBackend.Cpu, CpuArch.X64, null, asset, null));
+                continue;
+            }
+
             var m = MainAsset.Match(asset.Name);
             if (!m.Success) continue;
             var b = m.Groups["backend"].Value.ToLowerInvariant();

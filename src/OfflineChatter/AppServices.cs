@@ -102,7 +102,7 @@ public sealed class AppServices : IDisposable
 
     /// <summary>
     /// Есть ли новая сборка llama.cpp того же бэкенда, что у активного движка.
-    /// Сборки канала Win7-compat проверяются по репозиторию программы, свои папки не проверяются.
+    /// Сборки Win7-compat проверяются по исходному репозиторию, свои папки не проверяются.
     /// </summary>
     public async System.Threading.Tasks.Task<EngineUpdate?> CheckEngineUpdateAsync(bool respectIgnored, System.Threading.CancellationToken ct)
     {

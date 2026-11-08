@@ -691,7 +691,7 @@ Enum_ReasoningStyle_PromptSwitch	/think and /no_think in the prompt (SmolLM3…)
 Engine_BuildSource	Where to get builds	Откуда брать сборки
 Engine_BuildSourceHint	Official llama.cpp builds need Windows 10 or newer. For Windows 7 use Win7 builds or a fork with Win7 support	Официальным сборкам llama.cpp нужна Windows 10 или новее. Для Windows 7 — Win7-сборки или форк с поддержкой Win7
 Enum_EngineSource_Official	Official llama.cpp (ggml-org, Windows 10+)	Официальный llama.cpp (ggml-org, Windows 10+)
-Enum_EngineSource_AppWin7	Win7 builds of Offline Chatter	Win7-сборки Offline Chatter
+Enum_EngineSource_AppWin7	Win7 builds from fhnb16/win7.llama.cpp	Win7-сборки из fhnb16/win7.llama.cpp
 Enum_EngineSource_Custom	Own GitHub repository	Свой репозиторий GitHub
 Engine_CustomRepoHint	owner/repo or a GitHub link. This is third-party code: download only from repositories you trust. Files are checked against SHA-256 only if the release publishes it	owner/repo или ссылка на GitHub. Это сторонний код: скачивайте только из репозиториев, которым доверяете. Файлы сверяются с SHA-256, только если релиз её публикует
 Engine_CustomRepoInvalid	Enter the repository as owner/repo or paste a GitHub link	Укажите репозиторий как owner/repo или вставьте ссылку на GitHub

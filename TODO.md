@@ -139,7 +139,7 @@ Release — один exe ≈ 6 МБ, 175 автотестов Core (+ живые
 ## Этап 11 — Совместимая сборка для Win7 и CI
 - [x] `.github/workflows/build.yml`: сборка Release, тесты, проверка resx; на push в master — релиз `vX.Y.<run>` с автоматическим созданием тега (`gh release create --target`), exe + config + SHA256SUMS
 - [x] `.github/workflows/llama-win7.yml`: llama.cpp с `_WIN32_WINNT=0x0601`, статический CRT, все варианты CPU + Vulkan, релиз `llama-<tag>-win7`
-- [x] Канал «Win7-compat» в разделе «Движок» (релизы из репозитория программы `fhnb16/offline-chatter`, зашит в `UpdateChecker.Repo`, в настройках не меняется)
+- [x] Канал «Win7-compat» в разделе «Движок» (релизы из `fhnb16/win7.llama.cpp`; по умолчанию на Windows 7)
 - [ ] Запустить workflow и проверить сборку на реальной Win7 SP1
 
 ## Этап 12 — Доработки по обратной связи

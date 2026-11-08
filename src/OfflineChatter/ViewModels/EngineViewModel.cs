@@ -239,10 +239,10 @@ public sealed partial class EngineViewModel : PageViewModel
 
     public EngineSource BuildSource
     {
-        get => _s.Settings.Current.Engine.BuildSource;
+        get => _s.Settings.Current.Engine.BuildSource ?? EngineSources.Default(OsInfo.IsWin7);
         set
         {
-            if (_s.Settings.Current.Engine.BuildSource == value) return;
+            if (BuildSource == value && _s.Settings.Current.Engine.BuildSource != null) return;
             _s.Settings.Current.Engine.BuildSource = value;
             _s.Settings.Save();
             OnPropertyChanged();
@@ -267,7 +267,7 @@ public sealed partial class EngineViewModel : PageViewModel
     }
 
     private (string? repo, bool onlyLlamaTags) CurrentSource() =>
-        EngineSources.Resolve(BuildSource, CustomBuildRepo, Core.Net.UpdateChecker.Repo);
+        EngineSources.Resolve(BuildSource, CustomBuildRepo);
 
     public bool HasInstalled => Installed.Count > 0;
     public bool CanInstall => SelectedVariant != null && !IsInstalling;

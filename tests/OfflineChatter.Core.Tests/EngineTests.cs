@@ -53,6 +53,20 @@ public class AssetMatcherTests
         Assert.Equal(new[] { EngineBackend.Cpu, EngineBackend.Vulkan }, v.Select(x => x.Backend));
     }
 
+    [Fact]
+    public void Parses_Win7_Repository_Release_Asset()
+    {
+        var r = new EngineRelease("v0.9.0", DateTime.UtcNow, false, new[]
+        {
+            new ReleaseAsset("llama.cpp-v0.9.0-win7-x64.zip", 100, "u1", "abc"),
+        });
+
+        var variant = Assert.Single(AssetMatcher.WindowsVariants(r));
+        Assert.Equal(EngineBackend.Cpu, variant.Backend);
+        Assert.Equal(CpuArch.X64, variant.Arch);
+        Assert.Equal("llama.cpp-v0.9.0-win7-x64.zip", variant.Asset.Name);
+    }
+
     [Theory]
     [InlineData("12.4", 12040, true)]
     [InlineData("12.4", 12080, true)]

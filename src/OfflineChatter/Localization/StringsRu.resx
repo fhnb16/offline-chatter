@@ -696,7 +696,7 @@
   <data name="Engine_BuildSource" xml:space="preserve"><value>Откуда брать сборки</value></data>
   <data name="Engine_BuildSourceHint" xml:space="preserve"><value>Официальным сборкам llama.cpp нужна Windows 10 или новее. Для Windows 7 — Win7-сборки или форк с поддержкой Win7</value></data>
   <data name="Enum_EngineSource_Official" xml:space="preserve"><value>Официальный llama.cpp (ggml-org, Windows 10+)</value></data>
-  <data name="Enum_EngineSource_AppWin7" xml:space="preserve"><value>Win7-сборки Offline Chatter</value></data>
+  <data name="Enum_EngineSource_AppWin7" xml:space="preserve"><value>Win7-сборки из fhnb16/win7.llama.cpp</value></data>
   <data name="Enum_EngineSource_Custom" xml:space="preserve"><value>Свой репозиторий GitHub</value></data>
   <data name="Engine_CustomRepoHint" xml:space="preserve"><value>owner/repo или ссылка на GitHub. Это сторонний код: скачивайте только из репозиториев, которым доверяете. Файлы сверяются с SHA-256, только если релиз её публикует</value></data>
   <data name="Engine_CustomRepoInvalid" xml:space="preserve"><value>Укажите репозиторий как owner/repo или вставьте ссылку на GitHub</value></data>

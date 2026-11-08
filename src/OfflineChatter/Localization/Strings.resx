@@ -696,7 +696,7 @@ Cancel — not now</value></data>
   <data name="Engine_BuildSource" xml:space="preserve"><value>Where to get builds</value></data>
   <data name="Engine_BuildSourceHint" xml:space="preserve"><value>Official llama.cpp builds need Windows 10 or newer. For Windows 7 use Win7 builds or a fork with Win7 support</value></data>
   <data name="Enum_EngineSource_Official" xml:space="preserve"><value>Official llama.cpp (ggml-org, Windows 10+)</value></data>
-  <data name="Enum_EngineSource_AppWin7" xml:space="preserve"><value>Win7 builds of Offline Chatter</value></data>
+  <data name="Enum_EngineSource_AppWin7" xml:space="preserve"><value>Win7 builds from fhnb16/win7.llama.cpp</value></data>
   <data name="Enum_EngineSource_Custom" xml:space="preserve"><value>Own GitHub repository</value></data>
   <data name="Engine_CustomRepoHint" xml:space="preserve"><value>owner/repo or a GitHub link. This is third-party code: download only from repositories you trust. Files are checked against SHA-256 only if the release publishes it</value></data>
   <data name="Engine_CustomRepoInvalid" xml:space="preserve"><value>Enter the repository as owner/repo or paste a GitHub link</value></data>

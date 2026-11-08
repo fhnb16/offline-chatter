@@ -9,6 +9,7 @@ using System.Windows.Interop;
 using System.Windows.Shell;
 using System.Windows.Threading;
 using OfflineChatter.Core.Diagnostics;
+using OfflineChatter.Core.Engine;
 using OfflineChatter.Core.Net;
 using OfflineChatter.Core.Storage;
 using OfflineChatter.Localization;
@@ -79,6 +80,12 @@ public partial class App : Application
         var logCfg = Settings.Current.Logging;
         Enum.TryParse<LogLevel>(logCfg.MinLevel, true, out var minLevel);
         Log.Initialize(new JsonlLogger(Paths.Logs, "app", logCfg.MaxFileSizeMb * 1024L * 1024L, logCfg.MaxFiles, minLevel));
+        if (Settings.Current.Version < AppSettings.CurrentVersion)
+        {
+            if (OsInfo.IsWin7 && Settings.Current.Engine.BuildSource == EngineSource.Official)
+                Settings.Current.Engine.BuildSource = EngineSource.AppWin7;
+            Settings.Save();
+        }
         CrashHandler.Install(Paths.Logs);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
 

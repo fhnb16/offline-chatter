@@ -13,12 +13,12 @@ public class EngineUpdateTests
         GitHubReleases.Parse(JToken.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Data", "release-b12176.json"))));
 
     private static EngineInstall Install(string name, int build, EngineBackend backend = EngineBackend.Cpu, string? backendVersion = null,
-        bool external = false, string? tag = null, int daysAgo = 0) =>
+        bool external = false, string? tag = null, int daysAgo = 0, string? sourceRepo = null) =>
         new(Path.Combine(Path.GetTempPath(), "oc-engines", name),
             new EngineManifest
             {
                 Tag = tag ?? "b" + build, Build = build, Backend = backend, BackendVersion = backendVersion,
-                Arch = CpuArch.X64, InstalledAt = DateTime.UtcNow.AddDays(-daysAgo),
+                Arch = CpuArch.X64, InstalledAt = DateTime.UtcNow.AddDays(-daysAgo), SourceRepo = sourceRepo,
             }, external);
 
     [Fact]
@@ -50,6 +50,22 @@ public class EngineUpdateTests
     }
 
     [Fact]
+    public void Finds_Newer_Versioned_Win7_Repository_Release()
+    {
+        var active = Install("w7", 0, tag: "v0.8.0", sourceRepo: EngineSources.Win7Repo);
+        var release = new EngineRelease("v0.9.0", DateTime.UtcNow, false, new[]
+        {
+            new ReleaseAsset("llama.cpp-v0.9.0-win7-x64.zip", 100, "u1", null),
+        });
+
+        var update = EngineUpdates.Find(active, new[] { release });
+
+        Assert.NotNull(update);
+        Assert.Equal("v0.9.0", update!.Tag);
+        Assert.Equal(EngineBackend.Cpu, update.Variant.Backend);
+    }
+
+    [Fact]
     public void Cleanup_Keeps_Two_Latest_And_Active()
     {
         var a = Install("a", 100, daysAgo: 30);
@@ -78,8 +94,10 @@ public class EngineUpdateTests
     [Fact]
     public void Resolves_Build_Sources()
     {
-        Assert.Equal((null, false), EngineSources.Resolve(EngineSource.Official, "x/y", "app/repo"));
-        Assert.Equal(("app/repo", true), EngineSources.Resolve(EngineSource.AppWin7, null, "app/repo"));
-        Assert.Equal(("x/y", false), EngineSources.Resolve(EngineSource.Custom, "https://github.com/x/y", "app/repo"));
+        Assert.Equal((null, false), EngineSources.Resolve(EngineSource.Official, "x/y"));
+        Assert.Equal((EngineSources.Win7Repo, false), EngineSources.Resolve(EngineSource.AppWin7, null));
+        Assert.Equal(("x/y", false), EngineSources.Resolve(EngineSource.Custom, "https://github.com/x/y"));
+        Assert.Equal(EngineSource.AppWin7, EngineSources.Default(isWin7: true));
+        Assert.Equal(EngineSource.Official, EngineSources.Default(isWin7: false));
     }
 }

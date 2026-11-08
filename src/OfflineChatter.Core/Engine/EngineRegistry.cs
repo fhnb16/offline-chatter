@@ -39,7 +39,11 @@ public enum EngineSource
 
 public static class EngineSources
 {
+    public const string Win7Repo = "fhnb16/win7.llama.cpp";
+
     private static readonly System.Text.RegularExpressions.Regex RepoPattern = new(@"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$");
+
+    public static EngineSource Default(bool isWin7) => isWin7 ? EngineSource.AppWin7 : EngineSource.Official;
 
     /// <summary>owner/repo из строки: принимает и ссылку https://github.com/owner/repo.</summary>
     public static string? NormalizeRepo(string? text)
@@ -55,10 +59,10 @@ public static class EngineSources
         return RepoPattern.IsMatch(t) ? t : null;
     }
 
-    /// <summary>Репозиторий и нужен ли фильтр тегов llama-* (в репозитории программы рядом лежат её собственные релизы).</summary>
-    public static (string? repo, bool onlyLlamaTags) Resolve(EngineSource source, string? customRepo, string appRepo) => source switch
+    /// <summary>Репозиторий и нужен ли фильтр тегов llama-*.</summary>
+    public static (string? repo, bool onlyLlamaTags) Resolve(EngineSource source, string? customRepo) => source switch
     {
-        EngineSource.AppWin7 => (appRepo, true),
+        EngineSource.AppWin7 => (Win7Repo, false),
         EngineSource.Custom => (NormalizeRepo(customRepo), false),
         _ => (null, false),
     };
@@ -132,7 +136,7 @@ public sealed class EngineSettings
     public bool CheckUpdates { get; set; } = true;
 
     /// <summary>Откуда скачивать сборки в разделе «Движок».</summary>
-    public EngineSource BuildSource { get; set; } = EngineSource.Official;
+    public EngineSource? BuildSource { get; set; }
 
     /// <summary>Свой репозиторий сборок (owner/repo) для <see cref="EngineSource.Custom"/>.</summary>
     public string CustomBuildRepo { get; set; } = string.Empty;
