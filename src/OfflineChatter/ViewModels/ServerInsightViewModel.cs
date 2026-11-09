@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -52,6 +52,14 @@ public sealed partial class ServerInsightViewModel : ObservableObject
     private string? _ggufPath;
     private GgufInfo? _gguf;
     private HardwareInfo? _hw;
+    private readonly GpuProcessCounters _gpuCounters = new();
+    private GpuProcessSample? _gpuSample;
+    private bool _gpuBusy;
+    private DateTime _gpuAt;
+    private SysmemFallbackInfo? _sysmem;
+
+    /// <summary>Общая память GPU процесса, начиная с которой это уже не служебные мелочи, а перенос модели или KV-кэша.</summary>
+    private const long SharedWarnBytes = 512L * 1024 * 1024;
 
     public ServerInsightViewModel(AppServices services)
     {
@@ -136,6 +144,9 @@ public sealed partial class ServerInsightViewModel : ObservableObject
 
     private void OnServerChanged()
     {
+        // Политику драйвера перечитываем при каждом запуске: её могли поменять в панели NVIDIA
+        if (State == ServerState.Starting || _sysmem == null) _ = LoadSysmemAsync(State == ServerState.Starting);
+        if (!IsRunning) _gpuSample = null;
         _timer.IsEnabled = IsRunning;
         OnPropertyChanged(nameof(State));
         OnPropertyChanged(nameof(StateText));
@@ -165,6 +176,35 @@ public sealed partial class ServerInsightViewModel : ObservableObject
     {
         _hw = await _s.Engine.GetHardwareAsync();
         Refresh();
+    }
+
+    private async Task LoadSysmemAsync(bool refresh)
+    {
+        _sysmem = await _s.GetSysmemFallbackAsync(refresh);
+        Refresh();
+    }
+
+    /// <summary>Замер GPU процесса — в фоне, не чаще раза в 2 с; результат появится на следующем тике.</summary>
+    private void SampleGpuInBackground(int pid)
+    {
+        if (_gpuBusy || DateTime.UtcNow - _gpuAt < TimeSpan.FromSeconds(2)) return;
+        _gpuBusy = true;
+        Task.Run(() => _gpuCounters.Sample(pid)).ContinueWith(t =>
+        {
+            _gpuBusy = false;
+            _gpuAt = DateTime.UtcNow;
+            if (t.Status == TaskStatus.RanToCompletion && IsRunning) _gpuSample = t.Result;
+        }, TaskScheduler.FromCurrentSynchronizationContext());
+    }
+
+    /// <summary>«Запрещён (Prefer No Sysmem Fallback) · для llama-server.exe».</summary>
+    public static string SysmemText(SysmemFallbackInfo info, EngineBackend? backend)
+    {
+        var text = L.Get("Enum_SysmemFallbackPolicy_" + info.Policy);
+        if (info.ForApp) text += " · " + L.Get("Ins_SysmemForApp");
+        else if (info.RawValue != null) text += " · " + L.Get("Ins_SysmemGlobal");
+        if (info.FallbackAllowed && backend is { } b && b != EngineBackend.Cuda) text += " · " + L.Get("Ins_SysmemCudaOnly");
+        return text;
     }
 
     private void EnsureGguf(string? path)
@@ -199,6 +239,11 @@ public sealed partial class ServerInsightViewModel : ObservableObject
         var engine = Engine;
         var modelPath = opt?.ModelPath ?? _s.ActiveModel?.Path;
         EnsureGguf(modelPath);
+        var res = running ? _monitor.Sample(srv.Pid) : null;
+        if (running && srv.Pid is { } gpuPid) SampleGpuInBackground(gpuPid);
+
+        // ----- почему может быть медленно (первой группой: ради неё сюда и смотрят) -----
+        AddDiagnosis(rows, running, facts, engine, res);
 
         // ----- сервер -----
         const string gS = "Ins_GroupServer";
@@ -228,9 +273,15 @@ public sealed partial class ServerInsightViewModel : ObservableObject
         {
             // ----- нагрузка -----
             const string gL = "Ins_GroupLoad";
-            var r = _monitor.Sample(srv.Pid);
+            var r = res!;
             rows.Add(new Row(gL, "Ins_Cpu", r.CpuPercent is { } cpu ? cpu.ToString("0", CultureInfo.InvariantCulture) + " %" : "—"));
             rows.Add(new Row(gL, "Ins_Ram", r.WorkingSet is { } ws ? Units.FormatBytes(ws) : "—"));
+            if (_gpuSample is { } gs)
+            {
+                rows.Add(new Row(gL, "Ins_GpuLoad", gs.EnginePercent is { } ep ? ep.ToString("0", CultureInfo.InvariantCulture) + " %" : "—"));
+                rows.Add(new Row(gL, "Ins_GpuMem", L.F("Ins_GpuMemValue", Units.FormatBytes(gs.Vram), Units.FormatBytes(gs.SysRam)),
+                    true, gs.SysRam >= SharedWarnBytes && engine?.Manifest.Backend != EngineBackend.Cpu));
+            }
             if (r.VramUsed is { } vu && r.VramTotal is { } vt) rows.Add(new Row(gL, "Ins_Vram", Units.FormatBytes(vu) + " / " + Units.FormatBytes(vt)));
             if (facts.ModelBuffersMiB.Count > 0) rows.Add(new Row(gL, "Ins_Weights", Buffers(facts.ModelBuffersMiB)));
             if (facts.KvTotalMiB is { } kv)
@@ -292,6 +343,44 @@ public sealed partial class ServerInsightViewModel : ObservableObject
 
         Apply(rows);
         RefreshHeadlines();
+    }
+
+    /// <summary>
+    /// Признаки того, что видеокарта работает не в полную силу: часть слоёв на CPU, данные в общей памяти (PCIe),
+    /// переполненная видеопамять, разрешённый перенос в ОЗУ у драйвера NVIDIA, сборка не того типа.
+    /// </summary>
+    private void AddDiagnosis(List<Row> rows, bool running, ServerLogFacts facts, EngineInstall? engine, ResourceSample? res)
+    {
+        const string g = "Ins_GroupDiagnosis";
+        var backend = engine?.Manifest.Backend;
+        var gpuBuild = backend is { } bk && bk != EngineBackend.Cpu;
+        var hasNvidia = _hw?.Gpus.Any(x => x.Vendor == GpuVendor.Nvidia) == true;
+        var hasGpu = _hw?.BestGpu is { DedicatedMemory: > 0 };
+
+        if (_sysmem != null)
+            rows.Add(new Row(g, "Ins_SysmemFallback", SysmemText(_sysmem, backend), false, _sysmem.FallbackAllowed && backend == EngineBackend.Cuda));
+        if (!running) return;
+
+        var findings = 0;
+        void Finding(string label, string text, bool warn = true)
+        {
+            rows.Add(new Row(g, label, text, false, warn));
+            findings++;
+        }
+
+        if (!gpuBuild && hasGpu) Finding("Ins_DiagCpuBuild", L.Get("Ins_DiagCpuBuildText"));
+        if (gpuBuild && facts.FullyOffloaded == false)
+            Finding("Ins_DiagPartial", L.F("Ins_DiagPartialText", facts.OffloadedLayers ?? 0, facts.TotalLayers ?? 0));
+        if (gpuBuild && _gpuSample is { } gs && gs.SysRam >= SharedWarnBytes)
+            Finding("Ins_DiagShared", L.F("Ins_DiagSharedText", Units.FormatBytes(gs.SysRam)));
+        if (gpuBuild && res?.VramUsed is { } used && res.VramTotal is { } total && total > 0 && used > total * 0.97)
+            Finding("Ins_DiagVramFull", L.F("Ins_DiagVramFullText", Units.FormatBytes(used), Units.FormatBytes(total)));
+        if (backend == EngineBackend.Cuda && _sysmem?.FallbackAllowed == true)
+            Finding("Ins_DiagSysmem", L.Get("Ins_DiagSysmemText"));
+        if (hasNvidia && backend == EngineBackend.Vulkan)
+            Finding("Ins_DiagVulkan", L.Get("Ins_DiagVulkanText"), warn: false);
+        if (findings == 0 && gpuBuild && facts.OffloadedLayers != null)
+            rows.Add(new Row(g, "Ins_DiagOk", L.Get(_gpuSample == null ? "Ins_DiagOkNoCounters" : "Ins_DiagOkText"), false));
     }
 
     private void AddModelRows(List<Row> rows, string path, ServerLogFacts facts)

@@ -62,6 +62,11 @@
                                    FontStyle="Normal" MaxHeight="64" TextTrimming="CharacterEllipsis" Margin="22,-2,0,6"
                                    Visibility="{Binding ReasoningTail, Converter={StaticResource NullToCollapsed}}" />
 
+                        <StackPanel Margin="0,4,0,8" Visibility="{Binding IsPreparing, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="{Binding PreparingText}" Style="{StaticResource CaptionText}" Margin="0,0,0,4" />
+                            <ProgressBar IsIndeterminate="True" Width="180" Height="4" HorizontalAlignment="Left" />
+                        </StackPanel>
+
                         <!-- Тело -->
                         <r:MarkdownView x:Name="Body" Markdown="{Binding Content}" IsStreaming="{Binding IsStreaming}" />
 
@@ -94,8 +99,6 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <ProgressBar IsIndeterminate="True" Width="80" HorizontalAlignment="Left" Margin="0,6,0,0"
-                                     Visibility="{Binding IsStreaming, Converter={StaticResource BoolToVisibility}}" />
                         <TextBlock Text="{Binding Error}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
                                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" Margin="0,4,0,0" />
                     </StackPanel>

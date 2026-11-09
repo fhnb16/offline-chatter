@@ -247,6 +247,13 @@
   <data name="Profiles_DefaultForAll" xml:space="preserve"><value>Использовать для моделей без своего профиля</value></data>
   <data name="Profiles_Name" xml:space="preserve"><value>Название</value></data>
   <data name="Profiles_Context" xml:space="preserve"><value>Размер контекста (пусто — авто)</value></data>
+  <data name="Profiles_ContextHint" xml:space="preserve"><value>Введите число токенов или выберите типовой размер ниже</value></data>
+  <data name="Profiles_ContextOption" xml:space="preserve"><value>{0} ({1} видеопамяти)</value></data>
+  <data name="Profiles_ContextInfo" xml:space="preserve"><value>Контекст обучения модели: {0} токенов · оценка видеопамяти: {1} · запас примерно на {2} токенов кэша</value></data>
+  <data name="Profiles_ContextUnknown" xml:space="preserve"><value>неизвестно</value></data>
+  <data name="Profiles_ContextRoomUnknown" xml:space="preserve"><value>неизвестен</value></data>
+  <data name="Profiles_ContextVramUnknown" xml:space="preserve"><value>не используется / неизвестно</value></data>
+  <data name="Profiles_ContextPresetHint" xml:space="preserve"><value>Примерная видеопамять для слоёв модели и KV-кэша; её могут занимать другие программы</value></data>
   <data name="Profiles_UseFit" xml:space="preserve"><value>Автоподбор под память средствами llama.cpp (--fit)</value></data>
   <data name="Profiles_Threads" xml:space="preserve"><value>Потоков CPU (пусто — по физическим ядрам)</value></data>
   <data name="Profiles_Batch" xml:space="preserve"><value>Batch / micro-batch</value></data>
@@ -278,6 +285,8 @@
   <data name="Chat_Stop" xml:space="preserve"><value>Остановить (Esc)</value></data>
   <data name="Chat_Editing" xml:space="preserve"><value>Редактирование сообщения — отправка создаст новую ветку</value></data>
   <data name="Chat_Thinking" xml:space="preserve"><value>Размышляет…</value></data>
+  <data name="Chat_Prefilling" xml:space="preserve"><value>Обрабатывает промпт; длинный контекст может обрабатываться дольше</value></data>
+  <data name="Chat_WaitingToken" xml:space="preserve"><value>Ожидает первый токен</value></data>
   <data name="Chat_ThoughtFor" xml:space="preserve"><value>Размышлял {0}</value></data>
   <data name="Chat_Reasoning" xml:space="preserve"><value>Рассуждения</value></data>
   <data name="Chat_ThinkingMode" xml:space="preserve"><value>Режим размышлений</value></data>
@@ -836,4 +845,35 @@
   <data name="Ins_QuantizedBy" xml:space="preserve"><value>Квантовал</value></data>
   <data name="Ins_Path" xml:space="preserve"><value>Файл</value></data>
   <data name="Ins_StrictFailed" xml:space="preserve"><value>Строго на GPU: в видеопамять поместилось только {0} из {1} слоёв, поэтому сервер остановлен. Уменьшите контекст, выберите квант поменьше или отключите строгий режим в профиле запуска.</value></data>
+  <data name="Enum_SysmemFallbackPolicy_Unknown" xml:space="preserve"><value>Не удалось прочитать</value></data>
+  <data name="Enum_SysmemFallbackPolicy_NotSupported" xml:space="preserve"><value>Нет в этом драйвере (до 536.40)</value></data>
+  <data name="Enum_SysmemFallbackPolicy_DriverDefault" xml:space="preserve"><value>Разрешён (по умолчанию драйвера)</value></data>
+  <data name="Enum_SysmemFallbackPolicy_PreferNoFallback" xml:space="preserve"><value>Запрещён (Prefer No Sysmem Fallback)</value></data>
+  <data name="Enum_SysmemFallbackPolicy_PreferFallback" xml:space="preserve"><value>Разрешён (Prefer Sysmem Fallback)</value></data>
+  <data name="Ins_SysmemForApp" xml:space="preserve"><value>для llama-server.exe</value></data>
+  <data name="Ins_SysmemGlobal" xml:space="preserve"><value>глобальная настройка</value></data>
+  <data name="Ins_SysmemCudaOnly" xml:space="preserve"><value>влияет только на сборки CUDA</value></data>
+  <data name="Ins_SysmemFallback" xml:space="preserve"><value>Sysmem fallback (NVIDIA)</value></data>
+  <data name="Ins_GroupDiagnosis" xml:space="preserve"><value>Почему может быть медленно</value></data>
+  <data name="Ins_GpuLoad" xml:space="preserve"><value>Загрузка GPU (процесс)</value></data>
+  <data name="Ins_GpuMem" xml:space="preserve"><value>Память GPU (процесс)</value></data>
+  <data name="Ins_GpuMemValue" xml:space="preserve"><value>{0} в видеопамяти · {1} в ОЗУ через PCIe</value></data>
+  <data name="Ins_DiagCpuBuild" xml:space="preserve"><value>Сборка для CPU</value></data>
+  <data name="Ins_DiagCpuBuildText" xml:space="preserve"><value>Активная сборка llama.cpp не использует видеокарту. Сборку CUDA или Vulkan можно установить в разделе «Движок»</value></data>
+  <data name="Ins_DiagPartial" xml:space="preserve"><value>Слои на CPU</value></data>
+  <data name="Ins_DiagPartialText" xml:space="preserve"><value>На GPU только {0} из {1} слоёв, остальные считает процессор — скорость близка к скорости CPU. Уменьшите контекст или выберите квант поменьше</value></data>
+  <data name="Ins_DiagShared" xml:space="preserve"><value>Общая память GPU</value></data>
+  <data name="Ins_DiagSharedText" xml:space="preserve"><value>llama-server держит {0} в общей памяти GPU: видеокарта читает это из ОЗУ через PCIe, в разы медленнее видеопамяти. Уменьшите контекст или квант; для CUDA также запретите sysmem fallback</value></data>
+  <data name="Ins_DiagVramFull" xml:space="preserve"><value>Видеопамять заполнена</value></data>
+  <data name="Ins_DiagVramFullText" xml:space="preserve"><value>Занято {0} из {1}: драйвер может переносить данные в ОЗУ, а остаток делят другие программы</value></data>
+  <data name="Ins_DiagSysmem" xml:space="preserve"><value>Sysmem fallback включён</value></data>
+  <data name="Ins_DiagSysmemText" xml:space="preserve"><value>При нехватке видеопамяти драйвер NVIDIA молча переносит данные в ОЗУ вместо ошибки. В панели управления NVIDIA → «Управление параметрами 3D» выберите «CUDA - Sysmem Fallback Policy» → «Prefer No Sysmem Fallback» (глобально или для llama-server.exe) и перезапустите сервер</value></data>
+  <data name="Ins_DiagVulkan" xml:space="preserve"><value>Vulkan на NVIDIA</value></data>
+  <data name="Ins_DiagVulkanText" xml:space="preserve"><value>На картах NVIDIA сборка CUDA обычно быстрее Vulkan. Её можно установить в разделе «Движок»</value></data>
+  <data name="Ins_DiagOk" xml:space="preserve"><value>Проверка</value></data>
+  <data name="Ins_DiagOkText" xml:space="preserve"><value>Вся модель на GPU, в общую память ничего не уходит</value></data>
+  <data name="Ins_DiagOkNoCounters" xml:space="preserve"><value>Вся модель на GPU. Общую память на этой версии Windows не измерить</value></data>
+  <data name="Profiles_Sysmem" xml:space="preserve"><value>Sysmem fallback: {0}</value></data>
+  <data name="Profiles_SysmemRefresh" xml:space="preserve"><value>Проверить снова после смены настройки в панели NVIDIA</value></data>
+  <data name="Profiles_SysmemHint" xml:space="preserve"><value>Когда перенос разрешён, модель, не поместившаяся в видеопамять, работает из ОЗУ через PCIe и замедляется в разы без всякой ошибки. «Prefer No Sysmem Fallback» в панели NVIDIA это отключает</value></data>
 </root>

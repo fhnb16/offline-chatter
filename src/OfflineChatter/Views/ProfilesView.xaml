@@ -64,6 +64,17 @@
                         <TextBlock Text="{Binding GpuModeHint}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />
                         <TextBlock Text="{l:Loc Profiles_StrictGpuHint}" Style="{StaticResource CaptionText}" Margin="0,4,0,0"
                                    Visibility="{Binding ShowStrictHint, Converter={StaticResource BoolToVisibility}}" />
+                        <!-- Перенос видеопамяти в ОЗУ драйвером NVIDIA: главный тихий убийца скорости на картах с 8 ГБ -->
+                        <DockPanel Margin="0,8,0,0" Visibility="{Binding SysmemText, Converter={StaticResource NullToCollapsed}}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Command="{Binding RefreshSysmemCommand}"
+                                    ToolTip="{l:Loc Profiles_SysmemRefresh}" VerticalAlignment="Top">
+                                <Path Data="{StaticResource IconRefresh}" Style="{StaticResource IconPath}" />
+                            </Button>
+                            <TextBlock x:Name="Sysmem" Text="{Binding SysmemText}" Style="{StaticResource CaptionText}" VerticalAlignment="Center"
+                                       ToolTip="{l:Loc Profiles_SysmemHint}" />
+                        </DockPanel>
+                        <TextBlock Text="{l:Loc Profiles_SysmemHint}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}" Margin="0,4,0,0"
+                                   Visibility="{Binding SysmemWarn, Converter={StaticResource BoolToVisibility}}" />
                     </StackPanel>
                 </Border>
                 <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
@@ -97,7 +108,23 @@
                     <TextBlock Text="{l:Loc Profiles_Name}" Style="{StaticResource FieldLabel}" />
                     <TextBox Text="{Binding Name}" />
                     <TextBlock Text="{l:Loc Profiles_Context}" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding ContextSize}" ToolTip="4096 · 8192 · 16384 · 32768 · 65536 · 131072" />
+                    <TextBox Text="{Binding ContextSize}" ToolTip="{l:Loc Profiles_ContextHint}" />
+                    <ItemsControl ItemsSource="{Binding ContextOptions}" Margin="0,4,0,0" ToolTip="{l:Loc Profiles_ContextPresetHint}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Label}" Margin="0,0,4,4" Padding="6,2"
+                                        Command="{Binding DataContext.SetContextPresetCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding ContextSize}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="{Binding ContextInfoText}" Style="{StaticResource CaptionText}" Margin="0,4,0,0"
+                               Visibility="{Binding ContextInfoText, Converter={StaticResource NullToCollapsed}}" />
                 </StackPanel>
 
                 <!-- Батчи и кэш -->

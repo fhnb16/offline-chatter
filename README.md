@@ -29,8 +29,8 @@ Aero Glass на Win7, Aero2 на 8/8.1, Fluent с Acrylic на Win10, Mica / Mic
 
 | | |
 |---|---|
-| ОС | Windows 7 SP1 / 8.1 / 10 / 11, x64 или ARM64 (на x86 работают только удалённые API) |
-| Рантайм | .NET Framework 4.8. Уже есть в Win10 1903+ и Win11. На Win7 для установки 4.8 нужен KB4474419 (поддержка SHA-2) |
+| ОС | Windows 7 SP1 / 8.1 / 10 / 11, x64 или ARM64 (x86 не поддерживается) |
+| Рантайм | .NET Framework 4.8. Уже есть в Win10 1903+ и Win11. На чистой Win7 SP1 x64 для установки 4.8 нужны KB4490628 (servicing stack), KB4474419 (SHA-2) и корневой сертификат Microsoft Root Certificate Authority 2011 |
 | Движок на Win7 | UCRT (KB2999226) и VC++ 2015–2022 x64 — программа проверяет сама; сборки канала Win7-compat от VC++ не зависят |
 
 ## Сборка
@@ -54,10 +54,10 @@ $env:OC_E2E=1; dotnet test                   # + сквозной: устано�
 |---|---|
 | `OfflineChatter-X.Y.N.zip`, `.rar` | папка `OfflineChatter\` с exe и готовой структурой: `models\` (сюда — свои GGUF), `engine\`, `chats\`, README |
 | `OfflineChatter-X.Y.N-Setup.exe` | установщик: по умолчанию для текущего пользователя в `%LOCALAPPDATA%\Programs\OfflineChatter`, без прав администратора; ярлык в «Пуск» |
-| `OfflineChatter-X.Y.N-Setup-NET48.exe` | тот же установщик со встроенным офлайн-установщиком .NET Framework 4.8 (~120 МБ) — для Windows 7 SP1 / 8.1 и машин без сети. .NET ставится, только если его нет (один запрос прав администратора); на Windows 7 без обновлений перед этим добавляется корневой сертификат Microsoft Root Certificate Authority 2011 — без него установщик .NET не проходит проверку подписи ([рекомендация Microsoft](https://learn.microsoft.com/en-us/previous-versions/dotnet/framework/install/on-windows-7)) |
+| `OfflineChatter-X.Y.N-Setup-NET48.exe` | тот же установщик со встроенным офлайн-установщиком .NET Framework 4.8 и x64-обновлениями KB для Windows 7 (~180 МБ до сжатия) — для Windows 7 SP1 / 8.1 и машин без сети. .NET ставится, только если его нет (один запрос прав администратора). На Windows 7 x64 при необходимости сначала устанавливаются KB4490628 и KB4474419; если нужна перезагрузка, установщик остановится — после перезапуска компьютера его нужно запустить повторно. При отсутствии корневого сертификата Microsoft Root Certificate Authority 2011 он добавляется перед установкой .NET ([рекомендация Microsoft](https://learn.microsoft.com/en-us/previous-versions/dotnet/framework/install/on-windows-7)) |
 | `SHA256SUMS.txt` | контрольные суммы |
 
-Голый exe в релиз не кладётся: и обновление внутри программы скачивает zip (Windows 11 и антивирусы спокойнее относятся к архивам). Если запустить программу из «Загрузок», с рабочего стола или прямо из архива, она предложит перенести себя в `%LOCALAPPDATA%\Programs\OfflineChatter`. Локально поставка собирается так: `pwsh tools/package.ps1 -BinDir src/OfflineChatter/bin/Release/net48 -Version 0.1.0 -Out out`, установщик — `iscc installer/OfflineChatter.iss`.
+Голый exe в релиз не кладётся: и обновление внутри программы скачивает zip (Windows 11 и антивирусы спокойнее относятся к архивам). Если запустить программу из «Загрузок», с рабочего стола или прямо из архива, она предложит перенести себя в `%LOCALAPPDATA%\Programs\OfflineChatter`. Локально поставка собирается так: `pwsh tools/package.ps1 -BinDir src/OfflineChatter/bin/Release/net48 -Version 0.1.0 -Out out`. Для варианта с .NET дополнительно нужны официальные x64 `.msu` для KB4490628 и KB4474419, а также `NDP48-x86-x64-AllOS-ENU.exe`; пути передаются компилятору Inno Setup через `/DKB4490628=...`, `/DKB4474419=...` и `/DNet48=...`.
 
 ### Подпись (Authenticode)
 

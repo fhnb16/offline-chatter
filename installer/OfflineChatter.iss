@@ -5,7 +5,8 @@
 ; Сборка (CI делает это сам):
 ;   iscc /DAppVersion=0.1.42 /DStageDir=..\out\stage\OfflineChatter /DOutDir=..\out installer\OfflineChatter.iss
 ; Вариант со встроенным .NET Framework 4.8 (офлайн-установщик Microsoft, ~120 МБ) — для Windows 7/8.1 и машин без сети:
-;   iscc ... /DNet48=путь\к\NDP48-x86-x64-AllOS-ENU.exe installer\OfflineChatter.iss  → OfflineChatter-X.Y.N-Setup-NET48.exe
+;   iscc ... /DNet48=...\NDP48-x86-x64-AllOS-ENU.exe /DKB4490628=...\kb4490628-x64.msu /DKB4474419=...\kb4474419-v3-x64.msu installer\OfflineChatter.iss
+;   → OfflineChatter-X.Y.N-Setup-NET48.exe
 
 #ifndef AppVersion
   #define AppVersion "0.0.0"
@@ -34,6 +35,12 @@ PrivilegesRequiredOverridesAllowed=dialog
 UsedUserAreasWarning=no
 OutputDir={#OutDir}
 #ifdef Net48
+#ifndef KB4490628
+  #error "KB4490628 x64 package is required for the NET48 installer"
+#endif
+#ifndef KB4474419
+  #error "KB4474419 x64 package is required for the NET48 installer"
+#endif
 OutputBaseFilename=OfflineChatter-{#AppVersion}-Setup-NET48
 #else
 OutputBaseFilename=OfflineChatter-{#AppVersion}-Setup
@@ -69,8 +76,14 @@ ru.InstallNet48=Будет установлен .NET Framework 4.8 — без н
 en.InstallNet48=.NET Framework 4.8 will be installed — the program cannot run without it. Administrator rights are needed (Windows will ask for permission); it takes a few minutes and may require a restart.
 ru.InstallRootCert=%n%nВ этой Windows 7 нет корневого сертификата Microsoft Root Certificate Authority 2011, которым подписан установщик .NET (так бывает без обновлений или без сети). Он будет добавлен в хранилище доверенных корневых сертификатов компьютера — так советует сама Microsoft.
 en.InstallRootCert=%n%nThis Windows 7 lacks the Microsoft Root Certificate Authority 2011 certificate that signs the .NET installer (common without updates or network access). It will be added to the computer's trusted root store, as Microsoft recommends.
+ru.InstallWin7Updates=%n%nНа Windows 7 SP1 будут установлены обновления KB4490628 и KB4474419 (x64), необходимые для установки .NET Framework 4.8 на системе без этих обновлений.
+en.InstallWin7Updates=%n%nOn Windows 7 SP1, updates KB4490628 and KB4474419 (x64) will be installed if needed. They are required to install .NET Framework 4.8 on an unpatched system.
 ru.ContinueQuestion=%n%nПродолжить?
 en.ContinueQuestion=%n%nContinue?
+ru.PrerequisiteRestart=Для завершения установки обновлений Windows 7 требуется перезагрузка. Перезагрузите компьютер и запустите установщик ещё раз.
+en.PrerequisiteRestart=Windows 7 must restart to finish installing the prerequisites. Restart the computer and run this installer again.
+ru.PrerequisiteFailed=Не удалось установить необходимые обновления Windows 7. Код ошибки: %1. Установка программы остановлена.
+en.PrerequisiteFailed=The required Windows 7 updates could not be installed. Error code: %1. Setup has been stopped.
 ru.Net48Failed=.NET Framework 4.8 установить не удалось. Программа будет установлена, но запустится только после установки .NET Framework 4.8 (сайт Microsoft, «.NET Framework 4.8 offline installer»).
 en.Net48Failed=.NET Framework 4.8 could not be installed. The program will be installed but will only start after .NET Framework 4.8 is installed (Microsoft website, ".NET Framework 4.8 offline installer").
 
@@ -82,6 +95,8 @@ Source: "{#StageDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs c
 #ifdef Net48
 ; Распаковываются во временную папку только при необходимости (ExtractTemporaryFile в PrepareToInstall)
 Source: "{#Net48}"; DestName: "ndp48.exe"; Flags: dontcopy
+Source: "{#KB4490628}"; DestName: "kb4490628.msu"; Flags: dontcopy
+Source: "{#KB4474419}"; DestName: "kb4474419.msu"; Flags: dontcopy
 Source: "certs\MicRooCerAut2011.cer"; Flags: dontcopy
 #endif
 
@@ -151,37 +166,93 @@ begin
     Result := RegKeyExists(HKLM64, Key + 'ROOT\Certificates\' + MsRoot2011) or RegKeyExists(HKLM64, Key + 'AuthRoot\Certificates\' + MsRoot2011);
 end;
 
+function IsWin7X64: Boolean;
+var
+  V: TWindowsVersion;
+begin
+  GetWindowsVersionEx(V);
+  Result := IsWin64 and (V.Major = 6) and (V.Minor = 1);
+end;
+
 // .NET ставится до копирования файлов программы. Права администратора нужны только для этого шага —
 // сама программа по-прежнему ставится для текущего пользователя. Один запрос UAC на сертификат и .NET.
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   Script, Text: String;
-  NeedRoot: Boolean;
+  NeedRoot, NeedWin7Updates: Boolean;
+  Launched: Boolean;
   Code: Integer;
 begin
   Result := '';
   if IsNet48Installed then exit;
   NeedRoot := not HasMsRoot2011;
+  NeedWin7Updates := IsWin7X64;
   Text := CustomMessage('InstallNet48');
   if NeedRoot then Text := Text + CustomMessage('InstallRootCert');
+  if NeedWin7Updates then Text := Text + CustomMessage('InstallWin7Updates');
   if SuppressibleMsgBox(Text + CustomMessage('ContinueQuestion'), mbConfirmation, MB_YESNO, IDYES) <> IDYES then exit;
 
   ExtractTemporaryFile('ndp48.exe');
-  Script := ExpandConstant('{tmp}\install-net48.cmd');
-  Text := '@echo off' + #13#10;
+  Text := '@echo off' + #13#10 + 'set "REBOOT=0"' + #13#10;
+  if NeedWin7Updates then
+  begin
+    ExtractTemporaryFile('kb4490628.msu');
+    ExtractTemporaryFile('kb4474419.msu');
+    Script := ExpandConstant('{tmp}\install-win7-prerequisites.cmd');
+    Text := Text + 'call :install "' + ExpandConstant('{tmp}\kb4490628.msu') + '"' + #13#10 +
+      'call :result %errorlevel%' + #13#10 +
+      'if not "%STOP%"=="0" exit /b %STOP%' + #13#10 +
+    'if "%REBOOT%"=="1" exit /b 3011' + #13#10 +
+    'call :install "' + ExpandConstant('{tmp}\kb4474419.msu') + '"' + #13#10 +
+      'call :result %errorlevel%' + #13#10 +
+      'if not "%STOP%"=="0" exit /b %STOP%' + #13#10 +
+      'if "%REBOOT%"=="1" exit /b 3011' + #13#10;
+  end
+  else
+    Script := ExpandConstant('{tmp}\install-net48.cmd');
   if NeedRoot then
   begin
     ExtractTemporaryFile('MicRooCerAut2011.cer');
     Text := Text + 'certutil -addstore -f Root "' + ExpandConstant('{tmp}\MicRooCerAut2011.cer') + '"' + #13#10;
+    Text := Text + 'if errorlevel 1 exit /b %errorlevel%' + #13#10;
   end;
-  Text := Text + '"' + ExpandConstant('{tmp}\ndp48.exe') + '" /passive /norestart' + #13#10 + 'exit /b %errorlevel%' + #13#10;
+  Text := Text + '"' + ExpandConstant('{tmp}\ndp48.exe') + '" /passive /norestart' + #13#10 +
+    'exit /b %errorlevel%' + #13#10;
+  if NeedWin7Updates then
+    Text := Text + ':install' + #13#10 +
+        'wusa.exe "%~1" /passive /norestart' + #13#10 +
+      'exit /b %errorlevel%' + #13#10 +
+      ':result' + #13#10 +
+      'set "STOP=0"' + #13#10 +
+      'if "%~1"=="3010" set "REBOOT=1"' + #13#10 +
+      'if "%~1"=="2359302" exit /b 0' + #13#10 +
+      'if "%~1"=="2149842967" exit /b 0' + #13#10 +
+      'if "%~1"=="-2145124329" exit /b 0' + #13#10 +
+      'if "%~1"=="0" exit /b 0' + #13#10 +
+      'if "%~1"=="3010" exit /b 0' + #13#10 +
+      'set "STOP=%~1"' + #13#10 +
+      'exit /b 0' + #13#10;
   SaveStringToFile(Script, Text, False);
 
-  // /passive — установщик .NET показывает свой прогресс без вопросов
-  if not ShellExec('runas', ExpandConstant('{cmd}'), '/c ""' + Script + '""', ExpandConstant('{tmp}'), SW_HIDE, ewWaitUntilTerminated, Code) then
-    Log('Elevation for .NET Framework 4.8 was refused: ' + IntToStr(Code));
+  // /passive — установщики показывают ход работы без вопросов и не перезагружают ПК сами.
+  Launched := ShellExec('runas', ExpandConstant('{cmd}'), '/c ""' + Script + '""', ExpandConstant('{tmp}'), SW_HIDE, ewWaitUntilTerminated, Code);
+  if not Launched then
+  begin
+    Result := FmtMessage(CustomMessage('PrerequisiteFailed'), [IntToStr(Code)]);
+    exit;
+  end;
+  if NeedWin7Updates and (Code = 3011) then
+  begin
+    Result := CustomMessage('PrerequisiteRestart');
+    exit;
+  end;
+  if (Code <> 0) and (Code <> 3010) then
+  begin
+    Result := FmtMessage(CustomMessage('PrerequisiteFailed'), [IntToStr(Code)]);
+    exit;
+  end;
 
-  // Код выхода повышенного процесса недоступен — проверяем результат по реестру
+  // Результат установки .NET проверяется по Release, поскольку его установщик может запросить перезагрузку.
   Net48JustInstalled := IsNet48Installed;
   if not Net48JustInstalled then
     SuppressibleMsgBox(CustomMessage('Net48Failed'), mbError, MB_OK, IDOK);

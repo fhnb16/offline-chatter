@@ -35,6 +35,8 @@ public sealed record GpuRatioOption(int Percent)
     public string Title => Percent.ToString(CultureInfo.CurrentCulture) + " %";
 }
 
+public sealed record ContextSizeOption(int ContextSize, string Label);
+
 /// <summary>Редактор профилей запуска: параметры, превью командной строки, оценка памяти, сравнение, запуск.</summary>
 public sealed partial class ProfilesViewModel : ObservableObject
 {
@@ -61,7 +63,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
     public IReadOnlyList<string> FlashAttentionOptions { get; } = new[] { "auto", "on", "off" };
     public IReadOnlyList<string> CacheTypes { get; } = new[] { "", "f16", "q8_0", "q5_1", "q5_0", "q4_1", "q4_0", "f32" };
     public IReadOnlyList<string> ReasoningFormats { get; } = new[] { "deepseek", "none", "auto" };
-    public IReadOnlyList<int> ContextOptions => MemoryEstimator.ContextPresets;
+    public IReadOnlyList<ContextSizeOption> ContextOptions { get; private set; } = Array.Empty<ContextSizeOption>();
 
     [ObservableProperty] private LaunchProfile? _selected;
     [ObservableProperty] private LaunchProfile? _compareWith;
@@ -92,6 +94,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
 
     [ObservableProperty] private string? _preview;
     [ObservableProperty] private string? _estimateText;
+    [ObservableProperty] private string? _contextInfoText;
     [ObservableProperty] private FitVerdict _verdict = FitVerdict.Fits;
     [ObservableProperty] private string? _skippedText;
     [ObservableProperty] private bool _isDefaultForAll;
@@ -150,6 +153,25 @@ public sealed partial class ProfilesViewModel : ObservableObject
     }
 
     public bool ShowStrictHint => IsAllMode && StrictGpu;
+
+    // ----- драйвер NVIDIA: перенос видеопамяти в ОЗУ -----
+    private Core.Diagnostics.SysmemFallbackInfo? _sysmem;
+
+    /// <summary>«Sysmem fallback: разрешён (по умолчанию драйвера)»; null — видеокарты NVIDIA нет.</summary>
+    public string? SysmemText => _sysmem is { } s
+        ? L.F("Profiles_Sysmem", ServerInsightViewModel.SysmemText(s, _s.Engine.Registry.Active?.Manifest.Backend))
+        : null;
+
+    /// <summary>Перенос разрешён, а сборка CUDA — при нехватке видеопамяти скорость молча упадёт.</summary>
+    public bool SysmemWarn => _sysmem?.FallbackAllowed == true && _s.Engine.Registry.Active?.Manifest.Backend == EngineBackend.Cuda;
+
+    [RelayCommand]
+    private async Task RefreshSysmemAsync()
+    {
+        _sysmem = await _s.GetSysmemFallbackAsync(refresh: true);
+        OnPropertyChanged(nameof(SysmemText));
+        OnPropertyChanged(nameof(SysmemWarn));
+    }
 
     partial void OnGpuModeChanged(GpuOffloadMode value)
     {
@@ -220,11 +242,11 @@ public sealed partial class ProfilesViewModel : ObservableObject
     /// <summary>Свойства только для показа: их изменение не сохраняет профиль.</summary>
     private static readonly HashSet<string> DisplayOnly = new(StringComparer.Ordinal)
     {
-        nameof(Preview), nameof(EstimateText), nameof(Verdict), nameof(SkippedText), nameof(Selected), nameof(CompareWith),
+        nameof(Preview), nameof(EstimateText), nameof(ContextInfoText), nameof(ContextOptions), nameof(Verdict), nameof(SkippedText), nameof(Selected), nameof(CompareWith),
         nameof(IsDefaultForAll), nameof(ActiveModelName), nameof(IsGpuEngine), nameof(IsAutoMode), nameof(IsAllMode),
         nameof(IsPartialMode), nameof(LayerCount), nameof(HasLayerCount), nameof(GpuLayersSlider), nameof(GpuLayersText),
         nameof(GpuModeHint), nameof(ShowStrictHint), nameof(MaxThreads), nameof(PhysicalCores), nameof(ThreadsSlider),
-        nameof(ThreadsText), nameof(ThreadsWarning), nameof(GpuMode),
+        nameof(ThreadsText), nameof(ThreadsWarning), nameof(GpuMode), nameof(SysmemText), nameof(SysmemWarn),
     };
 
     private void Reload(string? selectId = null)
@@ -343,11 +365,17 @@ public sealed partial class ProfilesViewModel : ObservableObject
         }
         OnPropertyChanged(nameof(IsGpuEngine));
         OnPropertyChanged(nameof(GpuModeHint));
+        _sysmem ??= await _s.GetSysmemFallbackAsync();
+        OnPropertyChanged(nameof(SysmemText));
+        OnPropertyChanged(nameof(SysmemWarn));
         var model = _s.ActiveModel;
         if (Selected == null || model == null || _s.Engine.Registry.Active == null)
         {
             Preview = L.Get(model == null ? "Profiles_NoModel" : "Profiles_NoEngine");
             EstimateText = null;
+            ContextInfoText = null;
+            ContextOptions = Array.Empty<ContextSizeOption>();
+            OnPropertyChanged(nameof(ContextOptions));
             SkippedText = null;
             return;
         }
@@ -355,6 +383,9 @@ public sealed partial class ProfilesViewModel : ObservableObject
         if (resolved == null)
         {
             Preview = L.Get("Profiles_NoModel");
+            ContextInfoText = null;
+            ContextOptions = Array.Empty<ContextSizeOption>();
+            OnPropertyChanged(nameof(ContextOptions));
             return;
         }
         if (_blockCount != resolved.Info?.BlockCount || _modelSize != model.SizeBytes)
@@ -373,11 +404,47 @@ public sealed partial class ProfilesViewModel : ObservableObject
         SkippedText = skipped.Count > 0 ? L.F("Profiles_Skipped", string.Join(", ", skipped)) : null;
         var e = resolved.Estimate;
         Verdict = resolved.Verdict;
+        var gpuLayers = resolved.Options.GpuLayers ?? -1;
+        var maxContext = resolved.Info?.ContextLength is > 0 and var trainedContext ? trainedContext : (int?)null;
+        var vram = _hw?.BestGpu?.DedicatedMemory ?? 0;
+        ContextOptions = new[] { 2048, 8192, 32768 }.Select(context =>
+        {
+            var estimate = MemoryEstimator.Estimate(resolved.Info, model.SizeBytes, context, CacheTypeK, CacheTypeV,
+                gpuLayers, e.Mmproj, resolved.Options.Parallel ?? 1);
+            var amount = estimate.Vram > 0 ? Units.FormatBytes(estimate.Vram) : L.Get("Profiles_ContextVramUnknown");
+            var size = context / 1024 + "k";
+            return new ContextSizeOption(context, L.F("Profiles_ContextOption", size, amount));
+        }).ToArray();
+        OnPropertyChanged(nameof(ContextOptions));
+        var currentContext = resolved.Options.ContextSize ?? 0;
+        var extraCacheTokens = EstimateAdditionalCacheTokens(resolved.Info, model.SizeBytes, currentContext, maxContext,
+            vram, e.Vram, gpuLayers, CacheTypeK, CacheTypeV, e.Mmproj, resolved.Options.Parallel ?? 1);
+        ContextInfoText = L.F("Profiles_ContextInfo",
+            maxContext?.ToString("N0", CultureInfo.CurrentCulture) ?? L.Get("Profiles_ContextUnknown"),
+            e.Vram > 0 ? Units.FormatBytes(e.Vram) : L.Get("Profiles_ContextVramUnknown"),
+            extraCacheTokens is { } tokens ? tokens.ToString("N0", CultureInfo.CurrentCulture) : L.Get("Profiles_ContextRoomUnknown"));
         EstimateText = L.F("Profiles_Estimate", Units.FormatBytes(e.Total), Units.FormatBytes(e.Weights), Units.FormatBytes(e.KvCache),
                            Units.FormatBytes(e.Vram), resolved.Options.ContextSize ?? 0) +
                        " · " + L.Get("Enum_FitVerdict_" + resolved.Verdict) +
                        (resolved.Notes.Count > 0 ? " (" + string.Join("; ", resolved.Notes) + ")" : string.Empty);
     }
+
+    private static long? EstimateAdditionalCacheTokens(GgufInfo? info, long modelBytes, int context, int? trainedContext,
+        long totalVram, long usedVram, int gpuLayers, string? cacheTypeK, string? cacheTypeV, long mmprojBytes, int parallel)
+    {
+        if (totalVram <= 0 || usedVram <= 0 || context <= 0) return null;
+        var next = MemoryEstimator.Estimate(info, modelBytes, context + 1024, cacheTypeK, cacheTypeV, gpuLayers, mmprojBytes, parallel);
+        var current = MemoryEstimator.Estimate(info, modelBytes, context, cacheTypeK, cacheTypeV, gpuLayers, mmprojBytes, parallel);
+        var per1024 = next.Vram - current.Vram;
+        if (per1024 <= 0) return null;
+        var available = Math.Max(0, totalVram - usedVram);
+        var tokens = (long)(available * (1024.0 / per1024));
+        return trainedContext is { } limit ? Math.Min(tokens, Math.Max(0, limit - context)) : tokens;
+    }
+
+    [RelayCommand]
+    private void SetContextPreset(int contextSize) =>
+        ContextSize = contextSize.ToString(CultureInfo.InvariantCulture);
 
     [RelayCommand]
     private void CopyAsBat()

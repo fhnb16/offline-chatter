@@ -106,6 +106,9 @@ public sealed partial class MessageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsThinking), nameof(ReasoningHeader), nameof(ReasoningTail))]
     private bool _isStreaming;
 
+    [ObservableProperty] private bool _isPreparing;
+    [ObservableProperty] private string? _preparingText;
+
     /// <summary>
     /// Пока модель размышляет — последние строки рассуждений: при долгом размышлении или медленном выводе
     /// видно, что работа идёт, без раскрытия блока. После размышлений — null.
@@ -704,6 +707,11 @@ public sealed partial class ChatPageViewModel : PageViewModel
         var vm = Messages.LastOrDefault(m => m.Message.Id == answer.Id) ?? new MessageViewModel(answer, 0, 1);
         _live[answer.Id] = vm;
         vm.IsStreaming = true;
+        vm.IsPreparing = true;
+        var modelRef = chat.ModelRef ?? SelectedModel?.Ref;
+        vm.PreparingText = modelRef?.StartsWith("local:", StringComparison.Ordinal) == true
+            ? L.Get("Chat_Prefilling")
+            : L.Get("Chat_WaitingToken");
 
         var content = new StringBuilder();
         var reasoning = new StringBuilder();
@@ -715,10 +723,14 @@ public sealed partial class ChatPageViewModel : PageViewModel
         void Flush()
         {
             string c, r;
+            int deltaCount;
+            DateTime? first;
             lock (gate)
             {
                 c = content.ToString();
                 r = reasoning.ToString();
+                deltaCount = deltas;
+                first = firstToken;
             }
             if (r.Length == 0 && ThinkSplitter.StartsWithWrapper(c))
             {
@@ -728,10 +740,11 @@ public sealed partial class ChatPageViewModel : PageViewModel
             }
             vm.Reasoning = r;
             vm.Content = c;
-            if (firstToken is { } ft)
+            if (first is { } ft)
             {
+                vm.IsPreparing = false;
                 var sec = (DateTime.UtcNow - ft).TotalSeconds;
-                LiveStats = L.F("Chat_LiveStats", deltas, sec > 0.2 ? (deltas / sec).ToString("0.0") : "…", Units.FormatDuration(ft - started));
+                LiveStats = L.F("Chat_LiveStats", deltaCount, sec > 0.2 ? (deltaCount / sec).ToString("0.0") : "…", Units.FormatDuration(ft - started));
             }
         }
         flush.Tick += (_, _) => Flush();
@@ -823,6 +836,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
             vm.Content = answer.Content;
             vm.Reasoning = answer.Reasoning ?? string.Empty;
             vm.Error = answer.Error;
+            vm.IsPreparing = false;
             vm.IsStreaming = false;
             vm.UpdateStats();
             vm.RefreshTools();

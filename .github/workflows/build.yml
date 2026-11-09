@@ -113,9 +113,50 @@ jobs:
           if ($root.Thumbprint -ne '8F43288AD272F3103B6FB1428485EA3014C0BCFE') { throw 'Unexpected root certificate in installer/certs' }
           "NET48_INSTALLER=$file" >> $env:GITHUB_ENV
 
+      # Win7 SP1 x64 prerequisites for the .NET 4.8 offline installer.
+      # URLs and SHA-1 digests are from Microsoft Update Catalog (SHA-256 is not published there).
+      - name: Cache Windows 7 x64 prerequisites
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/win7-updates
+          key: win7-x64-prerequisites-kb4474419-v3-kb4490628-v1
+
+      - name: Get Windows 7 x64 prerequisites
+        shell: pwsh
+        run: |
+          $dir = Join-Path $env:RUNNER_TEMP 'win7-updates'
+          New-Item -ItemType Directory -Force $dir | Out-Null
+          $updates = @(
+            @{
+              Name = 'windows6.1-kb4490628-x64_d3de52d6987f7c8bdc2c015dca69eac96047c76e.msu'
+              Url = 'https://catalog.s.download.windowsupdate.com/c/msdownload/update/software/secu/2019/03/windows6.1-kb4490628-x64_d3de52d6987f7c8bdc2c015dca69eac96047c76e.msu'
+              Sha1 = 'd3de52d6987f7c8bdc2c015dca69eac96047c76e'
+            },
+            @{
+              Name = 'windows6.1-kb4474419-v3-x64_b5614c6cea5cb4e198717789633dca16308ef79c.msu'
+              Url = 'https://catalog.s.download.windowsupdate.com/c/msdownload/update/software/secu/2019/09/windows6.1-kb4474419-v3-x64_b5614c6cea5cb4e198717789633dca16308ef79c.msu'
+              Sha1 = 'b5614c6cea5cb4e198717789633dca16308ef79c'
+            }
+          )
+          foreach ($update in $updates) {
+            $file = Join-Path $dir $update.Name
+            if (-not (Test-Path $file)) {
+              Invoke-WebRequest $update.Url -OutFile $file
+            }
+            $actual = (Get-FileHash $file -Algorithm SHA1).Hash.ToLowerInvariant()
+            if ($actual -ne $update.Sha1) {
+              [IO.File]::Delete($file)
+              throw "Microsoft Update Catalog checksum mismatch for $($update.Name)"
+            }
+          }
+          "KB4490628_INSTALLER=$(Join-Path $dir $updates[0].Name)" >> $env:GITHUB_ENV
+          "KB4474419_INSTALLER=$(Join-Path $dir $updates[1].Name)" >> $env:GITHUB_ENV
+
       - name: Package (zip, rar, installer)
         shell: pwsh
         env:
+          KB4490628_INSTALLER: ${{ runner.temp }}/win7-updates/windows6.1-kb4490628-x64_d3de52d6987f7c8bdc2c015dca69eac96047c76e.msu
+          KB4474419_INSTALLER: ${{ runner.temp }}/win7-updates/windows6.1-kb4474419-v3-x64_b5614c6cea5cb4e198717789633dca16308ef79c.msu
           SIGN_PFX_BASE64: ${{ github.event_name != 'pull_request' && secrets.SIGN_PFX_BASE64 || '' }}
           SIGN_PFX_PASSWORD: ${{ secrets.SIGN_PFX_PASSWORD }}
           SIGN_CERT_THUMBPRINT: ${{ github.event_name != 'pull_request' && secrets.SIGN_CERT_THUMBPRINT || '' }}
@@ -133,7 +174,7 @@ jobs:
           & $iscc @isccArgs installer/OfflineChatter.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC failed with $LASTEXITCODE" }
           # Второй установщик — со встроенным .NET Framework 4.8
-          & $iscc @isccArgs "/DNet48=$env:NET48_INSTALLER" installer/OfflineChatter.iss
+          & $iscc @isccArgs "/DNet48=$env:NET48_INSTALLER" "/DKB4490628=$env:KB4490628_INSTALLER" "/DKB4474419=$env:KB4474419_INSTALLER" installer/OfflineChatter.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC (NET48) failed with $LASTEXITCODE" }
           # Только архивы и установщик: голый exe в релиз не кладём (Windows 11 и антивирусы агрессивнее к скачанным exe)
           New-Item -ItemType Directory -Force release | Out-Null

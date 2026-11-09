@@ -253,6 +253,13 @@ Profiles_ResetOrDelete	Reset / delete	Сбросить / удалить
 Profiles_DefaultForAll	Use this profile for models without their own	Использовать для моделей без своего профиля
 Profiles_Name	Name	Название
 Profiles_Context	Context size (empty — auto)	Размер контекста (пусто — авто)
+Profiles_ContextHint	Enter any token count, or choose a common size below	Введите число токенов или выберите типовой размер ниже
+Profiles_ContextOption	{0} ({1} VRAM)	{0} ({1} видеопамяти)
+Profiles_ContextInfo	Model trained for {0} tokens · estimated VRAM {1} · room for about {2} more cache tokens	Контекст обучения модели: {0} токенов · оценка видеопамяти: {1} · запас примерно на {2} токенов кэша
+Profiles_ContextUnknown	unknown	неизвестно
+Profiles_ContextRoomUnknown	unknown	неизвестен
+Profiles_ContextVramUnknown	not used / unknown	не используется / неизвестно
+Profiles_ContextPresetHint	Approximate VRAM for model layers and KV cache; other apps may use some of it	Примерная видеопамять для слоёв модели и KV-кэша; её могут занимать другие программы
 Profiles_UseFit	Let llama.cpp fit parameters to memory (--fit)	Автоподбор под память средствами llama.cpp (--fit)
 Profiles_Threads	CPU threads (empty — physical cores)	Потоков CPU (пусто — по физическим ядрам)
 Profiles_Batch	Batch / micro-batch	Batch / micro-batch
@@ -286,6 +293,8 @@ Chat_Regenerate	Regenerate	Сгенерировать заново
 Chat_Stop	Stop (Esc)	Остановить (Esc)
 Chat_Editing	Editing the message — sending creates a new branch	Редактирование сообщения — отправка создаст новую ветку
 Chat_Thinking	Thinking…	Размышляет…
+Chat_Prefilling	Processing the prompt; long contexts can take a while	Обрабатывает промпт; длинный контекст может обрабатываться дольше
+Chat_WaitingToken	Waiting for the first token	Ожидает первый токен
 Chat_ThoughtFor	Thought for {0}	Размышлял {0}
 Chat_Reasoning	Reasoning	Рассуждения
 Chat_ThinkingMode	Thinking mode	Режим размышлений
@@ -823,3 +832,34 @@ Ins_Author	Author	Автор
 Ins_QuantizedBy	Quantized by	Квантовал
 Ins_Path	File	Файл
 Ins_StrictFailed	Strict GPU mode: only {0} of {1} layers fit in video memory, so the server was stopped. Reduce the context, pick a smaller quantization or turn off strict mode in the launch profile.	Строго на GPU: в видеопамять поместилось только {0} из {1} слоёв, поэтому сервер остановлен. Уменьшите контекст, выберите квант поменьше или отключите строгий режим в профиле запуска.
+Enum_SysmemFallbackPolicy_Unknown	Could not read	Не удалось прочитать
+Enum_SysmemFallbackPolicy_NotSupported	Not in this driver (before 536.40)	Нет в этом драйвере (до 536.40)
+Enum_SysmemFallbackPolicy_DriverDefault	Allowed (driver default)	Разрешён (по умолчанию драйвера)
+Enum_SysmemFallbackPolicy_PreferNoFallback	Off (Prefer No Sysmem Fallback)	Запрещён (Prefer No Sysmem Fallback)
+Enum_SysmemFallbackPolicy_PreferFallback	Allowed (Prefer Sysmem Fallback)	Разрешён (Prefer Sysmem Fallback)
+Ins_SysmemForApp	for llama-server.exe	для llama-server.exe
+Ins_SysmemGlobal	global setting	глобальная настройка
+Ins_SysmemCudaOnly	affects CUDA builds only	влияет только на сборки CUDA
+Ins_SysmemFallback	Sysmem fallback (NVIDIA)	Sysmem fallback (NVIDIA)
+Ins_GroupDiagnosis	Why it may be slow	Почему может быть медленно
+Ins_GpuLoad	GPU load (process)	Загрузка GPU (процесс)
+Ins_GpuMem	GPU memory (process)	Память GPU (процесс)
+Ins_GpuMemValue	{0} in VRAM · {1} in RAM over PCIe	{0} в видеопамяти · {1} в ОЗУ через PCIe
+Ins_DiagCpuBuild	CPU build	Сборка для CPU
+Ins_DiagCpuBuildText	The active llama.cpp build does not use the video card. A CUDA or Vulkan build can be installed in the Engine section	Активная сборка llama.cpp не использует видеокарту. Сборку CUDA или Vulkan можно установить в разделе «Движок»
+Ins_DiagPartial	Layers on CPU	Слои на CPU
+Ins_DiagPartialText	Only {0} of {1} layers are on the GPU and the processor computes the rest, so speed is close to CPU speed. Reduce the context or pick a smaller quantization	На GPU только {0} из {1} слоёв, остальные считает процессор — скорость близка к скорости CPU. Уменьшите контекст или выберите квант поменьше
+Ins_DiagShared	Shared GPU memory	Общая память GPU
+Ins_DiagSharedText	llama-server keeps {0} in shared GPU memory: the card reads it from RAM over PCIe, many times slower than video memory. Reduce the context or quantization; for CUDA also turn off sysmem fallback	llama-server держит {0} в общей памяти GPU: видеокарта читает это из ОЗУ через PCIe, в разы медленнее видеопамяти. Уменьшите контекст или квант; для CUDA также запретите sysmem fallback
+Ins_DiagVramFull	Video memory full	Видеопамять заполнена
+Ins_DiagVramFullText	{0} of {1} used: the driver may move data to RAM, and other programs compete for what is left	Занято {0} из {1}: драйвер может переносить данные в ОЗУ, а остаток делят другие программы
+Ins_DiagSysmem	Sysmem fallback on	Sysmem fallback включён
+Ins_DiagSysmemText	When video memory runs out, the NVIDIA driver quietly moves data to RAM instead of reporting an error. In NVIDIA Control Panel, Manage 3D settings, set "CUDA - Sysmem Fallback Policy" to "Prefer No Sysmem Fallback" (globally or for llama-server.exe) and restart the server	При нехватке видеопамяти драйвер NVIDIA молча переносит данные в ОЗУ вместо ошибки. В панели управления NVIDIA → «Управление параметрами 3D» выберите «CUDA - Sysmem Fallback Policy» → «Prefer No Sysmem Fallback» (глобально или для llama-server.exe) и перезапустите сервер
+Ins_DiagVulkan	Vulkan on NVIDIA	Vulkan на NVIDIA
+Ins_DiagVulkanText	CUDA builds are usually faster than Vulkan on NVIDIA cards. A CUDA build can be installed in the Engine section	На картах NVIDIA сборка CUDA обычно быстрее Vulkan. Её можно установить в разделе «Движок»
+Ins_DiagOk	Check	Проверка
+Ins_DiagOkText	The whole model is on the GPU and nothing spills into shared memory	Вся модель на GPU, в общую память ничего не уходит
+Ins_DiagOkNoCounters	The whole model is on the GPU. Shared memory use cannot be measured on this Windows version	Вся модель на GPU. Общую память на этой версии Windows не измерить
+Profiles_Sysmem	Sysmem fallback: {0}	Sysmem fallback: {0}
+Profiles_SysmemRefresh	Check again after changing the setting in NVIDIA Control Panel	Проверить снова после смены настройки в панели NVIDIA
+Profiles_SysmemHint	When it is allowed, a model that does not fit in video memory runs from RAM over PCIe and gets several times slower without any error. "Prefer No Sysmem Fallback" in NVIDIA Control Panel turns this off	Когда перенос разрешён, модель, не поместившаяся в видеопамять, работает из ОЗУ через PCIe и замедляется в разы без всякой ошибки. «Prefer No Sysmem Fallback» в панели NVIDIA это отключает

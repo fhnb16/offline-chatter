@@ -167,6 +167,26 @@ public sealed class AppServices : IDisposable
         return await EnsureServerAsync(model, ct).ConfigureAwait(false) ? null : ServerErrorText ?? "?";
     }
 
+    private System.Threading.Tasks.Task<OfflineChatter.Core.Diagnostics.SysmemFallbackInfo?>? _sysmemFallback;
+
+    /// <summary>
+    /// Политика «CUDA - Sysmem Fallback Policy» драйвера NVIDIA (профиль llama-server.exe или глобальный).
+    /// null — видеокарты NVIDIA нет. Читается один раз; <paramref name="refresh"/> — перечитать (после смены в панели NVIDIA).
+    /// </summary>
+    public System.Threading.Tasks.Task<OfflineChatter.Core.Diagnostics.SysmemFallbackInfo?> GetSysmemFallbackAsync(bool refresh = false)
+    {
+        if (refresh || _sysmemFallback == null)
+            _sysmemFallback = System.Threading.Tasks.Task.Run(async () =>
+            {
+                var hw = await Engine.GetHardwareAsync().ConfigureAwait(false);
+                if (!hw.Gpus.Any(g => g.Vendor == GpuVendor.Nvidia)) return (OfflineChatter.Core.Diagnostics.SysmemFallbackInfo?)null;
+                var info = OfflineChatter.Core.Diagnostics.NvidiaDriverSettings.ReadSysmemFallback("llama-server.exe", hw.NvidiaDriver);
+                Log.Info("Engine", "NVIDIA sysmem fallback policy", new { policy = info.Policy.ToString(), forApp = info.ForApp, raw = info.RawValue, info.Detail, driver = hw.NvidiaDriver });
+                return info;
+            });
+        return _sysmemFallback;
+    }
+
     /// <summary>Ошибка последнего запуска llama-server; известные причины — своим текстом на языке интерфейса.</summary>
     public string? ServerErrorText
     {

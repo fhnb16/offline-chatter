@@ -247,6 +247,13 @@ No — only remove from the list</value></data>
   <data name="Profiles_DefaultForAll" xml:space="preserve"><value>Use this profile for models without their own</value></data>
   <data name="Profiles_Name" xml:space="preserve"><value>Name</value></data>
   <data name="Profiles_Context" xml:space="preserve"><value>Context size (empty — auto)</value></data>
+  <data name="Profiles_ContextHint" xml:space="preserve"><value>Enter any token count, or choose a common size below</value></data>
+  <data name="Profiles_ContextOption" xml:space="preserve"><value>{0} ({1} VRAM)</value></data>
+  <data name="Profiles_ContextInfo" xml:space="preserve"><value>Model trained for {0} tokens · estimated VRAM {1} · room for about {2} more cache tokens</value></data>
+  <data name="Profiles_ContextUnknown" xml:space="preserve"><value>unknown</value></data>
+  <data name="Profiles_ContextRoomUnknown" xml:space="preserve"><value>unknown</value></data>
+  <data name="Profiles_ContextVramUnknown" xml:space="preserve"><value>not used / unknown</value></data>
+  <data name="Profiles_ContextPresetHint" xml:space="preserve"><value>Approximate VRAM for model layers and KV cache; other apps may use some of it</value></data>
   <data name="Profiles_UseFit" xml:space="preserve"><value>Let llama.cpp fit parameters to memory (--fit)</value></data>
   <data name="Profiles_Threads" xml:space="preserve"><value>CPU threads (empty — physical cores)</value></data>
   <data name="Profiles_Batch" xml:space="preserve"><value>Batch / micro-batch</value></data>
@@ -278,6 +285,8 @@ No — only remove from the list</value></data>
   <data name="Chat_Stop" xml:space="preserve"><value>Stop (Esc)</value></data>
   <data name="Chat_Editing" xml:space="preserve"><value>Editing the message — sending creates a new branch</value></data>
   <data name="Chat_Thinking" xml:space="preserve"><value>Thinking…</value></data>
+  <data name="Chat_Prefilling" xml:space="preserve"><value>Processing the prompt; long contexts can take a while</value></data>
+  <data name="Chat_WaitingToken" xml:space="preserve"><value>Waiting for the first token</value></data>
   <data name="Chat_ThoughtFor" xml:space="preserve"><value>Thought for {0}</value></data>
   <data name="Chat_Reasoning" xml:space="preserve"><value>Reasoning</value></data>
   <data name="Chat_ThinkingMode" xml:space="preserve"><value>Thinking mode</value></data>
@@ -836,4 +845,35 @@ Install anyway?</value></data>
   <data name="Ins_QuantizedBy" xml:space="preserve"><value>Quantized by</value></data>
   <data name="Ins_Path" xml:space="preserve"><value>File</value></data>
   <data name="Ins_StrictFailed" xml:space="preserve"><value>Strict GPU mode: only {0} of {1} layers fit in video memory, so the server was stopped. Reduce the context, pick a smaller quantization or turn off strict mode in the launch profile.</value></data>
+  <data name="Enum_SysmemFallbackPolicy_Unknown" xml:space="preserve"><value>Could not read</value></data>
+  <data name="Enum_SysmemFallbackPolicy_NotSupported" xml:space="preserve"><value>Not in this driver (before 536.40)</value></data>
+  <data name="Enum_SysmemFallbackPolicy_DriverDefault" xml:space="preserve"><value>Allowed (driver default)</value></data>
+  <data name="Enum_SysmemFallbackPolicy_PreferNoFallback" xml:space="preserve"><value>Off (Prefer No Sysmem Fallback)</value></data>
+  <data name="Enum_SysmemFallbackPolicy_PreferFallback" xml:space="preserve"><value>Allowed (Prefer Sysmem Fallback)</value></data>
+  <data name="Ins_SysmemForApp" xml:space="preserve"><value>for llama-server.exe</value></data>
+  <data name="Ins_SysmemGlobal" xml:space="preserve"><value>global setting</value></data>
+  <data name="Ins_SysmemCudaOnly" xml:space="preserve"><value>affects CUDA builds only</value></data>
+  <data name="Ins_SysmemFallback" xml:space="preserve"><value>Sysmem fallback (NVIDIA)</value></data>
+  <data name="Ins_GroupDiagnosis" xml:space="preserve"><value>Why it may be slow</value></data>
+  <data name="Ins_GpuLoad" xml:space="preserve"><value>GPU load (process)</value></data>
+  <data name="Ins_GpuMem" xml:space="preserve"><value>GPU memory (process)</value></data>
+  <data name="Ins_GpuMemValue" xml:space="preserve"><value>{0} in VRAM · {1} in RAM over PCIe</value></data>
+  <data name="Ins_DiagCpuBuild" xml:space="preserve"><value>CPU build</value></data>
+  <data name="Ins_DiagCpuBuildText" xml:space="preserve"><value>The active llama.cpp build does not use the video card. A CUDA or Vulkan build can be installed in the Engine section</value></data>
+  <data name="Ins_DiagPartial" xml:space="preserve"><value>Layers on CPU</value></data>
+  <data name="Ins_DiagPartialText" xml:space="preserve"><value>Only {0} of {1} layers are on the GPU and the processor computes the rest, so speed is close to CPU speed. Reduce the context or pick a smaller quantization</value></data>
+  <data name="Ins_DiagShared" xml:space="preserve"><value>Shared GPU memory</value></data>
+  <data name="Ins_DiagSharedText" xml:space="preserve"><value>llama-server keeps {0} in shared GPU memory: the card reads it from RAM over PCIe, many times slower than video memory. Reduce the context or quantization; for CUDA also turn off sysmem fallback</value></data>
+  <data name="Ins_DiagVramFull" xml:space="preserve"><value>Video memory full</value></data>
+  <data name="Ins_DiagVramFullText" xml:space="preserve"><value>{0} of {1} used: the driver may move data to RAM, and other programs compete for what is left</value></data>
+  <data name="Ins_DiagSysmem" xml:space="preserve"><value>Sysmem fallback on</value></data>
+  <data name="Ins_DiagSysmemText" xml:space="preserve"><value>When video memory runs out, the NVIDIA driver quietly moves data to RAM instead of reporting an error. In NVIDIA Control Panel, Manage 3D settings, set &quot;CUDA - Sysmem Fallback Policy&quot; to &quot;Prefer No Sysmem Fallback&quot; (globally or for llama-server.exe) and restart the server</value></data>
+  <data name="Ins_DiagVulkan" xml:space="preserve"><value>Vulkan on NVIDIA</value></data>
+  <data name="Ins_DiagVulkanText" xml:space="preserve"><value>CUDA builds are usually faster than Vulkan on NVIDIA cards. A CUDA build can be installed in the Engine section</value></data>
+  <data name="Ins_DiagOk" xml:space="preserve"><value>Check</value></data>
+  <data name="Ins_DiagOkText" xml:space="preserve"><value>The whole model is on the GPU and nothing spills into shared memory</value></data>
+  <data name="Ins_DiagOkNoCounters" xml:space="preserve"><value>The whole model is on the GPU. Shared memory use cannot be measured on this Windows version</value></data>
+  <data name="Profiles_Sysmem" xml:space="preserve"><value>Sysmem fallback: {0}</value></data>
+  <data name="Profiles_SysmemRefresh" xml:space="preserve"><value>Check again after changing the setting in NVIDIA Control Panel</value></data>
+  <data name="Profiles_SysmemHint" xml:space="preserve"><value>When it is allowed, a model that does not fit in video memory runs from RAM over PCIe and gets several times slower without any error. &quot;Prefer No Sysmem Fallback&quot; in NVIDIA Control Panel turns this off</value></data>
 </root>
