@@ -36,8 +36,17 @@ public sealed class ToolsSettings
     /// <summary>Папка, из которой инструмент read_file может читать файлы (пусто — инструмент выключен).</summary>
     public string? FileSandbox { get; set; }
 
-    /// <summary>SearXNG (JSON API) для веб-поиска, например http://127.0.0.1:8888 (пусто — поиск выключен).</summary>
+    /// <summary>Адрес своего SearXNG (JSON API), например http://127.0.0.1:8888 — для поисковой системы «SearXNG».</summary>
     public string? SearxngUrl { get; set; }
+
+    /// <summary>Запросы, очистка страниц и поиск для web_fetch и web_search.</summary>
+    public WebToolsSettings Web { get; set; } = new();
+
+    /// <summary>
+    /// Город по умолчанию для инструментов погоды (встроенных и MCP). Пусто — ничего не передаётся:
+    /// ни в описание инструмента, ни в аргументы вызова.
+    /// </summary>
+    public string? DefaultCity { get; set; }
 
     /// <summary>Максимум шагов «модель → инструменты → модель» на один ответ.</summary>
     public int MaxSteps { get; set; } = 6;
@@ -57,6 +66,13 @@ public sealed class ToolDefinition
     public JObject Schema { get; set; } = new();
     public string Source { get; set; } = "builtin";          // builtin или имя MCP-сервера
     public ConsentMode DefaultConsent { get; set; } = ConsentMode.Ask;
+
+    /// <summary>Инструменту нужен интернет: в офлайн-режиме он модели не предлагается.</summary>
+    public bool NeedsInternet { get; set; }
+
+    /// <summary>Инструмент сам ограничивает длину ответа и умеет продолжать с места обрыва.</summary>
+    internal bool OwnLimit { get; set; }
+
     internal Func<JObject, CancellationToken, Task<string>>? Execute { get; set; }
     internal McpClient? Client { get; set; }
     internal string? McpToolName { get; set; }
@@ -72,10 +88,13 @@ public sealed class ToolRegistry : IDisposable
     private readonly HttpService _http;
     private readonly ConcurrentDictionary<string, McpClient> _clients = new(StringComparer.OrdinalIgnoreCase);
 
+    private readonly WebTools _web;
+
     public ToolRegistry(ToolsSettings settings, HttpService http)
     {
         _settings = settings;
         _http = http;
+        _web = new WebTools(settings, http);
     }
 
     public ToolsSettings Settings => _settings;
@@ -95,6 +114,11 @@ public sealed class ToolRegistry : IDisposable
             "sse" => new LegacySseTransport(cfg, _http),
             _ => new StdioTransport(cfg),
         };
+        return await ConnectAsync(cfg, transport, ct).ConfigureAwait(false);
+    }
+
+    internal async Task<McpClient> ConnectAsync(McpServerConfig cfg, IMcpTransport transport, CancellationToken ct)
+    {
         var client = new McpClient(cfg.Name, transport);
         client.StateChanged += (_, _) => Changed?.Invoke(this, EventArgs.Empty);
         try
@@ -141,24 +165,56 @@ public sealed class ToolRegistry : IDisposable
                 });
             }
         }
+        // Город по умолчанию: инструмент погоды узнаёт о нём из своего описания. Пустая настройка описаний не меняет
+        if (DefaultLocation.Normalize(_settings.DefaultCity) is { } city)
+            foreach (var t in list.Where(t => DefaultLocation.IsWeatherTool(t.Name, t.Description)))
+                t.Description = DefaultLocation.Describe(t.Description, city);
         return list;
     }
 
     public ConsentMode ConsentFor(ToolDefinition t) => _settings.Consent.TryGetValue(t.Id, out var m) ? m : t.DefaultConsent;
 
-    /// <summary>Описания для запроса к модели (OpenAI tools). Выключенные инструменты не передаются.</summary>
-    public JArray ToOpenAiTools() => new(All().Where(t => ConsentFor(t) != ConsentMode.Disabled).Select(t => new JObject
-    {
-        ["type"] = "function",
-        ["function"] = new JObject { ["name"] = t.Name, ["description"] = t.Description, ["parameters"] = t.Schema },
-    }));
+    /// <summary>
+    /// Описания для запроса к модели (OpenAI tools). Выключенные инструменты не передаются;
+    /// в офлайн-режиме не передаются и те, которым нужен интернет, — вызов всё равно закончился бы ошибкой.
+    /// </summary>
+    public JArray ToOpenAiTools() => new(All()
+        .Where(t => ConsentFor(t) != ConsentMode.Disabled && !(t.NeedsInternet && _http.Settings.OfflineMode))
+        .Select(t => new JObject
+        {
+            ["type"] = "function",
+            ["function"] = new JObject { ["name"] = t.Name, ["description"] = t.Description, ["parameters"] = t.Schema },
+        }));
 
     public ToolDefinition? Find(string name) => All().FirstOrDefault(t => t.Name == name);
+
+    /// <summary>
+    /// Аргументы вызова с учётом настроек: инструменту погоды, которому модель не назвала место, подставляется
+    /// город по умолчанию. Вызывается до запроса согласия, чтобы пользователь видел то, что действительно уйдёт.
+    /// </summary>
+    public string PrepareArguments(ToolDefinition tool, string argumentsJson)
+    {
+        if (DefaultLocation.Normalize(_settings.DefaultCity) is not { } city || !DefaultLocation.IsWeatherTool(tool.Name, tool.Description))
+            return argumentsJson;
+        try
+        {
+            var args = string.IsNullOrWhiteSpace(argumentsJson) ? new JObject() : JObject.Parse(argumentsJson);
+            return DefaultLocation.Fill(tool.Schema, args, city) ? args.ToString(Newtonsoft.Json.Formatting.None) : argumentsJson;
+        }
+        catch (Newtonsoft.Json.JsonException)
+        {
+            return argumentsJson;
+        }
+    }
 
     public async Task<(string text, bool isError)> ExecuteAsync(ToolDefinition tool, string argumentsJson, CancellationToken ct)
     {
         JObject args;
-        try { args = string.IsNullOrWhiteSpace(argumentsJson) ? new JObject() : JObject.Parse(argumentsJson); }
+        try
+        {
+            argumentsJson = PrepareArguments(tool, argumentsJson);
+            args = string.IsNullOrWhiteSpace(argumentsJson) ? new JObject() : JObject.Parse(argumentsJson);
+        }
         catch (Newtonsoft.Json.JsonException ex) { return ("Invalid JSON arguments: " + ex.Message, true); }
 
         try
@@ -168,7 +224,8 @@ public sealed class ToolRegistry : IDisposable
                 var r = await tool.Client.CallToolAsync(tool.McpToolName!, args, ct).ConfigureAwait(false);
                 return (Truncate(r.Text), r.IsError);
             }
-            return (Truncate(await tool.Execute!(args, ct).ConfigureAwait(false)), false);
+            var text = await tool.Execute!(args, ct).ConfigureAwait(false);
+            return (tool.OwnLimit ? text : Truncate(text), false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -244,22 +301,30 @@ public sealed class ToolRegistry : IDisposable
         }
         yield return new ToolDefinition
         {
-            Id = "builtin:fetch_url", Name = "fetch_url", DefaultConsent = ConsentMode.Ask,
-            Description = "Download a web page (http/https) and return its readable text.",
-            Schema = Schema(("url", "string", "Absolute URL", true)),
-            Execute = FetchAsync,
+            Id = WebFetchId, Name = "web_fetch", DefaultConsent = ConsentMode.Ask, NeedsInternet = true, OwnLimit = true,
+            Description = "Download a web page (http/https) and return its main text without menus, ads and footers. "
+                          + "A long page is returned in parts: call again with start to read on.",
+            Schema = Schema(
+                ("url", "string", "Absolute URL of the page", true),
+                ("start", "integer", "Character offset to continue a truncated page (default 0)", false)),
+            Execute = _web.FetchAsync,
         };
-        if (!string.IsNullOrWhiteSpace(_settings.SearxngUrl))
+        yield return new ToolDefinition
         {
-            yield return new ToolDefinition
-            {
-                Id = "builtin:web_search", Name = "web_search", DefaultConsent = ConsentMode.Ask,
-                Description = "Search the web (SearXNG). Returns titles, URLs and snippets.",
-                Schema = Schema(("query", "string", "Search query", true)),
-                Execute = SearchAsync,
-            };
-        }
+            Id = WebSearchId, Name = "web_search", DefaultConsent = ConsentMode.Ask, NeedsInternet = true, OwnLimit = true,
+            Description = "Search the web. Returns titles, URLs and short snippets of the results; use web_fetch to read a page from them.",
+            Schema = Schema(
+                ("query", "string", "Search query", true),
+                ("period", "string", "Optional: only recent results - day, week, month or year", false)),
+            Execute = _web.SearchAsync,
+        };
     }
+
+    public const string WebFetchId = "builtin:web_fetch";
+    public const string WebSearchId = "builtin:web_search";
+
+    /// <summary>Прежнее имя web_fetch: разрешение пользователя переносится на новое.</summary>
+    public const string LegacyFetchId = "builtin:fetch_url";
 
     private string ReadSandboxed(string relative)
     {
@@ -274,36 +339,6 @@ public sealed class ToolRegistry : IDisposable
         if (info.Length > 1_000_000) throw new IOException("File is larger than 1 MB");
         if (Chat.AttachmentReader.IsDocx(full)) return Chat.AttachmentReader.ReadDocx(full);
         return File.ReadAllText(full, Encoding.UTF8);
-    }
-
-    private async Task<string> FetchAsync(JObject a, CancellationToken ct)
-    {
-        var url = (string?)a["url"] ?? throw new ArgumentException("url is required");
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var u) || u.Scheme is not ("http" or "https")) throw new ArgumentException("Only http/https URLs");
-        var html = await _http.GetStringAsync(url, ct).ConfigureAwait(false);
-        return HtmlToText(html);
-    }
-
-    private async Task<string> SearchAsync(JObject a, CancellationToken ct)
-    {
-        var q = (string?)a["query"] ?? throw new ArgumentException("query is required");
-        var json = await _http.GetJsonAsync(_settings.SearxngUrl!.TrimEnd('/') + "/search?format=json&q=" + Uri.EscapeDataString(q), ct).ConfigureAwait(false);
-        var sb = new StringBuilder();
-        foreach (var r in (json["results"] as JArray ?? new JArray()).Take(8))
-            sb.Append("- ").Append((string?)r["title"]).Append(" — ").AppendLine((string?)r["url"]).Append("  ").AppendLine((string?)r["content"]);
-        return sb.Length > 0 ? sb.ToString() : "No results";
-    }
-
-    /// <summary>Грубое извлечение текста из HTML (без внешних библиотек): убираем script/style и теги.</summary>
-    public static string HtmlToText(string html)
-    {
-        var s = Regex.Replace(html, @"<(script|style|noscript|svg|head)[\s\S]*?</\1>", " ", RegexOptions.IgnoreCase);
-        s = Regex.Replace(s, @"<(br|p|div|li|h[1-6]|tr)\b[^>]*>", "\n", RegexOptions.IgnoreCase);
-        s = Regex.Replace(s, "<[^>]+>", " ");
-        s = WebUtility.HtmlDecode(s);
-        s = Regex.Replace(s, @"[ \t ]+", " ");
-        s = Regex.Replace(s, @"\s*\n\s*", "\n");
-        return s.Trim();
     }
 
     public void Dispose()

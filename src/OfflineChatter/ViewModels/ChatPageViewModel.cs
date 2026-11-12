@@ -915,10 +915,12 @@ public sealed partial class ChatPageViewModel : PageViewModel
         if (tool == null) return ($"Unknown tool: {call.Name}", true);
         var mode = _s.Tools.ConsentFor(tool);
         if (mode == Core.Tools.ConsentMode.Disabled) return ("Tool is disabled by the user", true);
+        // Аргументы с учётом настроек (город по умолчанию): в запросе согласия видно то, что действительно уйдёт
+        var arguments = _s.Tools.PrepareArguments(tool, call.Arguments);
         if (mode == Core.Tools.ConsentMode.Ask)
         {
             var answer = Views.ToolConsentDialog.Ask(tool.Name, tool.Source == "builtin" ? L.Get("Tools_Builtin") : "MCP: " + tool.Source,
-                call.Arguments, tool.Source != "builtin");
+                arguments, tool.Source != "builtin");
             if (answer == Views.ConsentAnswer.Deny) return ("The user denied this tool call", true);
             if (answer == Views.ConsentAnswer.Always)
             {
@@ -929,7 +931,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
         Status = L.F("Tools_Running", tool.Name);
         try
         {
-            var r = await _s.Tools.ExecuteAsync(tool, call.Arguments, ct);
+            var r = await _s.Tools.ExecuteAsync(tool, arguments, ct);
             Log.Info("Tools", "Called " + tool.Id, new { error = r.isError, length = r.text.Length });
             return r;
         }

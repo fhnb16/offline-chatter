@@ -82,7 +82,8 @@ public partial class App : Application
         Log.Initialize(new JsonlLogger(Paths.Logs, "app", logCfg.MaxFileSizeMb * 1024L * 1024L, logCfg.MaxFiles, minLevel));
         if (Settings.Current.Version < AppSettings.CurrentVersion)
         {
-            if (OsInfo.IsWin7 && Settings.Current.Engine.BuildSource == EngineSource.Official)
+            // Версия 2: на Windows 7 — свой канал сборок llama.cpp (выбор пользователя из версии 2 и новее не трогаем)
+            if (Settings.Current.Version < 2 && OsInfo.IsWin7 && Settings.Current.Engine.BuildSource == EngineSource.Official)
                 Settings.Current.Engine.BuildSource = EngineSource.AppWin7;
             Settings.Save();
         }

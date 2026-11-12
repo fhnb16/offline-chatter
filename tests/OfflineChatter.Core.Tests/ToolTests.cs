@@ -62,6 +62,8 @@ public class McpTests
     private sealed class FakeTransport : IMcpTransport
     {
         public readonly List<JObject> Sent = new();
+        /// <summary>Дополнительные инструменты на второй странице списка.</summary>
+        public JArray Extra = new();
         public event EventHandler<JObject>? MessageReceived;
         public event EventHandler<string>? Closed;
 
@@ -86,8 +88,12 @@ public class McpTests
                     ["tools"] = new JArray(new JObject { ["name"] = "echo", ["description"] = "Echo", ["inputSchema"] = new JObject { ["type"] = "object" } }),
                     ["nextCursor"] = "page2",
                 },
-                "tools/list" => new JObject { ["tools"] = new JArray(new JObject { ["name"] = "shout", ["inputSchema"] = new JObject() }) },
+                "tools/list" => new JObject { ["tools"] = new JArray(new[] { new JObject { ["name"] = "shout", ["inputSchema"] = new JObject() } }.Concat(Extra.Cast<JObject>())) },
                 "prompts/list" => new JObject { ["prompts"] = new JArray(new JObject { ["name"] = "summarize" }) },
+                "tools/call" when m["params"]!["arguments"]!["text"] == null => new JObject
+                {
+                    ["content"] = new JArray(new JObject { ["type"] = "text", ["text"] = "args " + m["params"]!["arguments"]!.ToString(Newtonsoft.Json.Formatting.None) }),
+                },
                 "tools/call" => new JObject
                 {
                     ["content"] = new JArray(
@@ -169,7 +175,12 @@ public class McpTests
         var tools = reg.ToOpenAiTools();
         Assert.Contains(tools, t => (string?)t["function"]!["name"] == "calculator");
         Assert.Contains(tools, t => (string?)t["function"]!["name"] == "read_file");
-        Assert.DoesNotContain(tools, t => (string?)t["function"]!["name"] == "web_search"); // SearXNG не задан
+        // Веб-инструменты есть всегда: поиск больше не требует своего SearXNG; fetch_url переименован
+        Assert.Contains(tools, t => (string?)t["function"]!["name"] == "web_search");
+        Assert.Contains(tools, t => (string?)t["function"]!["name"] == "web_fetch");
+        Assert.DoesNotContain(tools, t => (string?)t["function"]!["name"] == "fetch_url");
+        Assert.Equal(ConsentMode.Ask, reg.ConsentFor(reg.Find("web_fetch")!));
+        Assert.Equal(ConsentMode.Ask, reg.ConsentFor(reg.Find("web_search")!));
 
         var calc = reg.Find("calculator")!;
         Assert.Equal(ConsentMode.Always, reg.ConsentFor(calc));
@@ -191,5 +202,47 @@ public class McpTests
 
     [Fact]
     public void Html_To_Text() =>
-        Assert.Equal("Title\nHello & bye", ToolRegistry.HtmlToText("<html><head><title>x</title><style>p{}</style></head><body><h1>Title</h1><p>Hello &amp; <b>bye</b></p><script>alert(1)</script></body></html>"));
+        Assert.Equal("Title\nHello & bye", PageExtractor.Extract("<html><head><title>x</title><style>p{}</style></head><body><h1>Title</h1><p>Hello &amp; <b>bye</b></p><script>alert(1)</script></body></html>", null, PageCleanOptions.Raw).Text);
+
+    [Fact]
+    public async Task Default_City_Reaches_Weather_Tools_Only_When_Set()
+    {
+        var transport = new FakeTransport
+        {
+            Extra = new JArray(new JObject
+            {
+                ["name"] = "get_weather",
+                ["description"] = "Current weather for a place",
+                ["inputSchema"] = new JObject
+                {
+                    ["type"] = "object",
+                    ["properties"] = new JObject { ["city"] = new JObject { ["type"] = "string" }, ["units"] = new JObject { ["type"] = "string" } },
+                },
+            }),
+        };
+        var settings = new ToolsSettings();
+        using var http = new HttpService(new NetworkSettings { ProxyMode = ProxyMode.None }, new TrustedRoots(), "t");
+        using var reg = new ToolRegistry(settings, http);
+        await reg.ConnectAsync(new McpServerConfig { Name = "srv" }, transport, CancellationToken.None);
+
+        // Город не задан: ни в описании, ни в аргументах его нет
+        var weather = reg.Find("srv__get_weather")!;
+        Assert.Equal("Current weather for a place (MCP: srv)", weather.Description);
+        Assert.Equal("{}", reg.PrepareArguments(weather, "{}"));
+        Assert.Equal(("args {}", false), await reg.ExecuteAsync(weather, "{}", CancellationToken.None));
+        Assert.DoesNotContain("Default location", reg.ToOpenAiTools().ToString());
+
+        settings.DefaultCity = " Казань ";
+        weather = reg.Find("srv__get_weather")!;
+        Assert.Equal("Current weather for a place (MCP: srv) Default location: Казань - use it when the user does not name another place.", weather.Description);
+        Assert.Equal("{\"units\":\"metric\",\"city\":\"Казань\"}", reg.PrepareArguments(weather, "{\"units\":\"metric\"}"));
+        Assert.Equal(("args {\"city\":\"Казань\"}", false), await reg.ExecuteAsync(weather, "", CancellationToken.None));
+        // Пользователь спросил про другой город — модель его передала, настройка не мешает
+        Assert.Equal(("args {\"city\":\"Omsk\"}", false), await reg.ExecuteAsync(weather, "{\"city\":\"Omsk\"}", CancellationToken.None));
+
+        // Остальные инструменты о городе не знают
+        var tools = reg.ToOpenAiTools();
+        Assert.Single(tools, t => t["function"]!["description"]!.ToString().Contains("Казань"));
+        Assert.Equal("{\"text\":\"hi\"}", reg.PrepareArguments(reg.Find("srv__echo")!, "{\"text\":\"hi\"}"));
+    }
 }

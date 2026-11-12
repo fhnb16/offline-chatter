@@ -93,6 +93,17 @@ public sealed class SettingsStore
         s.Tools ??= new Tools.ToolsSettings();
         s.Tools.Consent ??= new System.Collections.Generic.Dictionary<string, Tools.ConsentMode>();
         if (s.Tools.MaxSteps is < 1 or > 20) s.Tools.MaxSteps = 6;
+        s.Tools.Web ??= new Tools.WebToolsSettings();
+        s.Tools.Web.Normalize();
+        s.Tools.DefaultCity = Tools.DefaultLocation.Normalize(s.Tools.DefaultCity);
+        // fetch_url переименован в web_fetch: разрешение пользователя переезжает вместе с инструментом
+        if (s.Tools.Consent.TryGetValue(Tools.ToolRegistry.LegacyFetchId, out var fetchConsent))
+        {
+            s.Tools.Consent.Remove(Tools.ToolRegistry.LegacyFetchId);
+            if (!s.Tools.Consent.ContainsKey(Tools.ToolRegistry.WebFetchId)) s.Tools.Consent[Tools.ToolRegistry.WebFetchId] = fetchConsent;
+        }
+        // До версии 3 поиск работал только через свой SearXNG: у кого он настроен, тот на нём и остаётся
+        if (s.Version < 3 && !string.IsNullOrWhiteSpace(s.Tools.SearxngUrl)) s.Tools.Web.Engine = Tools.SearchEngine.Searxng;
         s.Models ??= new Models.ModelsSettings();
         s.Models.ScanFolders ??= new System.Collections.Generic.List<string>();
         s.Models.HfTokenProtected ??= string.Empty;

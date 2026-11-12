@@ -3,7 +3,8 @@ namespace OfflineChatter.Core.Storage;
 /// <summary>Корневой объект config/settings.json.</summary>
 public sealed class AppSettings
 {
-    public const int CurrentVersion = 2;
+    /// <summary>3 — поиск через шаблоны поисковых систем (раньше только свой SearXNG), fetch_url → web_fetch.</summary>
+    public const int CurrentVersion = 3;
 
     public int Version { get; set; } = CurrentVersion;
 
