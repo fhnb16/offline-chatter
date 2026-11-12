@@ -138,6 +138,9 @@ public sealed partial class SettingsViewModel : PageViewModel
 
     public IReadOnlyList<NavToggle> SidebarItems { get; }
 
+    /// <summary>Блоки правой панели чата (тот же список, что в самой панели и в мастере первого запуска).</summary>
+    public InspectorLayoutViewModel InspectorLayout => _main.InspectorLayout;
+
     public bool CloseToTray
     {
         get => _services.Settings.Current.Window.CloseToTray;

@@ -21,6 +21,7 @@ public partial class ChatView : UserControl
         DataContextChanged += OnDataContextChanged;
         Loaded += (_, _) => InputBox.Focus();
         SizeChanged += OnSizeChanged;
+        CustomizePopup.Closed += (_, _) => _customizeClosedAt = DateTime.UtcNow;
         MessagesScroll.ScrollChanged += (_, e) =>
         {
             // Пользователь прокрутил вверх — не дёргаем ленту; вернулся вниз — снова следуем за ответом
@@ -145,6 +146,17 @@ public partial class ChatView : UserControl
             _vm.SetInspectorVisible(true, persist: false);
         }
     }
+
+    /// <summary>«Настроить панель»: список блоков правой панели во всплывающем окне под кнопкой.</summary>
+    private void OnCustomizeInspector(object sender, RoutedEventArgs e)
+    {
+        // Щелчок по кнопке при открытом списке сначала закрывает его (щелчок вне всплывающего окна), и только потом
+        // приходит сюда — без этой проверки список тут же открывался бы снова
+        if ((DateTime.UtcNow - _customizeClosedAt).TotalMilliseconds < 250) return;
+        CustomizePopup.IsOpen = true;
+    }
+
+    private DateTime _customizeClosedAt;
 
     private void OnDragOver(object sender, DragEventArgs e)
     {

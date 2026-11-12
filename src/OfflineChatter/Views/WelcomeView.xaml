@@ -60,6 +60,18 @@
                 </DockPanel>
             </Border>
 
+            <!-- 4. Правая панель чата -->
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <Border Style="{StaticResource StepNumber}"><TextBlock Text="4" Foreground="{DynamicResource TextOnAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="SemiBold" /></Border>
+                    <StackPanel>
+                        <TextBlock Text="{l:Loc Welcome_Step_Inspector}" Style="{StaticResource SubtitleText}" />
+                        <TextBlock Text="{l:Loc Welcome_InspectorText}" Style="{StaticResource BodyText}" Margin="0,4,0,8" />
+                        <views:InspectorLayoutView DataContext="{Binding InspectorLayout}" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                 <Button Style="{DynamicResource AccentButtonStyle}" Command="{Binding InstallAllCommand}" Padding="16,8">
                     <StackPanel Orientation="Horizontal">

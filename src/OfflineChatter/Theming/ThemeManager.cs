@@ -22,6 +22,7 @@ public static class ThemeManager
 {
     private const string AssemblySuffix = ";V4.0.0.0;31bf3856ad364e35;component/themes/";
     private static readonly Uri FluentSkinUri = new("pack://application:,,,/OfflineChatter;component/Skins/Fluent.xaml");
+    private static readonly Uri NativeSkinUri = new("pack://application:,,,/OfflineChatter;component/Skins/Native.xaml");
 
     private static readonly List<WeakReference<Window>> AttachedWindows = new();
     private static readonly List<ResourceDictionary> SkinDictionaries = new();
@@ -122,7 +123,9 @@ public static class ThemeManager
     private static void ApplyToWindow(Window window, bool force = false)
     {
         if (Current == null) return;
-        var extended = ShellChrome.Update(window, WindowBackdrop.UsesAccentPolicy(Current));
+        // Системные скины (Aero, Aero2, Classic…) — со стандартным заголовком окна своей Windows: значок, название и
+        // кнопки рисует система. Совмещённый с содержимым заголовок — приём Fluent, в Win7 он смотрится чужим.
+        var extended = ShellChrome.Update(window, WindowBackdrop.UsesAccentPolicy(Current), allowExtend: Current.Skin == SkinKind.Fluent);
         WindowBackdrop.Apply(new WindowInteropHelper(window).Handle, Current, extended, force);
     }
 
@@ -178,7 +181,7 @@ public static class ThemeManager
         // Системные скины не поддерживают тёмную тему — контролы рисует Fluent-скин.
         if (dark && skin != SkinKind.Fluent) skin = SkinKind.Fluent;
 
-        var backdrop = highContrast ? BackdropKind.None : ResolveBackdrop(s.Backdrop);
+        var backdrop = highContrast ? BackdropKind.None : ResolveBackdrop(s.Backdrop, skin);
         var palette = AccentPalette.Resolve(s);
         return new ResolvedTheme(skin, dark, backdrop, palette, highContrast, ThemeTokens.SolidWindowColor(dark, skin));
     }
@@ -196,11 +199,15 @@ public static class ThemeManager
         };
     }
 
-    public static BackdropKind ResolveBackdrop(BackdropKind requested)
+    /// <param name="skin">
+    /// Уже разрешённый скин. У системных скинов «Авто» — без подложки: родное окно Win7 / 8 прозрачно только в рамке,
+    /// а панели внутри непрозрачны. Стекло и Mica под системным скином остаются доступны явным выбором.
+    /// </param>
+    public static BackdropKind ResolveBackdrop(BackdropKind requested, SkinKind skin = SkinKind.Fluent)
     {
         if (requested == BackdropKind.Auto)
         {
-            requested = OsInfo.Generation switch
+            requested = skin != SkinKind.Fluent ? BackdropKind.None : OsInfo.Generation switch
             {
                 WindowsGeneration.Win7 => BackdropKind.AeroGlass,
                 WindowsGeneration.Win10 => BackdropKind.Acrylic,
@@ -288,6 +295,8 @@ public static class ThemeManager
             var overlay = new ResourceDictionary();
             AddNativeKeyedStyles(overlay, native);
             SkinDictionaries.Add(overlay);
+            // То, чего в словаре темы WPF нет: строки списков как в Проводнике (выбор и наведение — по токенам скина)
+            SkinDictionaries.Add(new ResourceDictionary { Source = NativeSkinUri });
         }
 
         // Скины вставляются первыми: Shared.xaml и прочие словари приложения идут после и имеют приоритет.
@@ -326,26 +335,28 @@ public static class ThemeManager
     /// </summary>
     private static void AddNativeKeyedStyles(ResourceDictionary target, ResourceDictionary? native)
     {
-        // Системные скины рисуют контролы ниже (23 px против 32 px во Fluent): выравниваем минимальную высоту,
-        // чтобы при смене скина вёрстка не прыгала и поля ввода не обрезались.
+        // Кнопки, поля и списки одной высоты: 24 px — размер родных контролов Win7 / 8 (23 px) по сетке 4 px.
+        // Во Fluent контролы крупнее (32 px), но вёрстка страниц от высоты не зависит.
         foreach (var type in new[] { typeof(Button), typeof(System.Windows.Controls.Primitives.ToggleButton), typeof(ComboBox), typeof(TextBox), typeof(PasswordBox) })
         {
             var style = new Style(type, native?[type] as Style);
-            style.Setters.Add(new Setter(FrameworkElement.MinHeightProperty, 30.0));
+            style.Setters.Add(new Setter(FrameworkElement.MinHeightProperty, 24.0));
             style.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
             if (type == typeof(Button) || type == typeof(System.Windows.Controls.Primitives.ToggleButton))
                 style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(12, 2, 12, 2)));
             else if (type != typeof(ComboBox))
-                style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(6, 2, 6, 2)));
+                style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(4, 2, 4, 2)));
             target[type] = style;
         }
 
-        // Строки списков (боковая панель, результаты поиска) — той же высоты, что во Fluent
-        var item = new Style(typeof(ListBoxItem), native?[typeof(ListBoxItem)] as Style);
-        item.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 7, 10, 7)));
-        item.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(0, 1, 0, 1)));
-        item.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
-        target[typeof(ListBoxItem)] = item;
+        // Строки списков: в High Contrast — системные; в остальных скинах шаблон задаёт Skins/Native.xaml
+        if (native == null)
+        {
+            var item = new Style(typeof(ListBoxItem));
+            item.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(8, 4, 8, 4)));
+            item.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
+            target[typeof(ListBoxItem)] = item;
+        }
 
         // Вкладки страницы — родные вкладки скина (Aero, XP, Classic); содержимое вкладки рисует сама страница
         var tabs = new Style(typeof(TabControl), native?[typeof(TabControl)] as Style);

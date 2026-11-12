@@ -28,8 +28,9 @@ public sealed partial class MainViewModel : ObservableObject
         };
         RebuildNav();
         Downloads = new DownloadsViewModel(services.Downloads);
-        Server = new ServerInsightViewModel(services);
-        Chat = new ChatPageViewModel(services, Server);
+        InspectorLayout = new InspectorLayoutViewModel(services.Settings);
+        Server = new ServerInsightViewModel(services, InspectorLayout);
+        Chat = new ChatPageViewModel(services, Server, InspectorLayout);
         Register(Chat);
         Register(new SettingsViewModel(services, this));
         Register(new EngineViewModel(services, this));
@@ -53,6 +54,7 @@ public sealed partial class MainViewModel : ObservableObject
 
         _currentPage = Chat;
         Chat.IsCompact = IsCompact;
+        Chat.Endpoint.Active = true;
     }
 
     public AppServices Services { get; }
@@ -67,6 +69,13 @@ public sealed partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     private void OpenEngine() => Navigate(PageKind.Engine);
+
+    /// <summary>Щелчок по состоянию подключения: локальная модель — «Движок», модель API — «API-провайдеры».</summary>
+    [RelayCommand]
+    private void OpenEndpoint() => Navigate(Chat.Endpoint.IsApi ? PageKind.Providers : PageKind.Engine);
+
+    /// <summary>Какие блоки показывает правая панель чата (правится из панели, настроек и мастера первого запуска).</summary>
+    public InspectorLayoutViewModel InspectorLayout { get; }
 
     /// <summary>Все разделы (для настройки боковой панели).</summary>
     public IReadOnlyList<NavItem> AllNavItems { get; }
@@ -211,6 +220,8 @@ public sealed partial class MainViewModel : ObservableObject
         }
 
         CurrentPage = page;
+        // Связь с API-провайдером проверяется по таймеру, только пока открыт чат
+        Chat.Endpoint.Active = kind == PageKind.Chat;
         page.OnNavigatedTo();
         // Модель по умолчанию могли сменить в «Моделях» или мастере — строка состояния должна это показать
         Server.OnActiveModelChanged();

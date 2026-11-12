@@ -54,7 +54,7 @@
                             <Button Command="{Binding StopServerCommand}" Content="{l:Loc Engine_Stop}" Margin="0,0,0,4" />
                         </WrapPanel>
                     </c:AdaptiveRow>
-                    <views:ServerInsightView DataContext="{Binding Server}" Margin="0,12,0,0" />
+                    <views:ServerInsightView Source="{Binding Server.Groups}" Margin="0,12,0,0" />
                     <Expander Header="{l:Loc Engine_ServerLog}" Margin="0,4,0,0">
                         <StackPanel>
                             <TextBox Text="{Binding ServerCommandLine, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"

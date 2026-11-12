@@ -31,6 +31,7 @@ public sealed class ChatStore
                 if (chat == null) continue;
                 chat.Id = Path.GetFileNameWithoutExtension(f);
                 chat.Messages ??= new List<ChatMessage>();
+                foreach (var m in chat.Messages) m.Stats?.FixLegacyPromptCount();
                 list.Add(chat);
             }
             catch (Exception ex) when (ex is IOException or Newtonsoft.Json.JsonException or UnauthorizedAccessException)

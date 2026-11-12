@@ -37,6 +37,9 @@ public sealed partial class WelcomeViewModel : PageViewModel
 
     public DownloadsViewModel Downloads => _main.Downloads;
 
+    /// <summary>Шаг «Правая панель чата»: что показывать рядом с беседой (потом меняется в самой панели и в настройках).</summary>
+    public InspectorLayoutViewModel InspectorLayout => _main.InspectorLayout;
+
     [ObservableProperty] private string _hardwareText = L.Get("Engine_HardwareProbing");
     [ObservableProperty] private string? _compatWarning;
     [ObservableProperty] private string _engineText = L.Get("Welcome_Loading");

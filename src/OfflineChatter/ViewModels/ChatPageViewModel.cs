@@ -95,8 +95,11 @@ public sealed partial class MessageViewModel : ObservableObject
     public string VariantText => $"{VariantIndex + 1} / {VariantCount}";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsThinking), nameof(ReasoningTail))]
+    [NotifyPropertyChangedFor(nameof(IsThinking), nameof(ReasoningTail), nameof(HasContent))]
     private string _content;
+
+    /// <summary>У шага с одними вызовами инструментов текста нет — пустое место под него в пузыре не оставляем.</summary>
+    public bool HasContent => !string.IsNullOrWhiteSpace(Content);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasReasoning), nameof(ReasoningHeader), nameof(IsThinking), nameof(ReasoningTail))]
@@ -156,10 +159,16 @@ public sealed partial class MessageViewModel : ObservableObject
             return;
         }
         var parts = new List<string>();
-        if (s.TokensPerSecond is { } tps) parts.Add(L.F("Stats_Gen", tps.ToString("0.0")));
-        if (s.CompletionTokens > 0) parts.Add(L.F("Stats_Tokens", s.CompletionTokens));
-        if (s.PromptTokensPerSecond is { } pps) parts.Add(L.F("Stats_Prompt", s.PromptTokens, pps.ToString("0")));
-        parts.Add(L.F("Stats_Ttft", Units.FormatDuration(TimeSpan.FromMilliseconds(s.TimeToFirstTokenMs))));
+        var approx = s.Estimated ? "≈" : string.Empty;
+        if (s.TokensPerSecond is { } tps) parts.Add(L.F("Stats_Gen", approx + tps.ToString("0.0")));
+        if (s.CompletionTokens > 0) parts.Add(L.F("Stats_Out", approx + s.CompletionTokens.ToString("N0")));
+        if (s.PromptTokens > 0)
+            parts.Add(s.CachedTokens is > 0
+                ? L.F("Stats_InCached", approx + s.PromptTokens.ToString("N0"), s.CachedTokens.Value.ToString("N0"))
+                : L.F("Stats_In", approx + s.PromptTokens.ToString("N0")));
+        // Скорость промпта по нескольким токенам (почти всё взято из кэша) — шум, а не измерение
+        if (s.PromptTokensPerSecond is { } pps && (s.PromptEvalTokens ?? s.PromptTokens) >= 16) parts.Add(L.F("Stats_PromptSpeed", pps.ToString("0")));
+        if (s.TimeToFirstTokenMs > 0) parts.Add(L.F("Stats_Ttft", Units.FormatDuration(TimeSpan.FromMilliseconds(s.TimeToFirstTokenMs))));
         if (s.DraftTotal is > 0 && s.DraftAccepted is { } acc) parts.Add(L.F("Stats_Draft", (100.0 * acc / s.DraftTotal.Value).ToString("0")));
         if (!string.IsNullOrEmpty(s.Model)) parts.Add(s.Model!);
         if (s.FinishReason == "length") parts.Add(L.Get("Stats_Truncated"));
@@ -193,10 +202,20 @@ public sealed partial class ChatPageViewModel : PageViewModel
     private CancellationTokenSource? _genCts;
     private readonly ICollectionView _filtered;
 
-    public ChatPageViewModel(AppServices services, ServerInsightViewModel server)
+    public ChatPageViewModel(AppServices services, ServerInsightViewModel server, InspectorLayoutViewModel layout)
     {
         _s = services;
         Server = server;
+        Layout = layout;
+        Endpoint = new EndpointStatusViewModel(services, server);
+        TokensGroup = new InsightGroup(L.Get("Inspector_Section_Tokens"));
+        Layout.Changed += (_, _) => RebuildStatGroups();
+        RebuildStatGroups();
+        // Размер контекста известен только у запущенного сервера — строка «Контекст» обновляется вместе с ним
+        Server.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ServerInsightViewModel.State)) RefreshTokens();
+        };
         _isInspectorVisible = services.Settings.Current.Window.InspectorVisible;
         if (System.Windows.Application.Current is { } app) app.Exit += (_, _) => FlushPromptSave();
         foreach (var c in services.Chats.LoadAll()) Chats.Add(new ChatListItem(c));
@@ -217,6 +236,25 @@ public sealed partial class ChatPageViewModel : PageViewModel
 
     /// <summary>Состояние llama-server, сборка и модель (шапка и правая панель).</summary>
     public ServerInsightViewModel Server { get; }
+
+    /// <summary>Какие блоки показывает правая панель.</summary>
+    public InspectorLayoutViewModel Layout { get; }
+
+    /// <summary>Подключение к эндпоинту выбранной модели: локальный сервер или API-провайдер.</summary>
+    public EndpointStatusViewModel Endpoint { get; }
+
+    /// <summary>Блок «Токены»: контекст, последний ответ, всего за чат.</summary>
+    public InsightGroup TokensGroup { get; }
+
+    /// <summary>Блоки статистики беседы в правой панели («Подключение», «Токены») — те, что включены.</summary>
+    public ObservableCollection<InsightGroup> StatGroups { get; } = new();
+
+    private void RebuildStatGroups()
+    {
+        StatGroups.Clear();
+        if (Layout.Has(Core.Storage.InspectorSection.Connection)) StatGroups.Add(Endpoint.Group);
+        if (Layout.Has(Core.Storage.InspectorSection.Tokens)) StatGroups.Add(TokensGroup);
+    }
 
     public override PageKind Kind => PageKind.Chat;
     public override string Title => SelectedChat?.Title ?? L.Get("Nav_Chat");
@@ -307,6 +345,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
     {
         OnPropertyChanged(nameof(InputHint));
         SelectedChat ??= _lastChat ?? Chats.FirstOrDefault();
+        RefreshTokens();
     }
 
     partial void OnSearchTextChanged(string value) => _filtered.Refresh();
@@ -347,6 +386,8 @@ public sealed partial class ChatPageViewModel : PageViewModel
     partial void OnSelectedModelChanged(ModelOption? value)
     {
         OnPropertyChanged(nameof(ModelName));
+        Endpoint.SetTarget(value?.Ref, value?.Title);
+        RefreshTokens();
         if (value == null || SelectedChat == null) return;
         SelectedChat.Session.ModelRef = value.Ref;
         if (value.Ref.StartsWith("local:", StringComparison.Ordinal))
@@ -381,7 +422,9 @@ public sealed partial class ChatPageViewModel : PageViewModel
         if (s.ModelRef != null && ModelOptions.FirstOrDefault(o => o.Ref == s.ModelRef) is { } opt) SelectedModel = opt;
         else if (SelectedModel != null) s.ModelRef = SelectedModel.Ref;
         RebuildMessages();
-        UpdateContext(s.ActivePath().LastOrDefault(m => m.Stats != null)?.Stats);
+        // Строка под полем ввода — итог последнего ответа открытого чата, а не прочерки
+        if (!IsGenerating) LiveStats = Messages.LastOrDefault(m => m.StatsText != null)?.StatsText ?? L.Get("Chat_StatsEmpty");
+        RefreshTokens();
     }
 
     partial void OnSystemPromptChanged(string value)
@@ -647,6 +690,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
         var chat = item.Session;
         var cts = _genCts = new CancellationTokenSource();
         IsGenerating = true;
+        Endpoint.Busy = true;
         Status = null;
         try
         {
@@ -689,6 +733,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
         finally
         {
             IsGenerating = false;
+            Endpoint.Busy = false;
             if (ReferenceEquals(_genCts, cts)) _genCts = null;
             cts.Dispose();
             chat.UpdatedAt = DateTime.UtcNow;
@@ -719,6 +764,9 @@ public sealed partial class ChatPageViewModel : PageViewModel
         var deltas = 0;
         var started = DateTime.UtcNow;
         DateTime? firstToken = null;
+        // Ответ и статистика копятся здесь: числа токенов видны во время генерации и не пропадают при остановке или ошибке
+        var live = new ChatResult();
+        var tokensShownAt = DateTime.MinValue;
         var flush = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(33) };
         void Flush()
         {
@@ -732,19 +780,23 @@ public sealed partial class ChatPageViewModel : PageViewModel
                 deltaCount = deltas;
                 first = firstToken;
             }
-            if (r.Length == 0 && ThinkSplitter.StartsWithWrapper(c))
-            {
-                var split = ThinkSplitter.Split(c);
-                r = split.reasoning;
-                c = split.content;
-            }
+            (r, c) = AnswerRecovery.Separate(r, c);
             vm.Reasoning = r;
             vm.Content = c;
             if (first is { } ft)
             {
                 vm.IsPreparing = false;
                 var sec = (DateTime.UtcNow - ft).TotalSeconds;
-                LiveStats = L.F("Chat_LiveStats", deltaCount, sec > 0.2 ? (deltaCount / sec).ToString("0.0") : "…", Units.FormatDuration(ft - started));
+                // llama-server сообщает точное число токенов и скорость в каждом чанке; у остальных — число порций потока
+                var exact = live.Stats.CompletionTokens > 0;
+                var tokens = exact ? live.Stats.CompletionTokens : deltaCount;
+                var speed = live.Stats.TokensPerSecond is { } tps ? tps.ToString("0.0") : sec > 0.2 ? (deltaCount / sec).ToString("0.0") : "…";
+                LiveStats = L.F("Chat_LiveStats", (exact ? string.Empty : "≈") + tokens.ToString("N0"), speed, Units.FormatDuration(ft - started));
+                if ((DateTime.UtcNow - tokensShownAt).TotalMilliseconds >= 250 && ReferenceEquals(SelectedChat?.Session, chat))
+                {
+                    tokensShownAt = DateTime.UtcNow;
+                    RefreshTokens(live.Stats, exact ? null : deltaCount);
+                }
             }
         }
         flush.Tick += (_, _) => Flush();
@@ -787,52 +839,57 @@ public sealed partial class ChatPageViewModel : PageViewModel
                     deltas++;
                     firstToken ??= DateTime.UtcNow;
                 }
-            }, ct);
+            }, ct, live);
             // Подсказка в правой панели: как программа поняла модель при «Авто»
             ReasoningHint = (chat.ReasoningStyle ?? Core.Chat.ReasoningStyle.Auto) == Core.Chat.ReasoningStyle.Auto
                 ? L.F("Chat_ReasoningDetected", L.Get("Enum_ReasoningStyle_" + client.AppliedReasoningStyle))
                 : null;
 
-            var (r, c) = (result.Reasoning, result.Content);
-            if (r.Length == 0 && ThinkSplitter.StartsWithWrapper(c))
-            {
-                var split = ThinkSplitter.Split(c);
-                r = split.reasoning;
-                c = split.content;
-            }
-            answer.Content = c;
-            answer.Reasoning = r.Length > 0 ? r : null;
-            answer.ToolCalls = result.ToolCalls;
+            // Ответ мог целиком уйти в рассуждения (шаблон сам открыл <think>, а модель после инструмента ответила сразу)
+            // или вызов инструмента остался текстом — приводим к виду «текст + рассуждения + вызовы»
+            var toolNames = request.Tools?.Select(t => (string?)t["function"]?["name"]).Where(n => !string.IsNullOrEmpty(n)).Select(n => n!).ToList();
+            var fixedUp = AnswerRecovery.Finish(result.Reasoning, result.Content, result.ToolCalls, result.Stats.FinishReason, toolNames);
+            answer.Content = fixedUp.Content;
+            answer.Reasoning = fixedUp.Reasoning.Length > 0 ? fixedUp.Reasoning : null;
+            answer.ToolCalls = fixedUp.ToolCalls;
             answer.Stats = result.Stats;
+            if (fixedUp.Promoted) answer.Stats.ReasoningMs = null;
+            Endpoint.ReportRequest(modelRef, null, result.Stats.TimeToFirstTokenMs);
             Log.Info("Chat", "Generated", new
             {
                 provider = result.Stats.Provider, model = result.Stats.Model, result.Stats.PromptTokens, result.Stats.CompletionTokens,
+                cached = result.Stats.CachedTokens, estimated = result.Stats.Estimated,
                 tps = result.Stats.TokensPerSecond, ttftMs = (int)result.Stats.TimeToFirstTokenMs, totalMs = (int)result.Stats.TotalMs,
-                tools = result.ToolCalls.Select(t => t.Name),
+                tools = answer.ToolCalls.Select(t => t.Name), finish = result.Stats.FinishReason,
+                answerFromReasoning = fixedUp.Promoted, toolCallsFromText = fixedUp.ToolCallsFromText,
             });
-            UpdateContext(result.Stats);
         }
         catch (OperationCanceledException)
         {
-            lock (gate)
+            // Остановлено: оставляем всё, что успело прийти, вместе со статистикой
+            var (r, c) = AnswerRecovery.Separate(live.Reasoning, live.Content);
+            answer.Content = c;
+            answer.Reasoning = r.Length > 0 ? r : null;
+            if (firstToken != null)
             {
-                answer.Content = content.ToString();
-                answer.Reasoning = reasoning.Length > 0 ? reasoning.ToString() : null;
+                answer.Stats = live.Stats;
+                answer.Stats.FinishReason = "cancelled";
             }
-            answer.Stats ??= new GenerationStats { CompletionTokens = deltas };
-            answer.Stats.FinishReason = "cancelled";
         }
         catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or IOException or InvalidOperationException or Newtonsoft.Json.JsonException)
         {
             var message = ex is HttpStatusException hs ? $"HTTP {(int)hs.Status}: {hs.Body}" : ex.GetBaseException().Message;
-            lock (gate) answer.Content = content.ToString();
+            var (r, c) = AnswerRecovery.Separate(live.Reasoning, live.Content);
+            answer.Content = c;
+            answer.Reasoning = r.Length > 0 ? r : null;
+            if (firstToken != null) answer.Stats = live.Stats;
             answer.Error = message;
+            Endpoint.ReportRequest(modelRef, ex, null);
             Log.Error("Chat", "Generation failed", ex);
         }
         finally
         {
             flush.Stop();
-            Flush();
             vm.Content = answer.Content;
             vm.Reasoning = answer.Reasoning ?? string.Empty;
             vm.Error = answer.Error;
@@ -842,7 +899,11 @@ public sealed partial class ChatPageViewModel : PageViewModel
             vm.RefreshTools();
             _live.Remove(answer.Id);
             _s.Chats.Save(chat);
-            LiveStats = vm.StatsText ?? L.Get("Chat_StatsEmpty");
+            // Строка под полем ввода: итог этого ответа; после ошибки без единого токена — итог предыдущего, а не прочерки
+            LiveStats = vm.StatsText
+                        ?? Messages.LastOrDefault(m => m.StatsText != null)?.StatsText
+                        ?? L.Get("Chat_StatsEmpty");
+            if (ReferenceEquals(SelectedChat?.Session, chat)) RefreshTokens();
         }
         return answer;
     }
@@ -877,20 +938,76 @@ public sealed partial class ChatPageViewModel : PageViewModel
             Status = null;
         }
     }
-    private void UpdateContext(GenerationStats? stats)
+    /// <summary>
+    /// Токены беседы: заполнение контекста (строка под полем ввода и блок «Токены» правой панели), последний ответ,
+    /// всего за чат. Считается по статистике сообщений, поэтому одинаково после генерации, остановки, ошибки и
+    /// при возврате в чат; во время генерации — по живой статистике ответа.
+    /// </summary>
+    /// <param name="live">Статистика ответа, который сейчас генерируется.</param>
+    /// <param name="approxCompletion">Число порций потока, пока сервер не сообщил точное число токенов.</param>
+    private void RefreshTokens(GenerationStats? live = null, int? approxCompletion = null)
     {
-        var ctx = _s.Engine.Server.State == Core.Engine.ServerState.Ready && SelectedModel?.Ref.StartsWith("local:", StringComparison.Ordinal) == true
-            ? _s.Engine.Server.Options?.ContextSize
-            : null;
-        if (stats == null)
+        var session = SelectedChat?.Session;
+        var last = live ?? session?.ActivePath().LastOrDefault(m => m.Stats != null)?.Stats;
+        var local = SelectedModel?.Ref.StartsWith("local:", StringComparison.Ordinal) == true;
+        var limit = local ? Server.ContextLimit : null;
+        var rows = new List<InsightRowData>();
+
+        if (last == null)
         {
             ContextRatio = 0;
             ContextText = null;
-            return;
+            rows.Add(new InsightRowData(L.Get("Tok_Context"), limit is > 0 ? "— / " + limit.Value.ToString("N0") : "—"));
         }
-        var used = stats.PromptTokens + stats.CompletionTokens;
-        ContextRatio = ctx is > 0 ? Math.Min(1, used / (double)ctx.Value) : 0;
-        ContextText = ctx is > 0 ? L.F("Chat_Context", used.ToString("N0"), ctx.Value.ToString("N0")) : L.F("Chat_ContextNoLimit", used.ToString("N0"));
+        else
+        {
+            var output = last.CompletionTokens > 0 ? last.CompletionTokens : approxCompletion ?? 0;
+            var approx = last.Estimated || last.CompletionTokens <= 0 && output > 0 ? "≈" : string.Empty;
+            var used = last.PromptTokens + output;
+            var ratio = limit is > 0 ? Math.Min(1, used / (double)limit.Value) : 0;
+            ContextRatio = ratio;
+            ContextText = limit is > 0
+                ? L.F("Chat_Context", approx + used.ToString("N0"), limit.Value.ToString("N0"))
+                : L.F("Chat_ContextNoLimit", approx + used.ToString("N0"));
+
+            rows.Add(new InsightRowData(L.Get("Tok_Context"),
+                limit is > 0 ? $"{approx}{used:N0} / {limit.Value:N0} · {ratio * 100:0} %" : approx + used.ToString("N0"), true, ratio >= 0.9));
+            rows.Add(new InsightRowData(L.Get("Tok_In"),
+                last.PromptTokens > 0
+                    ? approx + last.PromptTokens.ToString("N0") + (last.CachedTokens is > 0 ? " · " + L.F("Tok_Cached", last.CachedTokens.Value.ToString("N0")) : string.Empty)
+                    : "—"));
+            rows.Add(new InsightRowData(L.Get("Tok_Out"),
+                output > 0
+                    ? approx + output.ToString("N0") + (last.ReasoningTokens is > 0 ? " · " + L.F("Tok_Reasoning", last.ReasoningTokens.Value.ToString("N0")) : string.Empty)
+                    : "—"));
+            if (last.TokensPerSecond is { } tps)
+                rows.Add(new InsightRowData(L.Get("Tok_Speed"), L.F("Stats_Gen", approx + tps.ToString("0.0"))));
+        }
+
+        if (session != null)
+        {
+            long totalIn = 0, totalOut = 0;
+            var answers = 0;
+            var estimated = false;
+            foreach (var m in session.Messages)
+            {
+                if (m.Stats is not { } s || ReferenceEquals(s, live)) continue;
+                totalIn += s.PromptTokens;
+                totalOut += s.CompletionTokens;
+                estimated |= s.Estimated;
+                answers++;
+            }
+            if (live != null)
+            {
+                totalIn += live.PromptTokens;
+                totalOut += live.CompletionTokens > 0 ? live.CompletionTokens : approxCompletion ?? 0;
+                estimated |= live.Estimated || live.CompletionTokens <= 0;
+                answers++;
+            }
+            if (answers > 0)
+                rows.Add(new InsightRowData(L.Get("Tok_Chat"), L.F("Tok_ChatValue", (estimated ? "≈" : string.Empty) + totalIn.ToString("N0"), totalOut.ToString("N0"), answers)));
+        }
+        TokensGroup.Set(rows);
     }
 
     // ---------------- экспорт и печать ----------------

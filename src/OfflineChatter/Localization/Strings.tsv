@@ -42,7 +42,7 @@ Chat_Suggest3Prompt	Describe what is shown in the image	Опиши, что из�
 Chat_Attach	Attach a file or image	Прикрепить файл или изображение
 Chat_InputPlaceholder	Message… (Enter to send, Shift+Enter for a new line)	Сообщение… (Enter — отправить, Shift+Enter — новая строка)
 Chat_Send	Send (Enter)	Отправить (Enter)
-Chat_StatsEmpty	Generation: — tok/s  ·  Prompt: — tok/s  ·  First token: —  ·  Context: — / —	Генерация: — ток/с  ·  Промпт: — ток/с  ·  Первый токен: —  ·  Контекст: — / —
+Chat_StatsEmpty	Generation: — tok/s  ·  Input: — tok  ·  First token: —	Генерация: — ток/с  ·  Вход: — ток  ·  Первый токен: —
 Chat_EngineStub	The engine is not connected yet	Движок ещё не подключён
 Inspector_Title	Generation	Генерация
 Inspector_Empty	Generation parameters and live statistics will appear here	Здесь появятся параметры генерации и живая статистика
@@ -68,7 +68,7 @@ Appearance_Skin	Control style	Стиль элементов
 Appearance_SkinHint	Native WPF themes of different Windows versions work on any OS	Родные темы WPF разных версий Windows работают на любой ОС
 Appearance_Mode	Theme	Тема
 Appearance_Backdrop	Window backdrop	Подложка окна
-Appearance_BackdropHint	Only effects supported by this Windows version are listed	Показаны только эффекты, которые поддерживает эта версия Windows
+Appearance_BackdropHint	Only effects supported by this Windows version are listed. With system skins (Aero, Classic and others) Auto means no backdrop: panels stay opaque, as in native windows	Показаны только эффекты, которые поддерживает эта версия Windows. Для системных скинов (Aero, Classic и других) «Авто» — без подложки: панели непрозрачны, как в родных окнах
 Appearance_Accent	Accent color	Акцентный цвет
 Appearance_Now	Now: {0}	Сейчас: {0}
 Appearance_NowHighContrast	Now: high contrast mode	Сейчас: режим высокой контрастности
@@ -322,7 +322,6 @@ Chat_Context	Context {0} / {1}	Контекст {0} / {1}
 Chat_ContextNoLimit	Context {0} tokens	Контекст {0} токенов
 Stats_Gen	{0} tok/s	{0} ток/с
 Stats_Tokens	{0} tok	{0} ток
-Stats_Prompt	prompt {0} tok @ {1} tok/s	промпт {0} ток @ {1} ток/с
 Stats_Ttft	first token {0}	первый токен {0}
 Stats_Draft	draft accepted {0}%	принято черновика {0}%
 Stats_Truncated	cut off by the token limit	обрезано лимитом токенов
@@ -470,7 +469,7 @@ Security_WrongPassword	Wrong password	Неверный пароль
 Security_Skip	Skip	Пропустить
 Security_Unlock	Unlock	Разблокировать
 Welcome_Title	Welcome to Offline Chatter	Добро пожаловать в Offline Chatter
-Welcome_Subtitle	Three steps and you can chat with an AI model right on this computer — no internet needed afterwards	Три шага — и можно общаться с ИИ-моделью прямо на этом компьютере, дальше без интернета
+Welcome_Subtitle	A few steps and you can chat with an AI model right on this computer — no internet needed afterwards	Несколько шагов — и можно общаться с ИИ-моделью прямо на этом компьютере, дальше без интернета
 Welcome_Loading	Checking…	Проверяю…
 Welcome_Step_Hardware	Your computer	Ваш компьютер
 Welcome_Step_Engine	Engine (llama.cpp)	Движок (llama.cpp)
@@ -863,3 +862,65 @@ Ins_DiagOkNoCounters	The whole model is on the GPU. Shared memory use cannot be 
 Profiles_Sysmem	Sysmem fallback: {0}	Sysmem fallback: {0}
 Profiles_SysmemRefresh	Check again after changing the setting in NVIDIA Control Panel	Проверить снова после смены настройки в панели NVIDIA
 Profiles_SysmemHint	When it is allowed, a model that does not fit in video memory runs from RAM over PCIe and gets several times slower without any error. "Prefer No Sysmem Fallback" in NVIDIA Control Panel turns this off	Когда перенос разрешён, модель, не поместившаяся в видеопамять, работает из ОЗУ через PCIe и замедляется в разы без всякой ошибки. «Prefer No Sysmem Fallback» в панели NVIDIA это отключает
+
+# ---------- Правая панель чата: блоки, подключение, токены ----------
+Stats_Out	out {0} tok	выход {0} ток
+Stats_In	in {0} tok	вход {0} ток
+Stats_InCached	in {0} tok ({1} cached)	вход {0} ток (из кэша {1})
+Stats_PromptSpeed	prompt {0} tok/s	промпт {0} ток/с
+Inspector_Customize	Customize panel	Настроить панель
+Inspector_CustomizeHint	Pick what the panel shows next to the conversation	Выберите, что показывать рядом с беседой
+Inspector_Reset	Default set	Набор по умолчанию
+Inspector_ShowAll	Show all	Показать все
+Inspector_EmptyHint	Nothing is selected for this panel. The gear button above brings blocks back	В панели ничего не выбрано. Вернуть блоки можно кнопкой с шестерёнкой выше
+Inspector_GroupChat	Conversation	Беседа
+Inspector_Section_Prompt	System prompt	Системный промпт
+Inspector_Section_Prompt_Hint	Prompt preset and text for this chat	Пресет и текст промпта этого чата
+Inspector_Section_Reasoning	Thinking mode	Режим размышлений
+Inspector_Section_Reasoning_Hint	Thinking level and how the model turns it on	Уровень размышлений и способ их включения у модели
+Inspector_Section_Parameters	Tools and temperature	Инструменты и температура
+Inspector_Section_Parameters_Hint	Tool calling and a temperature for this chat only	Вызов инструментов и своя температура для этого чата
+Inspector_Section_Connection	Connection	Подключение
+Inspector_Section_Connection_Hint	State of the active endpoint: the local server or the API provider, response time	Состояние активного эндпоинта: локальный сервер или API-провайдер, отклик
+Inspector_Section_Tokens	Tokens	Токены
+Inspector_Section_Tokens_Hint	Context fill, input and output of the last answer, total for the chat	Заполнение контекста, вход и выход последнего ответа, всего за чат
+Inspector_Section_Diagnosis	Why it may be slow	Почему может быть медленно
+Inspector_Section_Diagnosis_Hint	Layers left on the CPU, shared memory, NVIDIA driver policy	Слои на CPU, общая память, политика драйвера NVIDIA
+Inspector_Section_Server	Server	Сервер
+Inspector_Section_Server_Hint	llama.cpp build, backend, devices, address	Сборка llama.cpp, бэкенд, устройства, адрес
+Inspector_Section_Load	Load	Нагрузка
+Inspector_Section_Load_Hint	CPU, RAM and video memory of the server process	CPU, ОЗУ и видеопамять процесса сервера
+Inspector_Section_Activity	Model work	Работа модели
+Inspector_Section_Activity_Hint	Requests and speed from the server log	Запросы и скорость по журналу сервера
+Inspector_Section_Launch	Launch parameters	Параметры запуска
+Inspector_Section_Launch_Hint	Context, GPU layers, threads, batch	Контекст, слои GPU, потоки, batch
+Inspector_Section_Model	Model	Модель
+Inspector_Section_Model_Hint	GGUF metadata: family, quantization, layers, template	Метаданные GGUF: семейство, квант, слои, шаблон
+Settings_Inspector	Chat side panel	Правая панель чата
+Settings_InspectorHint	Only the checked blocks are shown. The same list opens from the gear button in the panel itself	Показываются только отмеченные блоки. Тот же список открывает кнопка с шестерёнкой в самой панели
+Welcome_Step_Inspector	Chat side panel	Правая панель чата
+Welcome_InspectorText	Choose what to keep next to the conversation. You can change it later in the panel or in Settings → Chat	Выберите, что держать рядом с беседой. Позже это меняется в самой панели и в «Настройки → Чат»
+Conn_Endpoint	Endpoint	Эндпоинт
+Conn_State	State	Состояние
+Conn_Latency	Response time	Отклик
+Conn_Checked	Checked at	Проверено
+Conn_Model	Model	Модель
+Conn_Error	Reason	Причина
+Conn_Ms	{0} ms	{0} мс
+Conn_Timeout	No response within 20 s	Нет ответа за 20 с
+Conn_TipOpen	Click to open API providers	Щелчок — открыть «API-провайдеры»
+Enum_EndpointState_Unknown	not checked	не проверено
+Enum_EndpointState_Checking	checking	проверка
+Enum_EndpointState_Online	connected	подключено
+Enum_EndpointState_Unauthorized	key rejected	ключ отклонён
+Enum_EndpointState_Unreachable	no connection	нет связи
+Enum_EndpointState_Error	server error	ошибка сервера
+Enum_EndpointState_Offline	offline mode	офлайн-режим
+Tok_Context	Context	Контекст
+Tok_In	Input	Вход
+Tok_Out	Output	Выход
+Tok_Cached	{0} cached	из кэша {0}
+Tok_Reasoning	{0} thinking	размышления {0}
+Tok_Speed	Speed	Скорость
+Tok_Chat	Whole chat	За весь чат
+Tok_ChatValue	in {0} · out {1} · answers {2}	вход {0} · выход {1} · ответов {2}

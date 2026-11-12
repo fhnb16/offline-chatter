@@ -25,6 +25,11 @@ public sealed class ProviderQuirks
     public string[] ReasoningFields { get; set; } = { "reasoning_content", "reasoning" };
     /// <summary>llama.cpp: chat_template_kwargs, timings_per_token, cache_prompt.</summary>
     public bool IsLlamaCpp { get; set; }
+    /// <summary>
+    /// Возвращать модели её рассуждения (reasoning_content) в сообщениях с вызовами инструментов текущего шага.
+    /// Нужно шаблонам Qwen / DeepSeek в llama.cpp и API DeepSeek; OpenAI и другие строгие API лишнее поле отклоняют.
+    /// </summary>
+    public bool EchoReasoning { get; set; }
 }
 
 public sealed record ProviderPreset(string Id, string Name, string BaseUrl, bool NeedsKey, ProviderQuirks Quirks, string? KeyUrl = null);
@@ -42,7 +47,7 @@ public static class ProviderPresets
         new ProviderPreset("anthropic", "Anthropic (OpenAI-compatible)", "https://api.anthropic.com/v1", true,
             new ProviderQuirks { IncludeUsage = false }, "https://console.anthropic.com/settings/keys"),
         new ProviderPreset("deepseek", "DeepSeek", "https://api.deepseek.com/v1", true,
-            new ProviderQuirks(), "https://platform.deepseek.com/api_keys"),
+            new ProviderQuirks { EchoReasoning = true }, "https://platform.deepseek.com/api_keys"),
         new ProviderPreset("groq", "Groq", "https://api.groq.com/openai/v1", true,
             new ProviderQuirks(), "https://console.groq.com/keys"),
         new ProviderPreset("mistral", "Mistral", "https://api.mistral.ai/v1", true,
@@ -54,14 +59,14 @@ public static class ProviderPresets
         new ProviderPreset("vllm", "vLLM", "http://127.0.0.1:8000/v1", false,
             new ProviderQuirks { SupportsTopK = true, SupportsMinP = true }),
         new ProviderPreset("llamacpp", "llama.cpp server (remote)", "http://127.0.0.1:8080/v1", false,
-            new ProviderQuirks { SupportsTopK = true, SupportsMinP = true, IsLlamaCpp = true }),
+            new ProviderQuirks { SupportsTopK = true, SupportsMinP = true, IsLlamaCpp = true, EchoReasoning = true }),
         new ProviderPreset("custom", "Custom (OpenAI-compatible)", "https://", false, new ProviderQuirks()),
     };
 
     public static ProviderPreset Get(string? id) => All.FirstOrDefault(p => p.Id == id) ?? All.Last();
 
     /// <summary>Встроенный локальный llama-server (управляется приложением).</summary>
-    public static ProviderQuirks LocalLlama { get; } = new() { SupportsTopK = true, SupportsMinP = true, IsLlamaCpp = true, IncludeUsage = true };
+    public static ProviderQuirks LocalLlama { get; } = new() { SupportsTopK = true, SupportsMinP = true, IsLlamaCpp = true, IncludeUsage = true, EchoReasoning = true };
 }
 
 /// <summary>Подключённый провайдер (config/providers.json).</summary>

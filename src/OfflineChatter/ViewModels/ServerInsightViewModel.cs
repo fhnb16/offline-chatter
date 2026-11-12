@@ -33,10 +33,37 @@ public sealed partial class InsightRow : ObservableObject
 
 public sealed class InsightGroup
 {
-    public InsightGroup(string title) => Title = title;
+    public InsightGroup(string title, string? key = null)
+    {
+        Title = title;
+        Key = key;
+    }
+
     public string Title { get; }
+
+    /// <summary>Ключ строки названия (Ins_Group…): по нему правая панель чата решает, показывать ли группу.</summary>
+    public string? Key { get; }
     public ObservableCollection<InsightRow> Rows { get; } = new();
+
+    /// <summary>Обновить строки: значения — на месте, если набор подписей тот же (вёрстка не дёргается), иначе заново.</summary>
+    public void Set(IReadOnlyList<InsightRowData> rows)
+    {
+        if (rows.Count == Rows.Count && rows.Select(r => r.Label).SequenceEqual(Rows.Select(r => r.Label)))
+        {
+            for (var i = 0; i < rows.Count; i++)
+            {
+                Rows[i].Value = rows[i].Value;
+                Rows[i].IsWarn = rows[i].Warn;
+            }
+            return;
+        }
+        Rows.Clear();
+        foreach (var r in rows) Rows.Add(new InsightRow(r.Label, r.Mono) { Value = r.Value, IsWarn = r.Warn });
+    }
 }
+
+/// <summary>Данные строки «подпись — значение» (подпись уже на языке интерфейса).</summary>
+public sealed record InsightRowData(string Label, string? Value, bool Mono = true, bool Warn = false);
 
 /// <summary>
 /// Состояние и подробности llama-server: сборка, устройства, параметры запуска, нагрузка, скорость запросов,
@@ -61,9 +88,13 @@ public sealed partial class ServerInsightViewModel : ObservableObject
     /// <summary>Общая память GPU процесса, начиная с которой это уже не служебные мелочи, а перенос модели или KV-кэша.</summary>
     private const long SharedWarnBytes = 512L * 1024 * 1024;
 
-    public ServerInsightViewModel(AppServices services)
+    private readonly InspectorLayoutViewModel _layout;
+
+    public ServerInsightViewModel(AppServices services, InspectorLayoutViewModel layout)
     {
         _s = services;
+        _layout = layout;
+        _layout.Changed += (_, _) => RebuildInspectorGroups();
         _timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += (_, _) => Refresh();
         _s.Engine.Server.StateChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(OnServerChanged));
@@ -73,6 +104,27 @@ public sealed partial class ServerInsightViewModel : ObservableObject
     }
 
     public ObservableCollection<InsightGroup> Groups { get; } = new();
+
+    /// <summary>Те же группы, но только выбранные для правой панели чата (раздел «Движок» показывает все).</summary>
+    public ObservableCollection<InsightGroup> InspectorGroups { get; } = new();
+
+    private static readonly Dictionary<string, Core.Storage.InspectorSection> GroupSections = new()
+    {
+        ["Ins_GroupDiagnosis"] = Core.Storage.InspectorSection.Diagnosis,
+        ["Ins_GroupServer"] = Core.Storage.InspectorSection.Server,
+        ["Ins_GroupLoad"] = Core.Storage.InspectorSection.Load,
+        ["Ins_GroupActivity"] = Core.Storage.InspectorSection.Activity,
+        ["Ins_GroupLaunch"] = Core.Storage.InspectorSection.Launch,
+        ["Ins_GroupModel"] = Core.Storage.InspectorSection.Model,
+    };
+
+    private void RebuildInspectorGroups()
+    {
+        var wanted = Groups.Where(g => g.Key != null && GroupSections.TryGetValue(g.Key, out var s) && _layout.Has(s)).ToList();
+        if (wanted.SequenceEqual(InspectorGroups)) return;
+        InspectorGroups.Clear();
+        foreach (var g in wanted) InspectorGroups.Add(g);
+    }
 
     private EngineProcess Server => _s.Engine.Server;
 
@@ -481,9 +533,21 @@ public sealed partial class ServerInsightViewModel : ObservableObject
         Groups.Clear();
         foreach (var grp in rows.GroupBy(r => r.Group))
         {
-            var g = new InsightGroup(L.Get(grp.Key));
+            var g = new InsightGroup(L.Get(grp.Key), grp.Key);
             foreach (var r in grp) g.Rows.Add(new InsightRow(L.Get(r.Label), r.Mono) { Value = r.Value, IsWarn = r.Warn });
             Groups.Add(g);
+        }
+        RebuildInspectorGroups();
+    }
+
+    /// <summary>Размер контекста одного слота запущенного сервера (сколько токенов помещается в беседу).</summary>
+    public int? ContextLimit
+    {
+        get
+        {
+            if (State != ServerState.Ready) return null;
+            var f = Server.Facts;
+            return f.ContextInt("n_ctx_per_seq") ?? f.ContextInt("n_ctx_seq") ?? f.ContextInt("n_ctx") ?? Server.Options?.ContextSize;
         }
     }
 

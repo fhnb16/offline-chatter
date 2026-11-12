@@ -26,6 +26,30 @@ public partial class MainWindow : Window
         };
         ThemeManager.Attach(this);
         PreviewKeyDown += OnShortcut;
+
+        // Заголовок окна: в системных скинах его рисует Windows — туда и выводим название страницы («Чат - Offline Chatter»).
+        // Во Fluent страница подписана в собственной полосе заголовка, а окно называется просто «Offline Chatter».
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(MainViewModel.CurrentPage)) UpdateTitle();
+        };
+        vm.Chat.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ChatPageViewModel.Title)) UpdateTitle();
+        };
+        ThemeManager.Changed += OnThemeChanged;
+        Closed += (_, _) => ThemeManager.Changed -= OnThemeChanged;
+        UpdateTitle();
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e) => UpdateTitle();
+
+    private void UpdateTitle()
+    {
+        const string app = "Offline Chatter";
+        var page = _vm.CurrentPage?.Title;
+        var native = ThemeManager.Current is { } t && (t.Skin != SkinKind.Fluent || t.HighContrast);
+        Title = native && !string.IsNullOrWhiteSpace(page) ? page + " - " + app : app;
     }
 
     /// <summary>Ctrl+K — палитра команд, Ctrl+F — поиск по чатам.</summary>

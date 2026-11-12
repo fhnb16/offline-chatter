@@ -111,7 +111,10 @@ public enum ThemeMode
 
 public enum BackdropKind
 {
-    /// <summary>Win7: стекло, Win8: нет, Win10: Acrylic, Win11: Mica.</summary>
+    /// <summary>
+    /// Fluent-скин: Win7 — стекло, Win8 — нет, Win10 — Acrylic, Win11 — Mica.
+    /// Системные скины (Aero, Aero2, Classic…): без подложки — панели непрозрачны, как в родных окнах.
+    /// </summary>
     Auto,
     None,
     /// <summary>Win7 Aero Glass (DwmExtendFrameIntoClientArea).</summary>
@@ -153,6 +156,12 @@ public sealed class WindowPlacementSettings
     public double SidebarWidth { get; set; } = 260;
     public bool InspectorVisible { get; set; } = true;
 
+    /// <summary>
+    /// Блоки правой панели чата (имена <see cref="InspectorSection"/>). null — набор по умолчанию
+    /// (<see cref="InspectorLayout.Defaults"/>); пустой список — пользователь убрал всё.
+    /// </summary>
+    public System.Collections.Generic.List<string>? InspectorSections { get; set; }
+
     /// <summary>Кнопка «закрыть» прячет окно в трей (сервер продолжает работать).</summary>
     public bool CloseToTray { get; set; }
 
@@ -176,6 +185,61 @@ public sealed class WindowPlacementSettings
 
     /// <summary>Отправка сообщения: Enter (false) или Ctrl+Enter (true).</summary>
     public bool SendWithCtrlEnter { get; set; }
+}
+
+/// <summary>Блок правой панели чата. Порядок значений — порядок блоков в панели.</summary>
+public enum InspectorSection
+{
+    /// <summary>Системный промпт и пресеты.</summary>
+    Prompt,
+    /// <summary>Режим размышлений и способ их включения.</summary>
+    Reasoning,
+    /// <summary>Инструменты и температура чата.</summary>
+    Parameters,
+    /// <summary>Состояние подключения к активному эндпоинту (локальный сервер или API).</summary>
+    Connection,
+    /// <summary>Токены: контекст, последний ответ, всего за чат.</summary>
+    Tokens,
+    /// <summary>Почему генерация может быть медленной.</summary>
+    Diagnosis,
+    /// <summary>Сборка llama.cpp, устройства, адрес.</summary>
+    Server,
+    /// <summary>CPU, ОЗУ, видеопамять процесса сервера.</summary>
+    Load,
+    /// <summary>Запросы и скорость по журналу сервера.</summary>
+    Activity,
+    /// <summary>Параметры запуска сервера.</summary>
+    Launch,
+    /// <summary>Метаданные модели (GGUF).</summary>
+    Model,
+}
+
+public static class InspectorLayout
+{
+    /// <summary>По умолчанию — только то, что нужно в беседе; подробности о сервере включаются по желанию.</summary>
+    public static System.Collections.Generic.IReadOnlyList<InspectorSection> Defaults { get; } = new[]
+    {
+        InspectorSection.Prompt, InspectorSection.Reasoning, InspectorSection.Parameters,
+        InspectorSection.Connection, InspectorSection.Tokens,
+    };
+
+    /// <summary>Сохранённый список → набор блоков. Неизвестные имена (из более новой версии) пропускаются.</summary>
+    public static System.Collections.Generic.HashSet<InspectorSection> Resolve(System.Collections.Generic.IEnumerable<string>? stored)
+    {
+        if (stored == null) return new System.Collections.Generic.HashSet<InspectorSection>(Defaults);
+        var set = new System.Collections.Generic.HashSet<InspectorSection>();
+        foreach (var name in stored)
+            if (System.Enum.TryParse<InspectorSection>(name, ignoreCase: true, out var s) && System.Enum.IsDefined(typeof(InspectorSection), s)) set.Add(s);
+        return set;
+    }
+
+    /// <summary>Набор блоков → список для settings.json, в порядке панели.</summary>
+    public static System.Collections.Generic.List<string> Store(System.Collections.Generic.IEnumerable<InspectorSection> sections)
+    {
+        var list = new System.Collections.Generic.List<InspectorSection>(new System.Collections.Generic.HashSet<InspectorSection>(sections));
+        list.Sort();
+        return list.ConvertAll(s => s.ToString());
+    }
 }
 
 /// <summary>Подготовка вложений перед отправкой модели.</summary>

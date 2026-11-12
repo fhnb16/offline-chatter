@@ -34,8 +34,34 @@ public sealed class ChatAttachment
 /// <summary>Статистика генерации одного ответа.</summary>
 public sealed class GenerationStats
 {
+    /// <summary>Весь промпт запроса в токенах — вместе с тем, что сервер взял из кэша.</summary>
     public int PromptTokens { get; set; }
+
+    /// <summary>Сгенерировано токенов: ответ вместе с рассуждениями.</summary>
     public int CompletionTokens { get; set; }
+
+    /// <summary>Сколько токенов промпта сервер обработал заново (llama.cpp: prompt_n, без кэша). К нему относится скорость промпта.</summary>
+    public int? PromptEvalTokens { get; set; }
+
+    /// <summary>Из сгенерированных — токены рассуждений, если провайдер их сообщает.</summary>
+    public int? ReasoningTokens { get; set; }
+
+    /// <summary>Провайдер не прислал usage: числа токенов оценены по тексту (в интерфейсе — со знаком «≈»).</summary>
+    public bool Estimated { get; set; }
+
+    [Newtonsoft.Json.JsonIgnore]
+    public int TotalTokens => PromptTokens + CompletionTokens;
+
+    /// <summary>
+    /// Чаты, сохранённые до исправления подсчёта: в PromptTokens лежала только заново обработанная часть промпта
+    /// (prompt_n llama-server), поэтому «из кэша» получалось больше «входа». Восстанавливаем полный размер.
+    /// </summary>
+    public void FixLegacyPromptCount()
+    {
+        if (PromptEvalTokens != null || CachedTokens is not { } cached || cached <= PromptTokens) return;
+        PromptEvalTokens = PromptTokens;
+        PromptTokens += cached;
+    }
     public double? PromptTokensPerSecond { get; set; }
     public double? TokensPerSecond { get; set; }
     public double TimeToFirstTokenMs { get; set; }

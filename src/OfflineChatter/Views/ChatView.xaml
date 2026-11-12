@@ -24,7 +24,7 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:AttachmentView}">
-                                    <Border Margin="0,0,6,6" CornerRadius="6" ClipToBounds="True" BorderThickness="1" BorderBrush="{DynamicResource CardBorderBrush}">
+                                    <Border Margin="0,0,6,6" CornerRadius="{DynamicResource ControlCornerRadius}" ClipToBounds="True" BorderThickness="1" BorderBrush="{DynamicResource CardBorderBrush}">
                                         <Grid>
                                             <Image Source="{Binding Thumbnail}" MaxHeight="160" MaxWidth="240" Stretch="Uniform" Cursor="Hand"
                                                    ToolTip="{l:Loc Preview_Open}"
@@ -68,13 +68,14 @@
                         </StackPanel>
 
                         <!-- Тело -->
-                        <r:MarkdownView x:Name="Body" Markdown="{Binding Content}" IsStreaming="{Binding IsStreaming}" />
+                        <r:MarkdownView x:Name="Body" Markdown="{Binding Content}" IsStreaming="{Binding IsStreaming}"
+                                        Visibility="{Binding HasContent, Converter={StaticResource BoolToVisibility}}" />
 
                         <!-- Вызовы инструментов -->
                         <ItemsControl ItemsSource="{Binding ToolCalls}" Visibility="{Binding HasToolCalls, Converter={StaticResource BoolToVisibility}}" Margin="0,4,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:ToolCallView}">
-                                    <Border Margin="0,2" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource CardBorderBrush}" Background="{DynamicResource CodeBackgroundBrush}" Padding="8,4">
+                                    <Border Margin="0,2" CornerRadius="{DynamicResource ControlCornerRadius}" BorderThickness="1" BorderBrush="{DynamicResource CardBorderBrush}" Background="{DynamicResource CodeBackgroundBrush}" Padding="8,4">
                                         <Expander>
                                             <Expander.Header>
                                                 <StackPanel Orientation="Horizontal">
@@ -175,8 +176,9 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Модель и статус -->
-        <DockPanel Grid.Row="0" Margin="20,12,12,8" LastChildFill="False">
+        <!-- Модель и статус. Полоса команд: во Fluent невидима, в Aero — как панель команд Проводника -->
+        <Border Grid.Row="0" Style="{StaticResource CommandBar}">
+        <DockPanel Margin="20,12,12,8">
             <ComboBox DockPanel.Dock="Left" MinWidth="200" MaxWidth="420" ItemsSource="{Binding ModelOptions}" SelectedItem="{Binding SelectedModel}"
                       ToolTip="{l:Loc Chat_ModelPicker}">
                 <ComboBox.ItemTemplate>
@@ -189,17 +191,6 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <!-- Состояние llama-server и сборка; щелчок — раздел «Движок» -->
-            <Button DockPanel.Dock="Left" Style="{DynamicResource SubtleButtonStyle}" Margin="8,0,0,0" Padding="8,4" MaxWidth="320"
-                    DataContext="{Binding Server}" ToolTip="{Binding Summary}"
-                    Command="{Binding DataContext.OpenEngineCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                    Visibility="{Binding DataContext.IsCompact, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBoolToVisibility}}">
-                <StackPanel Orientation="Horizontal">
-                    <Ellipse Style="{StaticResource ServerStateDot}" />
-                    <TextBlock Text="{Binding PillText}" Margin="8,0,0,0" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                               Foreground="{DynamicResource TextSecondaryBrush}" />
-                </StackPanel>
-            </Button>
             <!-- Компактный режим: вместо боковой панели — только «Настройки» и «Новый чат» -->
             <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" ToolTip="{l:Loc Nav_Settings}"
                     Command="{Binding DataContext.OpenSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -223,7 +214,21 @@
                     Visibility="{Binding IsCompact, Converter={StaticResource InverseBoolToVisibility}}">
                 <Path Data="{StaticResource IconExport}" Style="{StaticResource IconPath}" />
             </Button>
+            <!-- Состояние подключения к эндпоинту выбранной модели: llama-server и сборка либо API-провайдер и отклик.
+                 Щелчок — раздел «Движок» или «API-провайдеры». Последний в панели: занимает то, что осталось между
+                 списком моделей и кнопками справа, и сокращается многоточием — кнопки не обрезаются на узком окне -->
+            <Button Style="{DynamicResource SubtleButtonStyle}" Margin="8,0,8,0" Padding="8,4" MaxWidth="320" HorizontalAlignment="Left"
+                    DataContext="{Binding Endpoint}" ToolTip="{Binding Summary}"
+                    Command="{Binding DataContext.OpenEndpointCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    Visibility="{Binding DataContext.IsCompact, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBoolToVisibility}}">
+                <DockPanel>
+                    <Ellipse DockPanel.Dock="Left" Style="{StaticResource EndpointStateDot}" />
+                    <TextBlock Text="{Binding PillText}" Margin="8,0,0,0" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                </DockPanel>
+            </Button>
         </DockPanel>
+        </Border>
 
         <!-- Сообщения -->
         <ScrollViewer x:Name="MessagesScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,4,20,24">
@@ -257,7 +262,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:AttachmentView}">
-                            <Border Margin="0,0,6,4" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource CardBorderBrush}" Background="{DynamicResource ControlFillBrush}">
+                            <Border Margin="0,0,6,4" CornerRadius="{DynamicResource ControlCornerRadius}" BorderThickness="1" BorderBrush="{DynamicResource CardBorderBrush}" Background="{DynamicResource ControlFillBrush}">
                                 <StackPanel Orientation="Horizontal" Margin="4">
                                     <Image Source="{Binding Thumbnail}" Height="40" MaxWidth="80" Stretch="Uniform" Cursor="Hand" ToolTip="{l:Loc Preview_Open}"
                                            Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibility}}">
@@ -313,7 +318,7 @@
             </StackPanel>
             <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource AccentTextBrush}" Margin="0,0,12,0"
                        Visibility="{Binding Status, Converter={StaticResource NullToCollapsed}}" TextTrimming="CharacterEllipsis" />
-            <TextBlock Text="{Binding LiveStats}" Style="{StaticResource StatText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="{Binding LiveStats}" Style="{StaticResource StatText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
         </DockPanel>
 
         <!-- Правая панель: параметры беседы -->
@@ -321,41 +326,77 @@
                 Visibility="{Binding ShowInspector, Converter={StaticResource BoolToVisibility}}">
             <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16,12,16,16">
                 <StackPanel>
-                    <TextBlock Text="{l:Loc Inspector_Title}" Style="{StaticResource SubtitleText}" />
-
-                    <TextBlock Text="{l:Loc Chat_SystemPrompt}" Style="{StaticResource SectionHeaderText}" />
-                    <ComboBox ItemsSource="{Binding PromptPresets}" SelectedItem="{Binding SelectedPreset}" DisplayMemberPath="Name" Margin="0,0,0,6"
-                              ToolTip="{l:Loc Prompts_Apply}" />
-                    <TextBox Text="{Binding SystemPrompt, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" MaxHeight="200"
-                             VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
-
-                    <TextBlock Text="{l:Loc Chat_ThinkingMode}" Style="{StaticResource SectionHeaderText}" />
-                    <ComboBox ItemsSource="{Binding ThinkingOptions}" SelectedItem="{Binding Thinking}" DisplayMemberPath="Title" />
-                    <TextBlock Text="{l:Loc Chat_ReasoningStyle}" Style="{StaticResource CaptionText}" Margin="0,8,0,4" />
-                    <ComboBox ItemsSource="{Binding ReasoningStyles}" SelectedItem="{Binding ReasoningStyle}" DisplayMemberPath="Title"
-                              ToolTip="{l:Loc Chat_ReasoningStyleHint}" />
-                    <TextBlock Text="{Binding ReasoningHint}" Style="{StaticResource CaptionText}" Margin="0,4,0,0"
-                               Visibility="{Binding ReasoningHint, Converter={StaticResource NullToCollapsed}}" />
-
-                    <CheckBox Content="{l:Loc Tools_ChatToggle}" IsChecked="{Binding ToolsEnabled}" Margin="0,14,0,0" />
-                    <CheckBox Content="{l:Loc Chat_OverrideTemperature}" IsChecked="{Binding OverrideTemperature}" Margin="0,10,0,4" />
-                    <DockPanel IsEnabled="{Binding OverrideTemperature}">
-                        <TextBlock DockPanel.Dock="Right" Text="{Binding Temperature, StringFormat='{}{0:0.00}'}" Width="36" TextAlignment="Right" VerticalAlignment="Center" />
-                        <Slider Minimum="0" Maximum="2" Value="{Binding Temperature}" SmallChange="0.05" LargeChange="0.1" />
-                    </DockPanel>
-                    <TextBlock Text="{l:Loc Chat_InspectorHint}" Style="{StaticResource CaptionText}" Margin="0,12,0,0" />
-
-                    <TextBlock Text="{Binding LiveStats}" Style="{StaticResource StatText}" TextWrapping="Wrap" Margin="0,12,0,0" />
-
-                    <!-- llama-server: сборка, запуск, нагрузка, скорость, модель -->
-                    <DockPanel Margin="0,20,0,8">
-                        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Command="{Binding Server.CopyAllCommand}" ToolTip="{l:Loc Ins_Copy}">
-                            <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
+                    <!-- Заголовок и «Настроить панель»: какие блоки показывать, выбирает пользователь (Layout) -->
+                    <DockPanel>
+                        <Button x:Name="CustomizeButton" DockPanel.Dock="Right" Style="{StaticResource IconButton}" Click="OnCustomizeInspector"
+                                ToolTip="{l:Loc Inspector_Customize}">
+                            <Path Data="{StaticResource IconSettings}" Style="{StaticResource IconPath}" />
                         </Button>
-                        <Ellipse DataContext="{Binding Server}" Style="{StaticResource ServerStateDot}" />
-                        <TextBlock Text="{l:Loc Res_Title}" Style="{StaticResource SubtitleText}" FontSize="13" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        <TextBlock Text="{l:Loc Inspector_Title}" Style="{StaticResource SubtitleText}" VerticalAlignment="Center" />
                     </DockPanel>
-                    <views:ServerInsightView DataContext="{Binding Server}" />
+                    <Popup x:Name="CustomizePopup" PlacementTarget="{Binding ElementName=CustomizeButton}" Placement="Bottom" HorizontalOffset="-236"
+                           StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+                        <Border Background="{DynamicResource PopupBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" Padding="16,12" Margin="0,4,0,0" Width="264"
+                                TextElement.Foreground="{DynamicResource TextPrimaryBrush}">
+                            <StackPanel DataContext="{Binding Layout}">
+                                <TextBlock Text="{l:Loc Inspector_Customize}" Style="{StaticResource SubtitleText}" />
+                                <TextBlock Text="{l:Loc Inspector_CustomizeHint}" Style="{StaticResource CaptionText}" Margin="0,4,0,8" />
+                                <ItemsControl ItemsSource="{Binding ChatItems}" ItemTemplate="{StaticResource InspectorToggleTemplate}" Focusable="False" />
+                                <TextBlock Text="{l:Loc Res_Title}" Style="{StaticResource SectionHeaderText}" Margin="0,8,0,4" />
+                                <ItemsControl ItemsSource="{Binding ServerItems}" ItemTemplate="{StaticResource InspectorToggleTemplate}" Focusable="False" />
+                                <WrapPanel Margin="0,12,0,0">
+                                    <Button Content="{l:Loc Inspector_Reset}" Command="{Binding ResetCommand}" Margin="0,0,8,4" />
+                                    <Button Style="{DynamicResource SubtleButtonStyle}" Content="{l:Loc Inspector_ShowAll}" Command="{Binding ShowAllCommand}" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                    <TextBlock Text="{l:Loc Inspector_EmptyHint}" Style="{StaticResource CaptionText}" Margin="0,8,0,0"
+                               Visibility="{Binding Layout.IsEmpty, Converter={StaticResource BoolToVisibility}}" />
+
+                    <StackPanel Visibility="{Binding Layout.ShowPrompt, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="{l:Loc Chat_SystemPrompt}" Style="{StaticResource SectionHeaderText}" />
+                        <ComboBox ItemsSource="{Binding PromptPresets}" SelectedItem="{Binding SelectedPreset}" DisplayMemberPath="Name" Margin="0,0,0,6"
+                                  ToolTip="{l:Loc Prompts_Apply}" />
+                        <TextBox Text="{Binding SystemPrompt, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" MaxHeight="200"
+                                 VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding Layout.ShowReasoning, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="{l:Loc Chat_ThinkingMode}" Style="{StaticResource SectionHeaderText}" />
+                        <ComboBox ItemsSource="{Binding ThinkingOptions}" SelectedItem="{Binding Thinking}" DisplayMemberPath="Title" />
+                        <TextBlock Text="{l:Loc Chat_ReasoningStyle}" Style="{StaticResource CaptionText}" Margin="0,8,0,4" />
+                        <ComboBox ItemsSource="{Binding ReasoningStyles}" SelectedItem="{Binding ReasoningStyle}" DisplayMemberPath="Title"
+                                  ToolTip="{l:Loc Chat_ReasoningStyleHint}" />
+                        <TextBlock Text="{Binding ReasoningHint}" Style="{StaticResource CaptionText}" Margin="0,4,0,0"
+                                   Visibility="{Binding ReasoningHint, Converter={StaticResource NullToCollapsed}}" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding Layout.ShowParameters, Converter={StaticResource BoolToVisibility}}">
+                        <CheckBox Content="{l:Loc Tools_ChatToggle}" IsChecked="{Binding ToolsEnabled}" Margin="0,14,0,0" />
+                        <CheckBox Content="{l:Loc Chat_OverrideTemperature}" IsChecked="{Binding OverrideTemperature}" Margin="0,10,0,4" />
+                        <DockPanel IsEnabled="{Binding OverrideTemperature}">
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding Temperature, StringFormat='{}{0:0.00}'}" Width="36" TextAlignment="Right" VerticalAlignment="Center" />
+                            <Slider Minimum="0" Maximum="2" Value="{Binding Temperature}" SmallChange="0.05" LargeChange="0.1" />
+                        </DockPanel>
+                        <TextBlock Text="{l:Loc Chat_InspectorHint}" Style="{StaticResource CaptionText}" Margin="0,12,0,0" />
+                    </StackPanel>
+
+                    <!-- Статистика беседы: подключение к эндпоинту (локальный сервер или API) и токены -->
+                    <views:ServerInsightView Source="{Binding StatGroups}" Margin="0,16,0,0" />
+
+                    <!-- llama-server: диагностика, сборка, нагрузка, скорость, запуск, модель — только выбранные группы -->
+                    <StackPanel Visibility="{Binding Layout.ShowServerHeader, Converter={StaticResource BoolToVisibility}}">
+                        <DockPanel Margin="0,4,0,8">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Command="{Binding Server.CopyAllCommand}" ToolTip="{l:Loc Ins_Copy}">
+                                <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
+                            </Button>
+                            <Ellipse DataContext="{Binding Server}" Style="{StaticResource ServerStateDot}" />
+                            <TextBlock Text="{l:Loc Res_Title}" Style="{StaticResource SubtitleText}" FontSize="13" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <views:ServerInsightView Source="{Binding Server.InspectorGroups}" />
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
         </Border>

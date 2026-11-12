@@ -68,18 +68,22 @@
     </Style>
 
     <!-- ===== Типографика ===== -->
+    <!--
+        Размер, насыщенность и цвет заголовков — токены скина: во Fluent крупные полужирные,
+        в Aero — «main instruction» Windows 7 (12 pt, обычное начертание, синий).
+    -->
     <Style x:Key="TitleText" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="20" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="FontSize" Value="{DynamicResource TitleFontSize}" />
+        <Setter Property="FontWeight" Value="{DynamicResource HeadingFontWeight}" />
+        <Setter Property="Foreground" Value="{DynamicResource HeadingBrush}" />
     </Style>
     <Style x:Key="SubtitleText" TargetType="TextBlock">
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="FontWeight" Value="{DynamicResource HeadingFontWeight}" />
+        <Setter Property="Foreground" Value="{DynamicResource HeadingBrush}" />
     </Style>
     <Style x:Key="BodyText" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="{DynamicResource AppFontSize}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
@@ -90,9 +94,9 @@
     </Style>
     <Style x:Key="SectionHeaderText" TargetType="TextBlock">
         <Setter Property="FontSize" Value="12" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontWeight" Value="{DynamicResource HeadingFontWeight}" />
         <Setter Property="Margin" Value="0,14,0,6" />
-        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SectionHeaderBrush}" />
     </Style>
 
     <!-- ===== Карточки ===== -->
@@ -100,7 +104,7 @@
         <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}" />
         <Setter Property="Padding" Value="14,10" />
     </Style>
 
@@ -108,7 +112,7 @@
         <Setter Property="Background" Value="{DynamicResource ControlFillBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="11" />
+        <Setter Property="CornerRadius" Value="{DynamicResource PillCornerRadius}" />
         <Setter Property="Padding" Value="9,3" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
@@ -135,6 +139,35 @@
         </Style.Triggers>
     </Style>
 
+    <!-- Точка состояния подключения (DataContext — EndpointStatusViewModel): локальный сервер или API-провайдер -->
+    <Style x:Key="EndpointStateDot" TargetType="Ellipse">
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Height" Value="8" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Fill" Value="{DynamicResource TextTertiaryBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding DotState}" Value="Ready">
+                <Setter Property="Fill" Value="{DynamicResource StatusOkBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding DotState}" Value="Starting">
+                <Setter Property="Fill" Value="{DynamicResource StatusWarnBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding DotState}" Value="Failed">
+                <Setter Property="Fill" Value="{DynamicResource StatusErrorBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--
+        Полоса команд над содержимым страницы. Во Fluent невидима (прозрачный фон, рамки нет),
+        в Aero — панель команд Проводника Windows 7, в Aero2 — плоская серая полоса Windows 8.
+    -->
+    <Style x:Key="CommandBar" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource ToolbarBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ToolbarBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource ToolbarBorderThickness}" />
+    </Style>
+
     <!-- Текст на стекле Win7 получает свечение; на остальных подложках эффект = null -->
     <Style x:Key="GlassText" TargetType="TextBlock">
         <Setter Property="Effect" Value="{DynamicResource GlassTextEffect}" />
@@ -142,7 +175,7 @@
 
     <!-- Страница: заголовок + прокручиваемое содержимое -->
     <Style x:Key="PageTitleText" TargetType="TextBlock" BasedOn="{StaticResource TitleText}">
-        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontSize" Value="{DynamicResource PageTitleFontSize}" />
         <Setter Property="Margin" Value="0,0,0,16" />
     </Style>
 
@@ -167,22 +200,28 @@
         <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
     </Style>
 
-    <!-- Небольшая кнопка-иконка без рамки (действия под сообщением, удаление строк) -->
+    <!--
+        Небольшая кнопка-иконка без рамки (действия под сообщением, удаление строк). Форма и подсветка — токены скина:
+        во Fluent — скруглённая заливка, в Aero — как кнопка панели инструментов Проводника (градиент с рамкой).
+    -->
     <Style x:Key="IconButton" TargetType="Button">
         <Setter Property="Width" Value="28" />
         <Setter Property="Height" Value="28" />
-        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Cursor" Value="{DynamicResource ActionCursor}" />
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd" CornerRadius="6" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
+                    <Border x:Name="Bd" CornerRadius="{DynamicResource ControlCornerRadius}" Background="Transparent" BorderThickness="1" BorderBrush="Transparent"
+                            SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleHoverBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource SubtleHoverBorderBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
@@ -199,6 +238,22 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!-- Блок правой панели чата: флажок «показывать» (всплывающее окно панели) -->
+    <DataTemplate x:Key="InspectorToggleTemplate">
+        <CheckBox IsChecked="{Binding IsVisible}" Margin="0,4" ToolTip="{Binding Hint}">
+            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextPrimaryBrush}" />
+        </CheckBox>
+    </DataTemplate>
+    <!-- То же с пояснением под названием (настройки и мастер первого запуска) -->
+    <DataTemplate x:Key="InspectorToggleDetailedTemplate">
+        <CheckBox IsChecked="{Binding IsVisible}" Margin="0,4">
+            <StackPanel>
+                <TextBlock Text="{Binding Title}" Style="{StaticResource BodyText}" />
+                <TextBlock Text="{Binding Hint}" Style="{StaticResource CaptionText}" />
+            </StackPanel>
+        </CheckBox>
+    </DataTemplate>
 
     <!-- Плашка-предупреждение внутри страницы (офлайн-режим, нужен перезапуск и т. п.) -->
     <Style x:Key="NoticeCard" TargetType="Border">

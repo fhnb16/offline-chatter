@@ -44,7 +44,7 @@
   <data name="Chat_Attach" xml:space="preserve"><value>Attach a file or image</value></data>
   <data name="Chat_InputPlaceholder" xml:space="preserve"><value>Message… (Enter to send, Shift+Enter for a new line)</value></data>
   <data name="Chat_Send" xml:space="preserve"><value>Send (Enter)</value></data>
-  <data name="Chat_StatsEmpty" xml:space="preserve"><value>Generation: — tok/s  ·  Prompt: — tok/s  ·  First token: —  ·  Context: — / —</value></data>
+  <data name="Chat_StatsEmpty" xml:space="preserve"><value>Generation: — tok/s  ·  Input: — tok  ·  First token: —</value></data>
   <data name="Chat_EngineStub" xml:space="preserve"><value>The engine is not connected yet</value></data>
   <data name="Inspector_Title" xml:space="preserve"><value>Generation</value></data>
   <data name="Inspector_Empty" xml:space="preserve"><value>Generation parameters and live statistics will appear here</value></data>
@@ -67,7 +67,7 @@
   <data name="Appearance_SkinHint" xml:space="preserve"><value>Native WPF themes of different Windows versions work on any OS</value></data>
   <data name="Appearance_Mode" xml:space="preserve"><value>Theme</value></data>
   <data name="Appearance_Backdrop" xml:space="preserve"><value>Window backdrop</value></data>
-  <data name="Appearance_BackdropHint" xml:space="preserve"><value>Only effects supported by this Windows version are listed</value></data>
+  <data name="Appearance_BackdropHint" xml:space="preserve"><value>Only effects supported by this Windows version are listed. With system skins (Aero, Classic and others) Auto means no backdrop: panels stay opaque, as in native windows</value></data>
   <data name="Appearance_Accent" xml:space="preserve"><value>Accent color</value></data>
   <data name="Appearance_Now" xml:space="preserve"><value>Now: {0}</value></data>
   <data name="Appearance_NowHighContrast" xml:space="preserve"><value>Now: high contrast mode</value></data>
@@ -314,7 +314,6 @@ No — only remove from the list</value></data>
   <data name="Chat_ContextNoLimit" xml:space="preserve"><value>Context {0} tokens</value></data>
   <data name="Stats_Gen" xml:space="preserve"><value>{0} tok/s</value></data>
   <data name="Stats_Tokens" xml:space="preserve"><value>{0} tok</value></data>
-  <data name="Stats_Prompt" xml:space="preserve"><value>prompt {0} tok @ {1} tok/s</value></data>
   <data name="Stats_Ttft" xml:space="preserve"><value>first token {0}</value></data>
   <data name="Stats_Draft" xml:space="preserve"><value>draft accepted {0}%</value></data>
   <data name="Stats_Truncated" xml:space="preserve"><value>cut off by the token limit</value></data>
@@ -452,7 +451,7 @@ No — only remove from the list</value></data>
   <data name="Security_Skip" xml:space="preserve"><value>Skip</value></data>
   <data name="Security_Unlock" xml:space="preserve"><value>Unlock</value></data>
   <data name="Welcome_Title" xml:space="preserve"><value>Welcome to Offline Chatter</value></data>
-  <data name="Welcome_Subtitle" xml:space="preserve"><value>Three steps and you can chat with an AI model right on this computer — no internet needed afterwards</value></data>
+  <data name="Welcome_Subtitle" xml:space="preserve"><value>A few steps and you can chat with an AI model right on this computer — no internet needed afterwards</value></data>
   <data name="Welcome_Loading" xml:space="preserve"><value>Checking…</value></data>
   <data name="Welcome_Step_Hardware" xml:space="preserve"><value>Your computer</value></data>
   <data name="Welcome_Step_Engine" xml:space="preserve"><value>Engine (llama.cpp)</value></data>
@@ -876,4 +875,64 @@ Install anyway?</value></data>
   <data name="Profiles_Sysmem" xml:space="preserve"><value>Sysmem fallback: {0}</value></data>
   <data name="Profiles_SysmemRefresh" xml:space="preserve"><value>Check again after changing the setting in NVIDIA Control Panel</value></data>
   <data name="Profiles_SysmemHint" xml:space="preserve"><value>When it is allowed, a model that does not fit in video memory runs from RAM over PCIe and gets several times slower without any error. &quot;Prefer No Sysmem Fallback&quot; in NVIDIA Control Panel turns this off</value></data>
+  <data name="Stats_Out" xml:space="preserve"><value>out {0} tok</value></data>
+  <data name="Stats_In" xml:space="preserve"><value>in {0} tok</value></data>
+  <data name="Stats_InCached" xml:space="preserve"><value>in {0} tok ({1} cached)</value></data>
+  <data name="Stats_PromptSpeed" xml:space="preserve"><value>prompt {0} tok/s</value></data>
+  <data name="Inspector_Customize" xml:space="preserve"><value>Customize panel</value></data>
+  <data name="Inspector_CustomizeHint" xml:space="preserve"><value>Pick what the panel shows next to the conversation</value></data>
+  <data name="Inspector_Reset" xml:space="preserve"><value>Default set</value></data>
+  <data name="Inspector_ShowAll" xml:space="preserve"><value>Show all</value></data>
+  <data name="Inspector_EmptyHint" xml:space="preserve"><value>Nothing is selected for this panel. The gear button above brings blocks back</value></data>
+  <data name="Inspector_GroupChat" xml:space="preserve"><value>Conversation</value></data>
+  <data name="Inspector_Section_Prompt" xml:space="preserve"><value>System prompt</value></data>
+  <data name="Inspector_Section_Prompt_Hint" xml:space="preserve"><value>Prompt preset and text for this chat</value></data>
+  <data name="Inspector_Section_Reasoning" xml:space="preserve"><value>Thinking mode</value></data>
+  <data name="Inspector_Section_Reasoning_Hint" xml:space="preserve"><value>Thinking level and how the model turns it on</value></data>
+  <data name="Inspector_Section_Parameters" xml:space="preserve"><value>Tools and temperature</value></data>
+  <data name="Inspector_Section_Parameters_Hint" xml:space="preserve"><value>Tool calling and a temperature for this chat only</value></data>
+  <data name="Inspector_Section_Connection" xml:space="preserve"><value>Connection</value></data>
+  <data name="Inspector_Section_Connection_Hint" xml:space="preserve"><value>State of the active endpoint: the local server or the API provider, response time</value></data>
+  <data name="Inspector_Section_Tokens" xml:space="preserve"><value>Tokens</value></data>
+  <data name="Inspector_Section_Tokens_Hint" xml:space="preserve"><value>Context fill, input and output of the last answer, total for the chat</value></data>
+  <data name="Inspector_Section_Diagnosis" xml:space="preserve"><value>Why it may be slow</value></data>
+  <data name="Inspector_Section_Diagnosis_Hint" xml:space="preserve"><value>Layers left on the CPU, shared memory, NVIDIA driver policy</value></data>
+  <data name="Inspector_Section_Server" xml:space="preserve"><value>Server</value></data>
+  <data name="Inspector_Section_Server_Hint" xml:space="preserve"><value>llama.cpp build, backend, devices, address</value></data>
+  <data name="Inspector_Section_Load" xml:space="preserve"><value>Load</value></data>
+  <data name="Inspector_Section_Load_Hint" xml:space="preserve"><value>CPU, RAM and video memory of the server process</value></data>
+  <data name="Inspector_Section_Activity" xml:space="preserve"><value>Model work</value></data>
+  <data name="Inspector_Section_Activity_Hint" xml:space="preserve"><value>Requests and speed from the server log</value></data>
+  <data name="Inspector_Section_Launch" xml:space="preserve"><value>Launch parameters</value></data>
+  <data name="Inspector_Section_Launch_Hint" xml:space="preserve"><value>Context, GPU layers, threads, batch</value></data>
+  <data name="Inspector_Section_Model" xml:space="preserve"><value>Model</value></data>
+  <data name="Inspector_Section_Model_Hint" xml:space="preserve"><value>GGUF metadata: family, quantization, layers, template</value></data>
+  <data name="Settings_Inspector" xml:space="preserve"><value>Chat side panel</value></data>
+  <data name="Settings_InspectorHint" xml:space="preserve"><value>Only the checked blocks are shown. The same list opens from the gear button in the panel itself</value></data>
+  <data name="Welcome_Step_Inspector" xml:space="preserve"><value>Chat side panel</value></data>
+  <data name="Welcome_InspectorText" xml:space="preserve"><value>Choose what to keep next to the conversation. You can change it later in the panel or in Settings → Chat</value></data>
+  <data name="Conn_Endpoint" xml:space="preserve"><value>Endpoint</value></data>
+  <data name="Conn_State" xml:space="preserve"><value>State</value></data>
+  <data name="Conn_Latency" xml:space="preserve"><value>Response time</value></data>
+  <data name="Conn_Checked" xml:space="preserve"><value>Checked at</value></data>
+  <data name="Conn_Model" xml:space="preserve"><value>Model</value></data>
+  <data name="Conn_Error" xml:space="preserve"><value>Reason</value></data>
+  <data name="Conn_Ms" xml:space="preserve"><value>{0} ms</value></data>
+  <data name="Conn_Timeout" xml:space="preserve"><value>No response within 20 s</value></data>
+  <data name="Conn_TipOpen" xml:space="preserve"><value>Click to open API providers</value></data>
+  <data name="Enum_EndpointState_Unknown" xml:space="preserve"><value>not checked</value></data>
+  <data name="Enum_EndpointState_Checking" xml:space="preserve"><value>checking</value></data>
+  <data name="Enum_EndpointState_Online" xml:space="preserve"><value>connected</value></data>
+  <data name="Enum_EndpointState_Unauthorized" xml:space="preserve"><value>key rejected</value></data>
+  <data name="Enum_EndpointState_Unreachable" xml:space="preserve"><value>no connection</value></data>
+  <data name="Enum_EndpointState_Error" xml:space="preserve"><value>server error</value></data>
+  <data name="Enum_EndpointState_Offline" xml:space="preserve"><value>offline mode</value></data>
+  <data name="Tok_Context" xml:space="preserve"><value>Context</value></data>
+  <data name="Tok_In" xml:space="preserve"><value>Input</value></data>
+  <data name="Tok_Out" xml:space="preserve"><value>Output</value></data>
+  <data name="Tok_Cached" xml:space="preserve"><value>{0} cached</value></data>
+  <data name="Tok_Reasoning" xml:space="preserve"><value>{0} thinking</value></data>
+  <data name="Tok_Speed" xml:space="preserve"><value>Speed</value></data>
+  <data name="Tok_Chat" xml:space="preserve"><value>Whole chat</value></data>
+  <data name="Tok_ChatValue" xml:space="preserve"><value>in {0} · out {1} · answers {2}</value></data>
 </root>

@@ -11,7 +11,7 @@
         Background="{DynamicResource WindowBackgroundBrush}"
         Foreground="{DynamicResource TextPrimaryBrush}"
         FontFamily="{DynamicResource AppFontFamily}"
-        FontSize="13"
+        FontSize="{DynamicResource AppFontSize}"
         UseLayoutRounding="True"
         theme:ShellChrome.ExtendIntoTitleBar="True">
 
@@ -127,7 +127,9 @@
         </Border>
 
         <!-- ================= Боковая панель ================= -->
+        <!-- В системных скинах панель непрозрачна и отделена линией, как панель навигации Проводника; во Fluent рамки нет -->
         <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}"
+                BorderBrush="{DynamicResource SidebarBorderBrush}" BorderThickness="{DynamicResource SidebarBorderThickness}"
                 Visibility="{Binding IsCompact, Converter={StaticResource InverseBoolToVisibility}}">
             <DockPanel Margin="10,8,8,10">
                 <StackPanel DockPanel.Dock="Top">
@@ -179,17 +181,19 @@
                 <!-- Состояние: офлайн-режим и доступное обновление (тихие строки, без цветных плашек) -->
                 <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
                     <!-- Активная модель и сборка llama.cpp с точкой состояния сервера; щелчок — раздел «Движок» -->
+                    <!-- Локальная модель: модель и сборка llama.cpp с точкой состояния сервера; щелчок — раздел «Движок».
+                         Модель API-провайдера: провайдер и состояние подключения; щелчок — «API-провайдеры» -->
                     <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                            Command="{Binding OpenEngineCommand}" ToolTip="{Binding Server.Summary}" ToolTipService.Placement="Right">
-                        <Grid DataContext="{Binding Server}">
+                            Command="{Binding OpenEndpointCommand}" ToolTip="{Binding Chat.Endpoint.Summary}" ToolTipService.Placement="Right">
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="16" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Ellipse Style="{StaticResource ServerStateDot}" HorizontalAlignment="Center" />
+                            <Ellipse DataContext="{Binding Chat.Endpoint}" Style="{StaticResource EndpointStateDot}" HorizontalAlignment="Center" />
                             <StackPanel Grid.Column="1" Margin="10,0,0,0" Style="{StaticResource ExpandedOnly}">
-                                <TextBlock Text="{Binding ModelTitle}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                <TextBlock Text="{Binding StatusLine}" Style="{StaticResource StatText}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding Chat.Endpoint.Title}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="{Binding Chat.Endpoint.Line}" Style="{StaticResource StatText}" TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -264,7 +268,8 @@
 
         <!-- ================= Текущая страница ================= -->
         <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource ContentBackgroundBrush}"
-                BorderBrush="{DynamicResource ContentBorderBrush}" BorderThickness="1,1,0,0" CornerRadius="8,0,0,0">
+                BorderBrush="{DynamicResource ContentBorderBrush}" BorderThickness="{DynamicResource ContentBorderThickness}"
+                CornerRadius="{DynamicResource ContentCornerRadius}">
             <DockPanel>
                 <ProgressBar DockPanel.Dock="Top" Height="2" MinHeight="0" Maximum="100" BorderThickness="0" Margin="8,0,8,0"
                              Value="{Binding Downloads.AggregatePercent, Mode=OneWay}"

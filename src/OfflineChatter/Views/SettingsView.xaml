@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:l="clr-namespace:OfflineChatter.Localization"
              xmlns:c="clr-namespace:OfflineChatter.Controls"
+             xmlns:views="clr-namespace:OfflineChatter.Views"
              xmlns:vm="clr-namespace:OfflineChatter.ViewModels">
     <UserControl.Resources>
         <DataTemplate x:Key="EnumItemTemplate">
@@ -238,6 +239,13 @@
                                 <Button Style="{DynamicResource SubtleButtonStyle}" Command="{Binding RestoreDefaultsCommand}" Content="{l:Loc Prompts_Restore}" Margin="0,0,8,4" />
                             </WrapPanel>
                         </StackPanel>
+                    </Border>
+
+                    <!-- Правая панель чата: какие блоки показывать -->
+                    <TextBlock Text="{l:Loc Settings_Inspector}" Style="{StaticResource GroupTitle}" />
+                    <TextBlock Text="{l:Loc Settings_InspectorHint}" Style="{StaticResource CaptionText}" Margin="0,-4,0,8" />
+                    <Border Style="{StaticResource SettingCard}">
+                        <views:InspectorLayoutView DataContext="{Binding InspectorLayout}" />
                     </Border>
 
                     <TextBlock Text="{l:Loc Settings_ImageSection}" Style="{StaticResource GroupTitle}" />
@@ -534,7 +542,7 @@
                                         VerticalAlignment="Top">
                                     <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
                                 </Button>
-                                <Border Background="{DynamicResource CodeBackgroundBrush}" CornerRadius="6" Padding="10,8">
+                                <Border Background="{DynamicResource CodeBackgroundBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="10,8">
                                     <TextBlock Text="{Binding ModelsExample}" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" TextWrapping="Wrap"
                                                Foreground="{DynamicResource TextSecondaryBrush}" />
                                 </Border>
@@ -545,7 +553,7 @@
                                         VerticalAlignment="Top">
                                     <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
                                 </Button>
-                                <Border Background="{DynamicResource CodeBackgroundBrush}" CornerRadius="6" Padding="10,8">
+                                <Border Background="{DynamicResource CodeBackgroundBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="10,8">
                                     <TextBlock Text="{Binding Example}" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" TextWrapping="Wrap"
                                                Foreground="{DynamicResource TextSecondaryBrush}" />
                                 </Border>

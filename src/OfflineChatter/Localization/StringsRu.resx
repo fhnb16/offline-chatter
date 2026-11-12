@@ -44,7 +44,7 @@
   <data name="Chat_Attach" xml:space="preserve"><value>Прикрепить файл или изображение</value></data>
   <data name="Chat_InputPlaceholder" xml:space="preserve"><value>Сообщение… (Enter — отправить, Shift+Enter — новая строка)</value></data>
   <data name="Chat_Send" xml:space="preserve"><value>Отправить (Enter)</value></data>
-  <data name="Chat_StatsEmpty" xml:space="preserve"><value>Генерация: — ток/с  ·  Промпт: — ток/с  ·  Первый токен: —  ·  Контекст: — / —</value></data>
+  <data name="Chat_StatsEmpty" xml:space="preserve"><value>Генерация: — ток/с  ·  Вход: — ток  ·  Первый токен: —</value></data>
   <data name="Chat_EngineStub" xml:space="preserve"><value>Движок ещё не подключён</value></data>
   <data name="Inspector_Title" xml:space="preserve"><value>Генерация</value></data>
   <data name="Inspector_Empty" xml:space="preserve"><value>Здесь появятся параметры генерации и живая статистика</value></data>
@@ -67,7 +67,7 @@
   <data name="Appearance_SkinHint" xml:space="preserve"><value>Родные темы WPF разных версий Windows работают на любой ОС</value></data>
   <data name="Appearance_Mode" xml:space="preserve"><value>Тема</value></data>
   <data name="Appearance_Backdrop" xml:space="preserve"><value>Подложка окна</value></data>
-  <data name="Appearance_BackdropHint" xml:space="preserve"><value>Показаны только эффекты, которые поддерживает эта версия Windows</value></data>
+  <data name="Appearance_BackdropHint" xml:space="preserve"><value>Показаны только эффекты, которые поддерживает эта версия Windows. Для системных скинов (Aero, Classic и других) «Авто» — без подложки: панели непрозрачны, как в родных окнах</value></data>
   <data name="Appearance_Accent" xml:space="preserve"><value>Акцентный цвет</value></data>
   <data name="Appearance_Now" xml:space="preserve"><value>Сейчас: {0}</value></data>
   <data name="Appearance_NowHighContrast" xml:space="preserve"><value>Сейчас: режим высокой контрастности</value></data>
@@ -314,7 +314,6 @@
   <data name="Chat_ContextNoLimit" xml:space="preserve"><value>Контекст {0} токенов</value></data>
   <data name="Stats_Gen" xml:space="preserve"><value>{0} ток/с</value></data>
   <data name="Stats_Tokens" xml:space="preserve"><value>{0} ток</value></data>
-  <data name="Stats_Prompt" xml:space="preserve"><value>промпт {0} ток @ {1} ток/с</value></data>
   <data name="Stats_Ttft" xml:space="preserve"><value>первый токен {0}</value></data>
   <data name="Stats_Draft" xml:space="preserve"><value>принято черновика {0}%</value></data>
   <data name="Stats_Truncated" xml:space="preserve"><value>обрезано лимитом токенов</value></data>
@@ -452,7 +451,7 @@
   <data name="Security_Skip" xml:space="preserve"><value>Пропустить</value></data>
   <data name="Security_Unlock" xml:space="preserve"><value>Разблокировать</value></data>
   <data name="Welcome_Title" xml:space="preserve"><value>Добро пожаловать в Offline Chatter</value></data>
-  <data name="Welcome_Subtitle" xml:space="preserve"><value>Три шага — и можно общаться с ИИ-моделью прямо на этом компьютере, дальше без интернета</value></data>
+  <data name="Welcome_Subtitle" xml:space="preserve"><value>Несколько шагов — и можно общаться с ИИ-моделью прямо на этом компьютере, дальше без интернета</value></data>
   <data name="Welcome_Loading" xml:space="preserve"><value>Проверяю…</value></data>
   <data name="Welcome_Step_Hardware" xml:space="preserve"><value>Ваш компьютер</value></data>
   <data name="Welcome_Step_Engine" xml:space="preserve"><value>Движок (llama.cpp)</value></data>
@@ -876,4 +875,64 @@
   <data name="Profiles_Sysmem" xml:space="preserve"><value>Sysmem fallback: {0}</value></data>
   <data name="Profiles_SysmemRefresh" xml:space="preserve"><value>Проверить снова после смены настройки в панели NVIDIA</value></data>
   <data name="Profiles_SysmemHint" xml:space="preserve"><value>Когда перенос разрешён, модель, не поместившаяся в видеопамять, работает из ОЗУ через PCIe и замедляется в разы без всякой ошибки. «Prefer No Sysmem Fallback» в панели NVIDIA это отключает</value></data>
+  <data name="Stats_Out" xml:space="preserve"><value>выход {0} ток</value></data>
+  <data name="Stats_In" xml:space="preserve"><value>вход {0} ток</value></data>
+  <data name="Stats_InCached" xml:space="preserve"><value>вход {0} ток (из кэша {1})</value></data>
+  <data name="Stats_PromptSpeed" xml:space="preserve"><value>промпт {0} ток/с</value></data>
+  <data name="Inspector_Customize" xml:space="preserve"><value>Настроить панель</value></data>
+  <data name="Inspector_CustomizeHint" xml:space="preserve"><value>Выберите, что показывать рядом с беседой</value></data>
+  <data name="Inspector_Reset" xml:space="preserve"><value>Набор по умолчанию</value></data>
+  <data name="Inspector_ShowAll" xml:space="preserve"><value>Показать все</value></data>
+  <data name="Inspector_EmptyHint" xml:space="preserve"><value>В панели ничего не выбрано. Вернуть блоки можно кнопкой с шестерёнкой выше</value></data>
+  <data name="Inspector_GroupChat" xml:space="preserve"><value>Беседа</value></data>
+  <data name="Inspector_Section_Prompt" xml:space="preserve"><value>Системный промпт</value></data>
+  <data name="Inspector_Section_Prompt_Hint" xml:space="preserve"><value>Пресет и текст промпта этого чата</value></data>
+  <data name="Inspector_Section_Reasoning" xml:space="preserve"><value>Режим размышлений</value></data>
+  <data name="Inspector_Section_Reasoning_Hint" xml:space="preserve"><value>Уровень размышлений и способ их включения у модели</value></data>
+  <data name="Inspector_Section_Parameters" xml:space="preserve"><value>Инструменты и температура</value></data>
+  <data name="Inspector_Section_Parameters_Hint" xml:space="preserve"><value>Вызов инструментов и своя температура для этого чата</value></data>
+  <data name="Inspector_Section_Connection" xml:space="preserve"><value>Подключение</value></data>
+  <data name="Inspector_Section_Connection_Hint" xml:space="preserve"><value>Состояние активного эндпоинта: локальный сервер или API-провайдер, отклик</value></data>
+  <data name="Inspector_Section_Tokens" xml:space="preserve"><value>Токены</value></data>
+  <data name="Inspector_Section_Tokens_Hint" xml:space="preserve"><value>Заполнение контекста, вход и выход последнего ответа, всего за чат</value></data>
+  <data name="Inspector_Section_Diagnosis" xml:space="preserve"><value>Почему может быть медленно</value></data>
+  <data name="Inspector_Section_Diagnosis_Hint" xml:space="preserve"><value>Слои на CPU, общая память, политика драйвера NVIDIA</value></data>
+  <data name="Inspector_Section_Server" xml:space="preserve"><value>Сервер</value></data>
+  <data name="Inspector_Section_Server_Hint" xml:space="preserve"><value>Сборка llama.cpp, бэкенд, устройства, адрес</value></data>
+  <data name="Inspector_Section_Load" xml:space="preserve"><value>Нагрузка</value></data>
+  <data name="Inspector_Section_Load_Hint" xml:space="preserve"><value>CPU, ОЗУ и видеопамять процесса сервера</value></data>
+  <data name="Inspector_Section_Activity" xml:space="preserve"><value>Работа модели</value></data>
+  <data name="Inspector_Section_Activity_Hint" xml:space="preserve"><value>Запросы и скорость по журналу сервера</value></data>
+  <data name="Inspector_Section_Launch" xml:space="preserve"><value>Параметры запуска</value></data>
+  <data name="Inspector_Section_Launch_Hint" xml:space="preserve"><value>Контекст, слои GPU, потоки, batch</value></data>
+  <data name="Inspector_Section_Model" xml:space="preserve"><value>Модель</value></data>
+  <data name="Inspector_Section_Model_Hint" xml:space="preserve"><value>Метаданные GGUF: семейство, квант, слои, шаблон</value></data>
+  <data name="Settings_Inspector" xml:space="preserve"><value>Правая панель чата</value></data>
+  <data name="Settings_InspectorHint" xml:space="preserve"><value>Показываются только отмеченные блоки. Тот же список открывает кнопка с шестерёнкой в самой панели</value></data>
+  <data name="Welcome_Step_Inspector" xml:space="preserve"><value>Правая панель чата</value></data>
+  <data name="Welcome_InspectorText" xml:space="preserve"><value>Выберите, что держать рядом с беседой. Позже это меняется в самой панели и в «Настройки → Чат»</value></data>
+  <data name="Conn_Endpoint" xml:space="preserve"><value>Эндпоинт</value></data>
+  <data name="Conn_State" xml:space="preserve"><value>Состояние</value></data>
+  <data name="Conn_Latency" xml:space="preserve"><value>Отклик</value></data>
+  <data name="Conn_Checked" xml:space="preserve"><value>Проверено</value></data>
+  <data name="Conn_Model" xml:space="preserve"><value>Модель</value></data>
+  <data name="Conn_Error" xml:space="preserve"><value>Причина</value></data>
+  <data name="Conn_Ms" xml:space="preserve"><value>{0} мс</value></data>
+  <data name="Conn_Timeout" xml:space="preserve"><value>Нет ответа за 20 с</value></data>
+  <data name="Conn_TipOpen" xml:space="preserve"><value>Щелчок — открыть «API-провайдеры»</value></data>
+  <data name="Enum_EndpointState_Unknown" xml:space="preserve"><value>не проверено</value></data>
+  <data name="Enum_EndpointState_Checking" xml:space="preserve"><value>проверка</value></data>
+  <data name="Enum_EndpointState_Online" xml:space="preserve"><value>подключено</value></data>
+  <data name="Enum_EndpointState_Unauthorized" xml:space="preserve"><value>ключ отклонён</value></data>
+  <data name="Enum_EndpointState_Unreachable" xml:space="preserve"><value>нет связи</value></data>
+  <data name="Enum_EndpointState_Error" xml:space="preserve"><value>ошибка сервера</value></data>
+  <data name="Enum_EndpointState_Offline" xml:space="preserve"><value>офлайн-режим</value></data>
+  <data name="Tok_Context" xml:space="preserve"><value>Контекст</value></data>
+  <data name="Tok_In" xml:space="preserve"><value>Вход</value></data>
+  <data name="Tok_Out" xml:space="preserve"><value>Выход</value></data>
+  <data name="Tok_Cached" xml:space="preserve"><value>из кэша {0}</value></data>
+  <data name="Tok_Reasoning" xml:space="preserve"><value>размышления {0}</value></data>
+  <data name="Tok_Speed" xml:space="preserve"><value>Скорость</value></data>
+  <data name="Tok_Chat" xml:space="preserve"><value>За весь чат</value></data>
+  <data name="Tok_ChatValue" xml:space="preserve"><value>вход {0} · выход {1} · ответов {2}</value></data>
 </root>

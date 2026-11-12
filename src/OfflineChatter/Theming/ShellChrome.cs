@@ -52,9 +52,10 @@ public static class ShellChrome
     /// Нужно для размытия и Acrylic через SetWindowCompositionAttribute на Win10: область расширенной рамки
     /// DWM заливает сплошным цветом рамки (в тёмной теме — почти чёрным), и эффект под ней не виден.
     /// </param>
-    internal static bool Update(Window window, bool captionGlassOnly = false)
+    /// <param name="allowExtend">Скин допускает совмещённый заголовок (Fluent). Системные скины остаются со стандартной рамкой.</param>
+    internal static bool Update(Window window, bool captionGlassOnly = false, bool allowExtend = true)
     {
-        var extend = GetExtendIntoTitleBar(window) && CanExtend && !SystemParameters.HighContrast;
+        var extend = allowExtend && GetExtendIntoTitleBar(window) && CanExtend && !SystemParameters.HighContrast;
         var current = GetIsExtended(window);
         SetCaptionGlassOnly(window, captionGlassOnly);
 

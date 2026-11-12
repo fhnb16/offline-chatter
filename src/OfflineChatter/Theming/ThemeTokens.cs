@@ -62,6 +62,41 @@ public static class ThemeKeys
     public const string AppFontFamily = "AppFontFamily";
     public const string MonoFontFamily = "MonoFontFamily";
     public const string CardCornerRadius = "CardCornerRadius";
+
+    // --- Форма и строение оболочки: у каждого скина свои (Fluent — скруглённый «слой», Aero — панели Проводника) ---
+    /// <summary>Скругление мелких элементов: кнопки-иконки, плашки вложений, карточки вызовов инструментов.</summary>
+    public const string ControlCornerRadius = "ControlCornerRadius";
+    public const string PillCornerRadius = "PillCornerRadius";
+    public const string ContentCornerRadius = "ContentCornerRadius";
+    public const string ContentBorderThickness = "ContentBorderThickness";
+    public const string SidebarBorder = "SidebarBorderBrush";
+    public const string SidebarBorderThickness = "SidebarBorderThickness";
+
+    /// <summary>Полоса команд над лентой чата (в Aero — как панель команд Проводника; во Fluent её нет).</summary>
+    public const string ToolbarBackground = "ToolbarBackgroundBrush";
+    public const string ToolbarBorder = "ToolbarBorderBrush";
+    public const string ToolbarBorderThickness = "ToolbarBorderThickness";
+
+    // --- Строка списка в системных скинах (боковая панель, списки): наведение и выбор как в Проводнике ---
+    public const string ItemHover = "ItemHoverBrush";
+    public const string ItemHoverBorder = "ItemHoverBorderBrush";
+    public const string ItemSelected = "ItemSelectedBrush";
+    public const string ItemSelectedBorder = "ItemSelectedBorderBrush";
+    public const string ItemSelectedText = "ItemSelectedTextBrush";
+    public const string ItemCornerRadius = "ItemCornerRadius";
+    public const string SubtleHoverBorder = "SubtleHoverBorderBrush";
+
+    // --- Типографика ---
+    /// <summary>Цвет заголовков: во Fluent — основной текст, в Aero — синий «main instruction».</summary>
+    public const string Heading = "HeadingBrush";
+    public const string SectionHeader = "SectionHeaderBrush";
+    public const string HeadingFontWeight = "HeadingFontWeight";
+    public const string PageTitleFontSize = "PageTitleFontSize";
+    public const string TitleFontSize = "TitleFontSize";
+    public const string AppFontSize = "AppFontSize";
+
+    /// <summary>Курсор над кнопками-иконками: во Fluent — «рука», в системных скинах — обычная стрелка, как у кнопок Windows.</summary>
+    public const string ActionCursor = "ActionCursor";
 }
 
 internal static class ThemeTokens
@@ -185,17 +220,130 @@ internal static class ThemeTokens
             r[ThemeKeys.GlassTextEffect] = null;
         }
 
-        // Скругления как у родных элементов скина: Fluent — 8, Aero — 4, XP — 3, Classic — прямые углы
-        r[ThemeKeys.CardCornerRadius] = new CornerRadius(t.Skin switch
-        {
-            SkinKind.Fluent => 8,
-            SkinKind.Aero or SkinKind.Aero2 or SkinKind.AeroLite => 4,
-            SkinKind.Luna or SkinKind.Royale => 3,
-            _ => 0,
-        });
-
+        AddShell(r, t);
         AddFonts(r);
         return r;
+    }
+
+    private static LinearGradientBrush V(uint top, uint bottom)
+    {
+        var b = new LinearGradientBrush(C(top), C(bottom), 90);
+        b.Freeze();
+        return b;
+    }
+
+    /// <summary>
+    /// Форма и строение оболочки по скину. Fluent — прежний вид: скруглённый «слой» содержимого, пилюли, крупные заголовки.
+    /// Системные скины повторяют родные окна своей Windows: Aero (Win7) — панель навигации и панель команд Проводника,
+    /// выбор строки с голубым градиентом, синие заголовки 12 pt; Aero2 (Win8) — то же плоско и без скруглений;
+    /// AeroLite, Luna, Royale, Classic — системные цвета.
+    /// </summary>
+    private static void AddShell(Dictionary<string, object?> r, ResolvedTheme t)
+    {
+        var skin = t.Skin;
+        var fluent = skin == SkinKind.Fluent;
+        var d = t.IsDark;
+
+        // Скругления как у родных элементов скина: Fluent — 8, Aero — 3, XP — 3, Win8 и Classic — прямые углы
+        double card = skin switch { SkinKind.Fluent => 8, SkinKind.Aero or SkinKind.Luna or SkinKind.Royale => 3, _ => 0 };
+        double control = skin switch { SkinKind.Fluent => 6, SkinKind.Aero or SkinKind.Luna or SkinKind.Royale => 3, _ => 0 };
+        r[ThemeKeys.CardCornerRadius] = new CornerRadius(card);
+        r[ThemeKeys.ControlCornerRadius] = new CornerRadius(control);
+        r[ThemeKeys.PillCornerRadius] = new CornerRadius(fluent ? 11 : control);
+        r[ThemeKeys.ItemCornerRadius] = new CornerRadius(skin == SkinKind.Aero ? 3 : fluent ? 4 : 0);
+
+        // Содержимое: во Fluent — «слой» со скруглённым углом и тонкой рамкой; в системных скинах — обычная клиентская
+        // область, от панели навигации её отделяет линия
+        r[ThemeKeys.ContentCornerRadius] = fluent ? new CornerRadius(8, 0, 0, 0) : new CornerRadius(0);
+        r[ThemeKeys.ContentBorderThickness] = fluent ? new Thickness(1, 1, 0, 0) : new Thickness(0);
+        r[ThemeKeys.SidebarBorderThickness] = fluent ? new Thickness(0) : new Thickness(0, 0, 1, 0);
+        r[ThemeKeys.ToolbarBorderThickness] = fluent ? new Thickness(0) : new Thickness(0, 0, 0, 1);
+
+        r[ThemeKeys.SubtleHoverBorder] = Brushes.Transparent;
+        r[ThemeKeys.ItemSelectedText] = r[ThemeKeys.TextPrimary];
+        r[ThemeKeys.Heading] = r[ThemeKeys.TextPrimary];
+        r[ThemeKeys.SectionHeader] = r[ThemeKeys.TextSecondary];
+        r[ThemeKeys.HeadingFontWeight] = FontWeights.SemiBold;
+        r[ThemeKeys.PageTitleFontSize] = 24.0;
+        r[ThemeKeys.TitleFontSize] = 20.0;
+        r[ThemeKeys.AppFontSize] = 13.0;
+        r[ThemeKeys.ActionCursor] = fluent ? System.Windows.Input.Cursors.Hand : System.Windows.Input.Cursors.Arrow;
+
+        if (fluent)
+        {
+            r[ThemeKeys.SidebarBorder] = Brushes.Transparent;
+            r[ThemeKeys.ToolbarBackground] = Brushes.Transparent;
+            r[ThemeKeys.ToolbarBorder] = Brushes.Transparent;
+            r[ThemeKeys.ItemHover] = r[ThemeKeys.SubtleHover];
+            r[ThemeKeys.ItemHoverBorder] = Brushes.Transparent;
+            r[ThemeKeys.ItemSelected] = r[ThemeKeys.SelectedItem];
+            r[ThemeKeys.ItemSelectedBorder] = Brushes.Transparent;
+            return;
+        }
+
+        // Системные скины: текст 9 pt, заголовок страницы — 12 pt обычным начертанием (Segoe UI в Win7 / 8)
+        r[ThemeKeys.HeadingFontWeight] = FontWeights.Normal;
+        r[ThemeKeys.PageTitleFontSize] = 16.0;
+        r[ThemeKeys.TitleFontSize] = 16.0;
+        r[ThemeKeys.AppFontSize] = 12.0;
+
+        // С подложкой (её выбрали явно) панели остаются полупрозрачными — меняются только строки и заголовки
+        var opaque = !t.HasBackdrop;
+
+        switch (skin)
+        {
+            case SkinKind.Aero:
+                // Windows 7: бледно-голубые панели Проводника, строки с градиентом и рамкой
+                r[ThemeKeys.ItemHover] = V(0xFFFAFBFD, 0xFFEBF3FD);
+                r[ThemeKeys.ItemHoverBorder] = B(0xFFB8D6FBu);
+                r[ThemeKeys.ItemSelected] = V(0xFFDCEBFC, 0xFFC1DBFC);
+                r[ThemeKeys.ItemSelectedBorder] = B(0xFF7DA2CEu);
+                r[ThemeKeys.SidebarBorder] = B(0xFFD5DFEAu);
+                r[ThemeKeys.ToolbarBackground] = opaque ? V(0xFFFAFCFE, 0xFFE3ECF7) : Brushes.Transparent;
+                r[ThemeKeys.ToolbarBorder] = B(opaque ? 0xFFB6C5D8u : 0x33000000u);
+                r[ThemeKeys.Heading] = B(0xFF003399u);
+                r[ThemeKeys.SectionHeader] = B(0xFF1E3287u);
+                if (opaque) r[ThemeKeys.SidebarBackground] = B(0xFFF1F5FBu);
+                break;
+
+            case SkinKind.Aero2:
+                // Windows 8: те же роли, но плоско
+                r[ThemeKeys.ItemHover] = B(0xFFE5F3FBu);
+                r[ThemeKeys.ItemHoverBorder] = B(0xFF70C0E7u);
+                r[ThemeKeys.ItemSelected] = B(0xFFCBE8F6u);
+                r[ThemeKeys.ItemSelectedBorder] = B(0xFF26A0DAu);
+                r[ThemeKeys.SidebarBorder] = B(0xFFDADBDCu);
+                r[ThemeKeys.ToolbarBackground] = opaque ? B(0xFFF5F6F7u) : Brushes.Transparent;
+                r[ThemeKeys.ToolbarBorder] = B(opaque ? 0xFFDADBDCu : 0x33000000u);
+                r[ThemeKeys.Heading] = B(0xFF003399u);
+                r[ThemeKeys.SectionHeader] = B(0xFF1E3287u);
+                if (opaque) r[ThemeKeys.SidebarBackground] = B(0xFFF5F6F7u);
+                break;
+
+            default:
+                // AeroLite, Luna, Royale, Classic: выбор строки и панели — системными цветами
+                r[ThemeKeys.ItemHover] = Brushes.Transparent;
+                r[ThemeKeys.ItemHoverBorder] = SystemColors.ControlDarkBrush;
+                r[ThemeKeys.ItemSelected] = SystemColors.HighlightBrush;
+                r[ThemeKeys.ItemSelectedBorder] = SystemColors.HighlightBrush;
+                r[ThemeKeys.ItemSelectedText] = SystemColors.HighlightTextBrush;
+                r[ThemeKeys.SidebarBorder] = SystemColors.ControlDarkBrush;
+                r[ThemeKeys.ToolbarBackground] = opaque ? SystemColors.ControlBrush : Brushes.Transparent;
+                r[ThemeKeys.ToolbarBorder] = SystemColors.ControlDarkBrush;
+                if (opaque) r[ThemeKeys.SidebarBackground] = SystemColors.ControlBrush;
+                break;
+        }
+
+        // Кнопки-иконки ведут себя как кнопки панели инструментов скина: при наведении — та же подсветка, что у строк
+        r[ThemeKeys.SubtleHover] = r[ThemeKeys.ItemHover];
+        r[ThemeKeys.SubtleHoverBorder] = r[ThemeKeys.ItemHoverBorder];
+        r[ThemeKeys.SubtlePressed] = skin is SkinKind.Aero or SkinKind.Aero2 ? r[ThemeKeys.ItemSelected] : SystemColors.ControlLightBrush;
+        if (opaque)
+        {
+            // Рамка карточек и полей — как у поля ввода в теме Windows
+            r[ThemeKeys.CardBorder] = B(skin is SkinKind.Aero or SkinKind.Aero2 ? 0xFFD3DAE3u : 0xFFA0A0A0u);
+            r[ThemeKeys.Divider] = r[ThemeKeys.SidebarBorder];
+        }
     }
 
     private static Dictionary<string, object?> BuildHighContrast()
@@ -252,6 +400,29 @@ internal static class ThemeTokens
             [ThemeKeys.CodeNumber] = text,
             [ThemeKeys.QuoteBar] = text,
             [ThemeKeys.CardCornerRadius] = new CornerRadius(0),
+            [ThemeKeys.ControlCornerRadius] = new CornerRadius(0),
+            [ThemeKeys.PillCornerRadius] = new CornerRadius(0),
+            [ThemeKeys.ItemCornerRadius] = new CornerRadius(0),
+            [ThemeKeys.ContentCornerRadius] = new CornerRadius(0),
+            [ThemeKeys.ContentBorderThickness] = new Thickness(1, 1, 0, 0),
+            [ThemeKeys.SidebarBorder] = text,
+            [ThemeKeys.SidebarBorderThickness] = new Thickness(0),
+            [ThemeKeys.ToolbarBackground] = window,
+            [ThemeKeys.ToolbarBorder] = text,
+            [ThemeKeys.ToolbarBorderThickness] = new Thickness(0),
+            [ThemeKeys.ItemHover] = highlight,
+            [ThemeKeys.ItemHoverBorder] = highlight,
+            [ThemeKeys.ItemSelected] = highlight,
+            [ThemeKeys.ItemSelectedBorder] = highlight,
+            [ThemeKeys.ItemSelectedText] = highlightText,
+            [ThemeKeys.SubtleHoverBorder] = text,
+            [ThemeKeys.Heading] = text,
+            [ThemeKeys.SectionHeader] = text,
+            [ThemeKeys.HeadingFontWeight] = FontWeights.SemiBold,
+            [ThemeKeys.PageTitleFontSize] = 24.0,
+            [ThemeKeys.TitleFontSize] = 20.0,
+            [ThemeKeys.AppFontSize] = 13.0,
+            [ThemeKeys.ActionCursor] = System.Windows.Input.Cursors.Hand,
         };
         AddFonts(r);
         return r;
