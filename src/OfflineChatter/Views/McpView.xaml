@@ -2,8 +2,23 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:OfflineChatter.ViewModels"
+             xmlns:c="clr-namespace:OfflineChatter.Controls"
              xmlns:l="clr-namespace:OfflineChatter.Localization">
     <UserControl.Resources>
+        <DataTemplate x:Key="EnumItemTemplate">
+            <TextBlock Text="{Binding Converter={StaticResource EnumDisplay}}" />
+        </DataTemplate>
+        <Style x:Key="Row" TargetType="c:AdaptiveRow">
+            <Setter Property="ControlMinWidth" Value="240" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+        <Style x:Key="Check" TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <!-- Подпись с пояснением в строке настройки -->
+        <Style x:Key="Hint" TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
+            <Setter Property="Margin" Value="0,2,0,0" />
+        </Style>
         <DataTemplate x:Key="ToolRow" DataType="{x:Type vm:ToolItem}">
             <DockPanel Margin="0,3">
                 <ComboBox DockPanel.Dock="Right" MinWidth="150" ItemsSource="{Binding DataContext.ConsentOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -24,11 +39,11 @@
             <!-- ===== Общие ===== -->
             <Border Style="{StaticResource SettingCard}">
                 <StackPanel>
-                    <CheckBox Content="{l:Loc Tools_EnabledByDefault}" IsChecked="{Binding EnabledByDefault}" />
-                    <DockPanel Margin="0,10,0,0">
-                        <TextBox DockPanel.Dock="Right" Width="70" Text="{Binding MaxSteps}" />
+                    <CheckBox Content="{l:Loc Tools_EnabledByDefault}" IsChecked="{Binding EnabledByDefault}" Margin="0,0,0,12" />
+                    <c:AdaptiveRow Style="{StaticResource Row}" Margin="0">
                         <TextBlock Text="{l:Loc Tools_MaxStepsLabel}" Style="{StaticResource BodyText}" VerticalAlignment="Center" />
-                    </DockPanel>
+                        <TextBox Text="{Binding MaxSteps}" FontFamily="{DynamicResource MonoFontFamily}" />
+                    </c:AdaptiveRow>
                 </StackPanel>
             </Border>
 
@@ -42,8 +57,155 @@
                         <Button DockPanel.Dock="Right" Content="{l:Loc Common_Browse}" Command="{Binding PickSandboxCommand}" Margin="6,0,0,0" />
                         <TextBox Text="{Binding FileSandbox}" />
                     </DockPanel>
-                    <TextBlock Text="{l:Loc Tools_Searxng}" Style="{StaticResource CaptionText}" Margin="0,10,0,2" />
-                    <TextBox Text="{Binding SearxngUrl}" ToolTip="http://127.0.0.1:8888" />
+                </StackPanel>
+            </Border>
+
+            <!-- ===== Погода ===== -->
+            <TextBlock Text="{l:Loc Weather_Title}" Style="{StaticResource SubtitleText}" Margin="0,16,0,8" />
+            <Border Style="{StaticResource SettingCard}">
+                <c:AdaptiveRow Style="{StaticResource Row}" Margin="0">
+                    <StackPanel>
+                        <TextBlock Text="{l:Loc Weather_City}" Style="{StaticResource BodyText}" />
+                        <TextBlock Text="{l:Loc Weather_CityHint}" Style="{StaticResource Hint}" />
+                    </StackPanel>
+                    <TextBox Text="{Binding Web.DefaultCity}" VerticalAlignment="Center" />
+                </c:AdaptiveRow>
+            </Border>
+
+            <!-- ===== Веб-страницы и поиск ===== -->
+            <TextBlock Text="{l:Loc Web_Title}" Style="{StaticResource SubtitleText}" Margin="0,16,0,2" />
+            <TextBlock Text="{l:Loc Web_Hint}" Style="{StaticResource CaptionText}" Margin="0,0,0,8" />
+
+            <!-- Поиск -->
+            <Border Style="{StaticResource SettingCard}" DataContext="{Binding Web}">
+                <StackPanel>
+                    <TextBlock Text="{l:Loc Web_Search}" Style="{StaticResource SectionHeaderText}" Margin="0,0,0,8" />
+                    <c:AdaptiveRow Style="{StaticResource Row}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Web_Engine}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Web_EngineHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                        <ComboBox ItemsSource="{Binding EngineOptions}" SelectedItem="{Binding Engine}" ItemTemplate="{StaticResource EnumItemTemplate}" VerticalAlignment="Center" />
+                    </c:AdaptiveRow>
+                    <TextBlock Text="{Binding EngineTemplate}" Style="{StaticResource StatText}" TextWrapping="Wrap" Margin="0,-4,0,12"
+                               Visibility="{Binding HasTemplate, Converter={StaticResource BoolToVisibility}}" />
+                    <TextBlock Text="{l:Loc Web_EngineWarning}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}" Margin="0,-4,0,12"
+                               Visibility="{Binding IsUnreliableEngine, Converter={StaticResource BoolToVisibility}}" />
+                    <c:AdaptiveRow Style="{StaticResource Row}" Visibility="{Binding IsCustomEngine, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Web_CustomUrl}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Web_CustomUrlHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                        <TextBox Text="{Binding CustomSearchUrl}" FontFamily="{DynamicResource MonoFontFamily}" VerticalAlignment="Center" />
+                    </c:AdaptiveRow>
+                    <c:AdaptiveRow Style="{StaticResource Row}" Visibility="{Binding IsSearxng, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Tools_Searxng}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Tools_SearxngHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                        <TextBox Text="{Binding SearxngUrl}" FontFamily="{DynamicResource MonoFontFamily}" VerticalAlignment="Center" />
+                    </c:AdaptiveRow>
+                    <c:AdaptiveRow Style="{StaticResource Row}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Web_Region}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Web_RegionHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                        <TextBox Text="{Binding Region}" FontFamily="{DynamicResource MonoFontFamily}" VerticalAlignment="Center" />
+                    </c:AdaptiveRow>
+                    <c:AdaptiveRow Style="{StaticResource Row}">
+                        <TextBlock Text="{l:Loc Web_SafeSearch}" Style="{StaticResource BodyText}" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding SafeSearchOptions}" SelectedItem="{Binding SafeSearch}" ItemTemplate="{StaticResource EnumItemTemplate}" />
+                    </c:AdaptiveRow>
+                    <c:AdaptiveRow Style="{StaticResource Row}">
+                        <TextBlock Text="{l:Loc Web_MaxResults}" Style="{StaticResource BodyText}" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding MaxResults}" FontFamily="{DynamicResource MonoFontFamily}" />
+                    </c:AdaptiveRow>
+                    <c:AdaptiveRow Style="{StaticResource Row}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Web_ReadPages}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Web_ReadPagesHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                        <ComboBox ItemsSource="{Binding ReadPagesOptions}" SelectedItem="{Binding ReadPages}" FontFamily="{DynamicResource MonoFontFamily}" VerticalAlignment="Center" />
+                    </c:AdaptiveRow>
+                    <c:AdaptiveRow Style="{StaticResource Row}" Visibility="{Binding ReadsPages, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="{l:Loc Web_ReadPageChars}" Style="{StaticResource BodyText}" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding ReadPageChars}" FontFamily="{DynamicResource MonoFontFamily}" />
+                    </c:AdaptiveRow>
+                    <c:AdaptiveRow Style="{StaticResource Row}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Web_Exclude}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Web_ExcludeHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                        <TextBox Text="{Binding ExcludeDomains}" FontFamily="{DynamicResource MonoFontFamily}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </c:AdaptiveRow>
+                    <CheckBox Content="{l:Loc Web_Snippets}" IsChecked="{Binding Snippets}" Margin="0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Запросы -->
+            <Border Style="{StaticResource SettingCard}" DataContext="{Binding Web}">
+                <StackPanel>
+                    <TextBlock Text="{l:Loc Web_Requests}" Style="{StaticResource SectionHeaderText}" Margin="0,0,0,8" />
+                    <c:AdaptiveRow Style="{StaticResource Row}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Web_UserAgent}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Web_UserAgentHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                        <ComboBox ItemsSource="{Binding UserAgentOptions}" SelectedItem="{Binding UserAgent}" ItemTemplate="{StaticResource EnumItemTemplate}" VerticalAlignment="Center" />
+                    </c:AdaptiveRow>
+                    <c:AdaptiveRow Style="{StaticResource Row}" Visibility="{Binding IsCustomUserAgent, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="{l:Loc Web_CustomUserAgent}" Style="{StaticResource BodyText}" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding CustomUserAgent}" FontFamily="{DynamicResource MonoFontFamily}" />
+                    </c:AdaptiveRow>
+                    <TextBlock Text="{Binding UserAgentPreview}" Style="{StaticResource StatText}" TextWrapping="Wrap" Margin="0,-4,0,12" />
+                    <c:AdaptiveRow Style="{StaticResource Row}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Web_AcceptLanguage}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Web_AcceptLanguageHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                        <TextBox Text="{Binding AcceptLanguage}" FontFamily="{DynamicResource MonoFontFamily}" VerticalAlignment="Center" />
+                    </c:AdaptiveRow>
+                    <c:AdaptiveRow Style="{StaticResource Row}">
+                        <TextBlock Text="{l:Loc Web_Timeout}" Style="{StaticResource BodyText}" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding TimeoutSeconds}" FontFamily="{DynamicResource MonoFontFamily}" />
+                    </c:AdaptiveRow>
+                    <c:AdaptiveRow Style="{StaticResource Row}">
+                        <TextBlock Text="{l:Loc Web_MaxDownload}" Style="{StaticResource BodyText}" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding MaxDownloadKb}" FontFamily="{DynamicResource MonoFontFamily}" />
+                    </c:AdaptiveRow>
+                    <CheckBox IsChecked="{Binding AllowLocalAddresses}" Margin="0">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Web_AllowLocal}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Web_AllowLocalHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Очистка страниц -->
+            <Border Style="{StaticResource SettingCard}" DataContext="{Binding Web}">
+                <StackPanel>
+                    <TextBlock Text="{l:Loc Web_Cleaning}" Style="{StaticResource SectionHeaderText}" Margin="0,0,0,2" />
+                    <TextBlock Text="{l:Loc Web_CleaningHint}" Style="{StaticResource CaptionText}" Margin="0,0,0,8" />
+                    <CheckBox Content="{l:Loc Web_MainOnly}" IsChecked="{Binding MainContentOnly}" Style="{StaticResource Check}" />
+                    <CheckBox Content="{l:Loc Web_StripNav}" IsChecked="{Binding StripNavigation}" Style="{StaticResource Check}" />
+                    <CheckBox Content="{l:Loc Web_StripJunk}" IsChecked="{Binding StripBoilerplate}" Style="{StaticResource Check}" />
+                    <CheckBox Content="{l:Loc Web_StripComments}" IsChecked="{Binding StripComments}" Style="{StaticResource Check}" />
+                    <CheckBox Content="{l:Loc Web_DropDuplicates}" IsChecked="{Binding DropDuplicateLines}" Style="{StaticResource Check}" />
+                    <CheckBox Content="{l:Loc Web_Markdown}" IsChecked="{Binding Markdown}" Style="{StaticResource Check}" />
+                    <CheckBox IsChecked="{Binding KeepLinks}" Style="{StaticResource Check}" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Web_KeepLinks}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Web_KeepLinksHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                    </CheckBox>
+                    <c:AdaptiveRow Style="{StaticResource Row}" Margin="0">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Web_MaxChars}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Web_MaxCharsHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                        <TextBox Text="{Binding MaxChars}" FontFamily="{DynamicResource MonoFontFamily}" VerticalAlignment="Center" />
+                    </c:AdaptiveRow>
                 </StackPanel>
             </Border>
 

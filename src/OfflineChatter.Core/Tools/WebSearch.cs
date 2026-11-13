@@ -190,6 +190,7 @@ public static class SerpParser
     {
         "captcha", "unusual traffic", "not a robot", "are you a robot", "я не робот", "вы не робот", "enable javascript",
         "anomaly-modal", "verify you are human", "automated queries", "automated requests",
+        "enablejs", "/httpservice/retry/", "anubis", "verifying your request", "checking your browser", "cf-challenge",
     };
 
     public static bool IsExcluded(string url, IReadOnlyCollection<string> domains)

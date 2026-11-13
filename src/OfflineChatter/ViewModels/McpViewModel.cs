@@ -73,8 +73,8 @@ public sealed partial class McpViewModel : PageViewModel
         };
         var t = services.Settings.Current.Tools;
         _fileSandbox = t.FileSandbox ?? string.Empty;
-        _searxngUrl = t.SearxngUrl ?? string.Empty;
         _maxSteps = t.MaxSteps;
+        Web = new WebToolsViewModel(services);
         _enabledByDefault = t.EnabledByDefault;
         _s.Tools.Changed += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(Refresh));
     }
@@ -85,8 +85,10 @@ public sealed partial class McpViewModel : PageViewModel
     public ObservableCollection<ToolItem> Builtins { get; } = new();
     public ObservableCollection<McpServerItem> Servers { get; } = new();
 
+    /// <summary>Настройки web_fetch, web_search и город для погоды.</summary>
+    public WebToolsViewModel Web { get; }
+
     [ObservableProperty] private string _fileSandbox;
-    [ObservableProperty] private string _searxngUrl;
     [ObservableProperty] private int _maxSteps;
     [ObservableProperty] private bool _enabledByDefault;
     [ObservableProperty] private string? _status;
@@ -139,7 +141,6 @@ public sealed partial class McpViewModel : PageViewModel
     }
 
     partial void OnFileSandboxChanged(string value) => SaveSettings();
-    partial void OnSearxngUrlChanged(string value) => SaveSettings();
     partial void OnMaxStepsChanged(int value) => SaveSettings();
     partial void OnEnabledByDefaultChanged(bool value) => SaveSettings();
 
@@ -147,7 +148,6 @@ public sealed partial class McpViewModel : PageViewModel
     {
         var t = _s.Settings.Current.Tools;
         t.FileSandbox = string.IsNullOrWhiteSpace(FileSandbox) ? null : FileSandbox.Trim();
-        t.SearxngUrl = string.IsNullOrWhiteSpace(SearxngUrl) ? null : SearxngUrl.Trim();
         t.MaxSteps = Math.Max(1, Math.Min(20, MaxSteps));
         t.EnabledByDefault = EnabledByDefault;
         _s.Settings.Save();

@@ -376,7 +376,72 @@ No — only remove from the list</value></data>
   <data name="Tools_MaxStepsLabel" xml:space="preserve"><value>Max tool steps per answer</value></data>
   <data name="Tools_Builtin" xml:space="preserve"><value>Built-in tools</value></data>
   <data name="Tools_Sandbox" xml:space="preserve"><value>Folder the read_file tool may read (empty — tool off)</value></data>
-  <data name="Tools_Searxng" xml:space="preserve"><value>SearXNG address for web_search (empty — tool off)</value></data>
+  <data name="Tools_Searxng" xml:space="preserve"><value>SearXNG address</value></data>
+  <data name="Tools_SearxngHint" xml:space="preserve"><value>Your own instance with the JSON format turned on, e.g. http://127.0.0.1:8888</value></data>
+  <data name="Weather_Title" xml:space="preserve"><value>Weather</value></data>
+  <data name="Weather_City" xml:space="preserve"><value>Default city</value></data>
+  <data name="Weather_CityHint" xml:space="preserve"><value>Weather tools use it when the question names no other place; empty — the city is not passed anywhere</value></data>
+  <data name="Web_Title" xml:space="preserve"><value>Web pages and search</value></data>
+  <data name="Web_Hint" xml:space="preserve"><value>Settings of web_fetch and web_search: the cleaner the page, the less context it takes and the less it confuses the model</value></data>
+  <data name="Web_Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Web_Engine" xml:space="preserve"><value>Search engine</value></data>
+  <data name="Web_EngineHint" xml:space="preserve"><value>Where web_search sends the query</value></data>
+  <data name="Web_EngineWarning" xml:space="preserve"><value>This engine often answers programs with a robot check or a page that needs JavaScript; if search fails, choose DuckDuckGo, Bing or Brave</value></data>
+  <data name="Web_CustomUrl" xml:space="preserve"><value>Search address</value></data>
+  <data name="Web_CustomUrlHint" xml:space="preserve"><value>{query} is replaced with the query; without it the query is added to the end, e.g. https://html.duckduckgo.com/html/?q=</value></data>
+  <data name="Web_Region" xml:space="preserve"><value>Region</value></data>
+  <data name="Web_RegionHint" xml:space="preserve"><value>Country and language of the results, e.g. ru-ru or us-en (empty — no region)</value></data>
+  <data name="Web_SafeSearch" xml:space="preserve"><value>Safe search</value></data>
+  <data name="Web_MaxResults" xml:space="preserve"><value>Results per search</value></data>
+  <data name="Web_ReadPages" xml:space="preserve"><value>Read the first pages right away</value></data>
+  <data name="Web_ReadPagesHint" xml:space="preserve"><value>The model gets the text of the top results without separate web_fetch calls, but the tool answer is longer and slower</value></data>
+  <data name="Web_ReadPageChars" xml:space="preserve"><value>Characters from each such page</value></data>
+  <data name="Web_Exclude" xml:space="preserve"><value>Exclude sites</value></data>
+  <data name="Web_ExcludeHint" xml:space="preserve"><value>Separated by commas; a domain also covers its subdomains</value></data>
+  <data name="Web_Snippets" xml:space="preserve"><value>Add text snippets from the results page to the links</value></data>
+  <data name="Web_Requests" xml:space="preserve"><value>Requests</value></data>
+  <data name="Web_UserAgent" xml:space="preserve"><value>Present to sites as (User-Agent)</value></data>
+  <data name="Web_UserAgentHint" xml:space="preserve"><value>Many sites give unknown programs a stub or an error; mobile versions of pages are usually lighter</value></data>
+  <data name="Web_CustomUserAgent" xml:space="preserve"><value>User-Agent string</value></data>
+  <data name="Web_AcceptLanguage" xml:space="preserve"><value>Preferred page language (Accept-Language)</value></data>
+  <data name="Web_AcceptLanguageHint" xml:space="preserve"><value>E.g. ru-RU,ru;q=0.9,en;q=0.5 (empty — not sent)</value></data>
+  <data name="Web_Timeout" xml:space="preserve"><value>Wait for a page, seconds</value></data>
+  <data name="Web_MaxDownload" xml:space="preserve"><value>Download at most, KB</value></data>
+  <data name="Web_AllowLocal" xml:space="preserve"><value>Allow addresses of this computer and the local network</value></data>
+  <data name="Web_AllowLocalHint" xml:space="preserve"><value>Off by default: otherwise the model can open pages of the router, NAS and local services</value></data>
+  <data name="Web_Cleaning" xml:space="preserve"><value>Page cleaning</value></data>
+  <data name="Web_CleaningHint" xml:space="preserve"><value>Each rule can be turned off if it removes something useful on a site</value></data>
+  <data name="Web_MainOnly" xml:space="preserve"><value>Keep only the main block of the page (the article)</value></data>
+  <data name="Web_StripNav" xml:space="preserve"><value>Remove menus, header, footer, side columns and breadcrumbs</value></data>
+  <data name="Web_StripJunk" xml:space="preserve"><value>Remove ads, cookie banners, share and subscribe blocks, hidden text and form fields</value></data>
+  <data name="Web_StripComments" xml:space="preserve"><value>Remove comments</value></data>
+  <data name="Web_DropDuplicates" xml:space="preserve"><value>Remove repeated lines</value></data>
+  <data name="Web_Markdown" xml:space="preserve"><value>Mark up headings, lists, quotes and code</value></data>
+  <data name="Web_KeepLinks" xml:space="preserve"><value>Keep links as [text](address)</value></data>
+  <data name="Web_KeepLinksHint" xml:space="preserve"><value>The model can follow them, but the text gets longer</value></data>
+  <data name="Web_MaxChars" xml:space="preserve"><value>Page text per call, characters</value></data>
+  <data name="Web_MaxCharsHint" xml:space="preserve"><value>A longer page comes in parts: the model asks for the next one itself</value></data>
+  <data name="Enum_SearchEngine_DuckDuckGo" xml:space="preserve"><value>DuckDuckGo</value></data>
+  <data name="Enum_SearchEngine_Bing" xml:space="preserve"><value>Bing</value></data>
+  <data name="Enum_SearchEngine_Google" xml:space="preserve"><value>Google</value></data>
+  <data name="Enum_SearchEngine_Yandex" xml:space="preserve"><value>Yandex</value></data>
+  <data name="Enum_SearchEngine_Brave" xml:space="preserve"><value>Brave Search</value></data>
+  <data name="Enum_SearchEngine_Mojeek" xml:space="preserve"><value>Mojeek</value></data>
+  <data name="Enum_SearchEngine_Startpage" xml:space="preserve"><value>Startpage</value></data>
+  <data name="Enum_SearchEngine_Yahoo" xml:space="preserve"><value>Yahoo</value></data>
+  <data name="Enum_SearchEngine_Searxng" xml:space="preserve"><value>SearXNG (own server)</value></data>
+  <data name="Enum_SearchEngine_Custom" xml:space="preserve"><value>Custom address</value></data>
+  <data name="Enum_SafeSearchLevel_Off" xml:space="preserve"><value>Off</value></data>
+  <data name="Enum_SafeSearchLevel_Moderate" xml:space="preserve"><value>Moderate</value></data>
+  <data name="Enum_SafeSearchLevel_Strict" xml:space="preserve"><value>Strict</value></data>
+  <data name="Enum_UserAgentPreset_App" xml:space="preserve"><value>Offline Chatter (own name)</value></data>
+  <data name="Enum_UserAgentPreset_ChromeWindows" xml:space="preserve"><value>Chrome, Windows</value></data>
+  <data name="Enum_UserAgentPreset_EdgeWindows" xml:space="preserve"><value>Edge, Windows</value></data>
+  <data name="Enum_UserAgentPreset_FirefoxWindows" xml:space="preserve"><value>Firefox, Windows</value></data>
+  <data name="Enum_UserAgentPreset_SafariMac" xml:space="preserve"><value>Safari, macOS</value></data>
+  <data name="Enum_UserAgentPreset_ChromeAndroid" xml:space="preserve"><value>Chrome, Android (mobile)</value></data>
+  <data name="Enum_UserAgentPreset_SafariIphone" xml:space="preserve"><value>Safari, iPhone (mobile)</value></data>
+  <data name="Enum_UserAgentPreset_Custom" xml:space="preserve"><value>Custom string</value></data>
   <data name="Tools_ChatToggle" xml:space="preserve"><value>Tools (built-in and MCP)</value></data>
   <data name="Tools_ConsentTitle" xml:space="preserve"><value>Tool call</value></data>
   <data name="Tools_ConsentHeader" xml:space="preserve"><value>The model wants to call «{0}»</value></data>

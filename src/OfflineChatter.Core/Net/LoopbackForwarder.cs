@@ -74,10 +74,17 @@ public sealed class LoopbackForwarder : IDisposable
                 await upstream.ConnectAsync(IPAddress.Loopback, _port).ConfigureAwait(false);
                 var a = client.GetStream();
                 var b = upstream.GetStream();
-                // Ответы llama-server потоковые (SSE): копируем в обе стороны, пока одна из них не закроется
-                var t1 = CopyAsync(a, b);
-                var t2 = CopyAsync(b, a);
-                await Task.WhenAny(t1, t2).ConfigureAwait(false);
+                // Ответы llama-server потоковые (SSE): копируем в обе стороны. Соединение живёт, пока идёт ответ:
+                // клиент мог закрыть только свою половину после запроса (shutdown write) — тогда сообщаем об этом
+                // серверу и дочитываем ответ. Если клиент отключился совсем, запись ему падает и ответ тоже обрывается
+                var toServer = CopyAsync(a, b);
+                var toClient = CopyAsync(b, a);
+                if (await Task.WhenAny(toServer, toClient).ConfigureAwait(false) == toServer)
+                {
+                    try { upstream.Client.Shutdown(SocketShutdown.Send); }
+                    catch (Exception ex) when (ex is SocketException or ObjectDisposedException) { }
+                    await toClient.ConfigureAwait(false);
+                }
             }
             catch (Exception ex) when (ex is SocketException or System.IO.IOException or ObjectDisposedException)
             {

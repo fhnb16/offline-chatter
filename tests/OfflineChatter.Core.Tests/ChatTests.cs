@@ -111,7 +111,7 @@ public class ChatClientTests
         private readonly TcpListener _l = new(IPAddress.Loopback, 0);
         public string? LastBody;
 
-        public FakeServer(string sse, int status = 200)
+        public FakeServer(string sse, int status = 200, string contentType = "text/event-stream")
         {
             _l.Start();
             _ = Task.Run(async () =>
@@ -128,7 +128,7 @@ public class ChatClientTests
                 while (read < length) read += reader.Read(buf, read, length - read);
                 LastBody = new string(buf, 0, read);
                 var payload = Encoding.UTF8.GetBytes(sse);
-                var head = Encoding.ASCII.GetBytes($"HTTP/1.1 {status} X\r\nContent-Type: text/event-stream\r\nContent-Length: {payload.Length}\r\nConnection: close\r\n\r\n");
+                var head = Encoding.ASCII.GetBytes($"HTTP/1.1 {status} X\r\nContent-Type: {contentType}\r\nContent-Length: {payload.Length}\r\nConnection: close\r\n\r\n");
                 s.Write(head, 0, head.Length);
                 s.Write(payload, 0, payload.Length);
                 s.Flush();
@@ -144,6 +144,80 @@ public class ChatClientTests
         var o = new JObject { ["choices"] = new JArray(new JObject { ["delta"] = JObject.FromObject(delta), ["finish_reason"] = finish }) };
         if (extra != null) foreach (var p in JObject.FromObject(extra).Properties()) o[p.Name] = p.Value;
         return "data: " + o.ToString(Newtonsoft.Json.Formatting.None) + "\n\n";
+    }
+
+    private static async Task<(ChatResult result, List<ChatDelta> deltas)> Stream(string body, string contentType = "text/event-stream")
+    {
+        using var server = new FakeServer(body, contentType: contentType);
+        using var http = new HttpClient();
+        var client = ChatClient.ForLocal(http, server.Url, null, "p");
+        var deltas = new List<ChatDelta>();
+        var req = new ChatRequest { Model = "m" };
+        req.Messages.Add(new ChatMessage { Role = ChatRole.User, Content = "hi" });
+        var result = await client.StreamAsync(req, deltas.Add, CancellationToken.None);
+        return (result, deltas);
+    }
+
+    [Fact]
+    public async Task Stream_Request_Answered_With_Plain_Json_Is_Not_Empty()
+    {
+        // Сервер или прокси не умеет потоков и отвечает обычным JSON
+        var json = @"{
+  ""choices"": [{ ""index"": 0, ""finish_reason"": ""tool_calls"",
+    ""message"": { ""role"": ""assistant"", ""content"": ""Checking."", ""reasoning_content"": ""User wants two things."",
+      ""tool_calls"": [
+        { ""id"": ""a"", ""type"": ""function"", ""function"": { ""name"": ""calc"", ""arguments"": ""{\""x\"":1}"" } },
+        { ""id"": ""b"", ""type"": ""function"", ""function"": { ""name"": ""clock"", ""arguments"": { ""tz"": ""UTC"" } } } ] } }],
+  ""usage"": { ""prompt_tokens"": 9, ""completion_tokens"": 4 }
+}";
+        var (r, deltas) = await Stream(json, "application/json; charset=utf-8");
+
+        Assert.Equal("Checking.", r.Content);
+        Assert.Equal("User wants two things.", r.Reasoning);
+        Assert.Single(deltas);
+        // Два вызова без index не склеиваются в один; аргументы-объект становятся строкой JSON
+        Assert.Equal(new[] { ("calc", "{\"x\":1}"), ("clock", "{\"tz\":\"UTC\"}") }, r.ToolCalls.Select(t => (t.Name, t.Arguments)));
+        Assert.Equal("tool_calls", r.Stats.FinishReason);
+        Assert.Equal((9, 4, false), (r.Stats.PromptTokens, r.Stats.CompletionTokens, r.Stats.Estimated));
+    }
+
+    [Fact]
+    public async Task Stream_With_Wrong_Header_Or_Without_Data_Prefix()
+    {
+        // SSE с заголовком application/json
+        var sse = Chunk(new { content = "Hel" }) + Chunk(new { content = "lo" }, "stop") + "data: [DONE]\n\n";
+        Assert.Equal("Hello", (await Stream(sse, "application/json")).result.Content);
+
+        // JSON по строке (NDJSON) без «data:»
+        var ndjson = "{\"choices\":[{\"delta\":{\"content\":\"One \"}}]}\n{\"choices\":[{\"delta\":{\"content\":\"two\"},\"finish_reason\":\"stop\"}]}\n";
+        var (r, deltas) = await Stream(ndjson, "application/x-ndjson");
+        Assert.Equal("One two", r.Content);
+        Assert.Equal(2, deltas.Count);
+        Assert.Equal("stop", r.Stats.FinishReason);
+    }
+
+    [Fact]
+    public async Task Stream_Text_As_Parts_Message_Or_Legacy_Text()
+    {
+        // Части текста (Mistral, прокси к мультимодальным API), размышления частью thinking
+        var parts = "data: {\"choices\":[{\"delta\":{\"content\":[{\"type\":\"thinking\",\"thinking\":[{\"type\":\"text\",\"text\":\"Hmm.\"}]}]}}]}\n\n" +
+                    "data: {\"choices\":[{\"delta\":{\"content\":[{\"type\":\"text\",\"text\":\"Hi \"},{\"type\":\"text\",\"text\":\"there\"}]}}]}\n\n" +
+                    "data: [DONE]\n\n";
+        var (r, _) = await Stream(parts);
+        Assert.Equal("Hi there", r.Content);
+        Assert.Equal("Hmm.", r.Reasoning);
+
+        // Весь ответ одним чанком в message вместо delta; старый формат с choices[].text
+        var message = "data: {\"choices\":[{\"message\":{\"content\":\"Whole answer\"},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n";
+        Assert.Equal("Whole answer", (await Stream(message)).result.Content);
+        var legacy = "data: {\"choices\":[{\"text\":\"Old \"}]}\n\ndata: {\"choices\":[{\"text\":\"style\",\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n";
+        Assert.Equal("Old style", (await Stream(legacy)).result.Content);
+
+        // Пустые и null-поля не дают лишних порций
+        var empty = "data: {\"choices\":[{\"delta\":{\"role\":\"assistant\",\"content\":null}}]}\n\ndata: {\"choices\":[{\"delta\":{\"content\":\"x\"}}]}\n\ndata: [DONE]\n\n";
+        var (e, ed) = await Stream(empty);
+        Assert.Equal("x", e.Content);
+        Assert.Single(ed);
     }
 
     [Fact]

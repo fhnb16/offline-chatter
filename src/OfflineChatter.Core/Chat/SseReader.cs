@@ -34,6 +34,8 @@ public sealed class SseReader
                 continue;
             }
             if (line[0] == ':') continue;
+            // JSON по строке без «data:» (NDJSON у части прокси и серверов) — каждая строка отдельное событие
+            if (line[0] == '{' && !hasData) return (evt, line);
 
             var colon = line.IndexOf(':');
             var field = colon < 0 ? line : line.Substring(0, colon);

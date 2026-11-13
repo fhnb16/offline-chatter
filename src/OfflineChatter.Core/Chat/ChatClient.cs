@@ -227,7 +227,6 @@ public sealed class ChatClient
 
     private async Task StreamCoreAsync(string body, Action<ChatDelta> onDelta, ChatResult result, StreamTiming timing, CancellationToken ct)
     {
-        var sw = timing.Clock;
         var toolBuilders = new SortedDictionary<int, ToolCall>();
 
         using var response = await _send(() =>
@@ -249,62 +248,28 @@ public sealed class ChatClient
 
         using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
         using var reg = ct.Register(() => { try { stream.Dispose(); } catch (IOException) { } });
-        var sse = new SseReader(stream);
         try
         {
-            while (true)
+            // Сервер или прокси проигнорировал stream=true и прислал обычный JSON: без этого разбора ответ был бы пустым
+            var media = response.Content.Headers.ContentType?.MediaType ?? string.Empty;
+            if (media.IndexOf("json", StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                var ev = await sse.ReadAsync(ct).ConfigureAwait(false);
-                if (ev == null) break;
-                var data = ev.Value.Data;
-                if (data == "[DONE]") break;
-                JObject chunk;
-                try { chunk = JObject.Parse(data); }
-                catch (JsonException) { continue; }
-
-                if (chunk["error"] is { Type: not JTokenType.Null } error)
-                    throw new HttpRequestException("Provider error: " + ((error as JObject)?["message"] ?? error));
-
-                // Поля могут прийти как null или не того типа (разные «совместимые» серверы) — читаем без исключений
-                var choice = (chunk["choices"] as JArray)?.FirstOrDefault() as JObject;
-                if (choice?["delta"] is JObject delta)
+                using var reader = new StreamReader(stream, new UTF8Encoding(false));
+                var whole = await reader.ReadToEndAsync().ConfigureAwait(false);
+                if (TryParseObject(whole) is { } single)
                 {
-                    var d = new ChatDelta { Content = Str(delta["content"]) };
-                    foreach (var f in _quirks.ReasoningFields)
-                        if (Str(delta[f]) is { } rv) d.Reasoning = (d.Reasoning ?? string.Empty) + rv;
-
-                    if (delta["tool_calls"] is JArray tcs)
-                    {
-                        foreach (var tc in tcs.OfType<JObject>())
-                        {
-                            var idx = Int(tc["index"]) ?? 0;
-                            if (!toolBuilders.TryGetValue(idx, out var b)) toolBuilders[idx] = b = new ToolCall { Arguments = string.Empty };
-                            var fn = tc["function"] as JObject;
-                            if (Str(tc["id"]) is { Length: > 0 } id) b.Id = id;
-                            if (Str(fn?["name"]) is { Length: > 0 } name) b.Name = name;
-                            b.Arguments += Str(fn?["arguments"]) ?? string.Empty;
-                        }
-                    }
-
-                    if (!string.IsNullOrEmpty(d.Reasoning))
-                    {
-                        timing.FirstToken ??= sw.Elapsed.TotalMilliseconds;
-                        result.Reasoning += d.Reasoning;
-                    }
-                    if (!string.IsNullOrEmpty(d.Content))
-                    {
-                        timing.FirstToken ??= sw.Elapsed.TotalMilliseconds;
-                        if (result.Reasoning.Length > 0) timing.ReasoningEnd ??= sw.Elapsed.TotalMilliseconds;
-                        result.Content += d.Content;
-                    }
-                    if (toolBuilders.Count > 0) timing.FirstToken ??= sw.Elapsed.TotalMilliseconds;
-                    if (d.Content != null || d.Reasoning != null) onDelta(d);
+                    ApplyChunk(single, onDelta, result, timing, toolBuilders);
                 }
-
-                if (Str(choice?["finish_reason"]) is { } fr) result.Stats.FinishReason = fr;
-                if (Str(chunk["model"]) is { Length: > 0 } model) result.Stats.Model = model;
-                ApplyUsage(chunk["usage"], result.Stats);
-                ApplyTimings(chunk["timings"], result.Stats);
+                else
+                {
+                    // Поток с неверным заголовком (SSE или JSON по строке) — читаем как поток
+                    using var copy = new MemoryStream(Encoding.UTF8.GetBytes(whole));
+                    await ReadEventsAsync(new SseReader(copy), onDelta, result, timing, toolBuilders, ct).ConfigureAwait(false);
+                }
+            }
+            else
+            {
+                await ReadEventsAsync(new SseReader(stream), onDelta, result, timing, toolBuilders, ct).ConfigureAwait(false);
             }
         }
         catch (Exception ex) when (ct.IsCancellationRequested && ex is IOException or ObjectDisposedException or HttpRequestException)
@@ -319,6 +284,122 @@ public sealed class ChatClient
             if (string.IsNullOrWhiteSpace(b.Arguments)) b.Arguments = "{}";
             result.ToolCalls.Add(b);
         }
+    }
+
+    private async Task ReadEventsAsync(SseReader sse, Action<ChatDelta> onDelta, ChatResult result, StreamTiming timing,
+        SortedDictionary<int, ToolCall> toolBuilders, CancellationToken ct)
+    {
+        while (true)
+        {
+            var ev = await sse.ReadAsync(ct).ConfigureAwait(false);
+            if (ev == null) break;
+            var data = ev.Value.Data.Trim();
+            if (data == "[DONE]") break;
+            if (TryParseObject(data) is { } chunk) ApplyChunk(chunk, onDelta, result, timing, toolBuilders);
+        }
+    }
+
+    private static JObject? TryParseObject(string text)
+    {
+        var t = text.Trim();
+        if (t.Length == 0 || t[0] != '{') return null;
+        try { return JObject.Parse(t); }
+        catch (JsonException) { return null; }
+    }
+
+    /// <summary>
+    /// Один чанк потока (или весь ответ без потока). Поля могут прийти как null или не того типа — разные
+    /// «совместимые» серверы — поэтому всё читается без исключений: текст из delta, а если её нет — из message или text.
+    /// </summary>
+    private void ApplyChunk(JObject chunk, Action<ChatDelta> onDelta, ChatResult result, StreamTiming timing, SortedDictionary<int, ToolCall> toolBuilders)
+    {
+        if (chunk["error"] is { Type: not JTokenType.Null } error)
+            throw new HttpRequestException("Provider error: " + ((error as JObject)?["message"] ?? error));
+
+        var sw = timing.Clock;
+        var choice = (chunk["choices"] as JArray)?.FirstOrDefault() as JObject;
+        var delta = choice?["delta"] as JObject ?? choice?["message"] as JObject;
+        if (delta == null && Str(choice?["text"]) is { } legacyText) delta = new JObject { ["content"] = legacyText };
+        if (delta != null)
+        {
+            var (content, thinking) = TextParts(delta["content"]);
+            var d = new ChatDelta { Content = content, Reasoning = thinking };
+            foreach (var f in _quirks.ReasoningFields)
+                if (TextParts(delta[f]) is var (rv, rt) && (rv ?? rt) is { } r) d.Reasoning = (d.Reasoning ?? string.Empty) + r;
+
+            if (delta["tool_calls"] is JArray tcs)
+            {
+                var position = 0;
+                foreach (var tc in tcs.OfType<JObject>())
+                {
+                    // Без index (весь ответ без потока, часть серверов) — по порядку в массиве, а не все в один вызов
+                    var idx = Int(tc["index"]) ?? position;
+                    position++;
+                    if (!toolBuilders.TryGetValue(idx, out var b)) toolBuilders[idx] = b = new ToolCall { Arguments = string.Empty };
+                    var fn = tc["function"] as JObject;
+                    if (Str(tc["id"]) is { Length: > 0 } id) b.Id = id;
+                    if (Str(fn?["name"]) is { Length: > 0 } name) b.Name = name;
+                    // Аргументы обычно строка JSON, но бывают и объектом
+                    b.Arguments += fn?["arguments"] switch
+                    {
+                        JValue { Type: JTokenType.String } s => (string?)s,
+                        JObject o => o.ToString(Formatting.None),
+                        _ => null,
+                    } ?? string.Empty;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(d.Reasoning))
+            {
+                timing.FirstToken ??= sw.Elapsed.TotalMilliseconds;
+                result.Reasoning += d.Reasoning;
+            }
+            if (!string.IsNullOrEmpty(d.Content))
+            {
+                timing.FirstToken ??= sw.Elapsed.TotalMilliseconds;
+                if (result.Reasoning.Length > 0) timing.ReasoningEnd ??= sw.Elapsed.TotalMilliseconds;
+                result.Content += d.Content;
+            }
+            if (toolBuilders.Count > 0) timing.FirstToken ??= sw.Elapsed.TotalMilliseconds;
+            if (d.Content != null || d.Reasoning != null) onDelta(d);
+        }
+
+        if (Str(choice?["finish_reason"]) is { } fr) result.Stats.FinishReason = fr;
+        if (Str(chunk["model"]) is { Length: > 0 } model) result.Stats.Model = model;
+        ApplyUsage(chunk["usage"], result.Stats);
+        ApplyTimings(chunk["timings"], result.Stats);
+    }
+
+    /// <summary>
+    /// Текст поля: строка или массив частей ([{type:"text",text:"…"}], Mistral и прокси к мультимодальным API).
+    /// Части с размышлениями (type thinking/reasoning) возвращаются отдельно.
+    /// </summary>
+    private static (string? text, string? thinking) TextParts(JToken? t)
+    {
+        if (t is JValue { Type: JTokenType.String } v) return ((string?)v, null);
+        if (t is not JArray parts) return (null, null);
+        StringBuilder? text = null, thinking = null;
+        foreach (var p in parts)
+        {
+            if (p is JValue { Type: JTokenType.String } plain)
+            {
+                (text ??= new StringBuilder()).Append((string?)plain);
+                continue;
+            }
+            if (p is not JObject o) continue;
+            var type = Str(o["type"]) ?? "text";
+            if (type is "thinking" or "reasoning")
+            {
+                var inner = o["thinking"] ?? o["reasoning"] ?? o["text"];
+                var (it, ith) = TextParts(inner);
+                if ((it ?? ith) is { } r) (thinking ??= new StringBuilder()).Append(r);
+            }
+            else if (Str(o["text"]) is { } s)
+            {
+                (text ??= new StringBuilder()).Append(s);
+            }
+        }
+        return (text?.ToString(), thinking?.ToString());
     }
 
     private static string? Str(JToken? t) => t is JValue { Type: JTokenType.String } v ? (string?)v : null;

@@ -392,7 +392,72 @@ Tools_EnabledByDefault	Allow tools in new chats	Разрешать инстру�
 Tools_MaxStepsLabel	Max tool steps per answer	Максимум шагов с инструментами на один ответ
 Tools_Builtin	Built-in tools	Встроенные инструменты
 Tools_Sandbox	Folder the read_file tool may read (empty — tool off)	Папка, которую может читать инструмент read_file (пусто — выключен)
-Tools_Searxng	SearXNG address for web_search (empty — tool off)	Адрес SearXNG для web_search (пусто — выключен)
+Tools_Searxng	SearXNG address	Адрес SearXNG
+Tools_SearxngHint	Your own instance with the JSON format turned on, e.g. http://127.0.0.1:8888	Свой экземпляр с включённым форматом JSON, например http://127.0.0.1:8888
+Weather_Title	Weather	Погода
+Weather_City	Default city	Город по умолчанию
+Weather_CityHint	Weather tools use it when the question names no other place; empty — the city is not passed anywhere	Подставляется в инструменты погоды, если в вопросе не назван другой город; пусто — город никуда не передаётся
+Web_Title	Web pages and search	Веб-страницы и поиск
+Web_Hint	Settings of web_fetch and web_search: the cleaner the page, the less context it takes and the less it confuses the model	Настройки web_fetch и web_search: чем чище страница, тем меньше она занимает контекста и тем реже сбивает модель
+Web_Search	Search	Поиск
+Web_Engine	Search engine	Поисковая система
+Web_EngineHint	Where web_search sends the query	Куда web_search отправляет запрос
+Web_EngineWarning	This engine often answers programs with a robot check or a page that needs JavaScript; if search fails, choose DuckDuckGo, Bing or Brave	Эта система часто отвечает программам проверкой «я не робот» или страницей, которой нужен JavaScript; если поиск не работает, выберите DuckDuckGo, Bing или Brave
+Web_CustomUrl	Search address	Адрес поиска
+Web_CustomUrlHint	{query} is replaced with the query; without it the query is added to the end, e.g. https://html.duckduckgo.com/html/?q=	Вместо {query} подставляется запрос; без метки запрос дописывается в конец, например https://html.duckduckgo.com/html/?q=
+Web_Region	Region	Регион
+Web_RegionHint	Country and language of the results, e.g. ru-ru or us-en (empty — no region)	Страна и язык выдачи, например ru-ru или us-en (пусто — без региона)
+Web_SafeSearch	Safe search	Безопасный поиск
+Web_MaxResults	Results per search	Результатов за один поиск
+Web_ReadPages	Read the first pages right away	Сразу читать первые страницы
+Web_ReadPagesHint	The model gets the text of the top results without separate web_fetch calls, but the tool answer is longer and slower	Модель получает текст первых результатов без отдельных вызовов web_fetch, но ответ инструмента длиннее и дольше
+Web_ReadPageChars	Characters from each such page	Символов с каждой такой страницы
+Web_Exclude	Exclude sites	Исключить сайты
+Web_ExcludeHint	Separated by commas; a domain also covers its subdomains	Через запятую; домен закрывает и свои поддомены
+Web_Snippets	Add text snippets from the results page to the links	Добавлять к ссылкам фрагменты текста из выдачи
+Web_Requests	Requests	Запросы
+Web_UserAgent	Present to sites as (User-Agent)	Кем представляться сайтам (User-Agent)
+Web_UserAgentHint	Many sites give unknown programs a stub or an error; mobile versions of pages are usually lighter	Многие сайты отдают незнакомым программам заглушку или ошибку; мобильные версии страниц обычно легче
+Web_CustomUserAgent	User-Agent string	Строка User-Agent
+Web_AcceptLanguage	Preferred page language (Accept-Language)	Предпочитаемый язык страниц (Accept-Language)
+Web_AcceptLanguageHint	E.g. ru-RU,ru;q=0.9,en;q=0.5 (empty — not sent)	Например ru-RU,ru;q=0.9,en;q=0.5 (пусто — не отправляется)
+Web_Timeout	Wait for a page, seconds	Ждать страницу, секунд
+Web_MaxDownload	Download at most, KB	Скачивать не больше, КБ
+Web_AllowLocal	Allow addresses of this computer and the local network	Разрешить адреса этого компьютера и локальной сети
+Web_AllowLocalHint	Off by default: otherwise the model can open pages of the router, NAS and local services	По умолчанию выключено: иначе модель сможет открывать страницы роутера, NAS и локальных служб
+Web_Cleaning	Page cleaning	Очистка страниц
+Web_CleaningHint	Each rule can be turned off if it removes something useful on a site	Каждое правило можно выключить, если на каком-то сайте оно убирает нужное
+Web_MainOnly	Keep only the main block of the page (the article)	Оставлять только основной блок страницы (статью)
+Web_StripNav	Remove menus, header, footer, side columns and breadcrumbs	Убирать меню, шапку, подвал, боковые колонки и «хлебные крошки»
+Web_StripJunk	Remove ads, cookie banners, share and subscribe blocks, hidden text and form fields	Убирать рекламу, баннеры cookie, блоки «поделиться» и «подписаться», скрытый текст и поля форм
+Web_StripComments	Remove comments	Убирать комментарии
+Web_DropDuplicates	Remove repeated lines	Убирать повторяющиеся строки
+Web_Markdown	Mark up headings, lists, quotes and code	Размечать заголовки, списки, цитаты и код
+Web_KeepLinks	Keep links as [text](address)	Оставлять ссылки в виде [текст](адрес)
+Web_KeepLinksHint	The model can follow them, but the text gets longer	Модель сможет переходить по ним, но текст станет длиннее
+Web_MaxChars	Page text per call, characters	Текста страницы за один вызов, символов
+Web_MaxCharsHint	A longer page comes in parts: the model asks for the next one itself	Длинная страница приходит частями — следующую модель запрашивает сама
+Enum_SearchEngine_DuckDuckGo	DuckDuckGo	DuckDuckGo
+Enum_SearchEngine_Bing	Bing	Bing
+Enum_SearchEngine_Google	Google	Google
+Enum_SearchEngine_Yandex	Yandex	Яндекс
+Enum_SearchEngine_Brave	Brave Search	Brave Search
+Enum_SearchEngine_Mojeek	Mojeek	Mojeek
+Enum_SearchEngine_Startpage	Startpage	Startpage
+Enum_SearchEngine_Yahoo	Yahoo	Yahoo
+Enum_SearchEngine_Searxng	SearXNG (own server)	SearXNG (свой сервер)
+Enum_SearchEngine_Custom	Custom address	Свой адрес
+Enum_SafeSearchLevel_Off	Off	Выключен
+Enum_SafeSearchLevel_Moderate	Moderate	Умеренный
+Enum_SafeSearchLevel_Strict	Strict	Строгий
+Enum_UserAgentPreset_App	Offline Chatter (own name)	Offline Chatter (своё имя)
+Enum_UserAgentPreset_ChromeWindows	Chrome, Windows	Chrome, Windows
+Enum_UserAgentPreset_EdgeWindows	Edge, Windows	Edge, Windows
+Enum_UserAgentPreset_FirefoxWindows	Firefox, Windows	Firefox, Windows
+Enum_UserAgentPreset_SafariMac	Safari, macOS	Safari, macOS
+Enum_UserAgentPreset_ChromeAndroid	Chrome, Android (mobile)	Chrome, Android (мобильный)
+Enum_UserAgentPreset_SafariIphone	Safari, iPhone (mobile)	Safari, iPhone (мобильный)
+Enum_UserAgentPreset_Custom	Custom string	Своя строка
 Tools_ChatToggle	Tools (built-in and MCP)	Инструменты (встроенные и MCP)
 Tools_ConsentTitle	Tool call	Вызов инструмента
 Tools_ConsentHeader	The model wants to call «{0}»	Модель хочет вызвать «{0}»

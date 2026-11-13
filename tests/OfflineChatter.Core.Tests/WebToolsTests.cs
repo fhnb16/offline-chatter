@@ -261,6 +261,9 @@ public class SearchParsingTests
     {
         Assert.True(SerpParser.LooksBlocked("<html><body><form id='captcha-form'>Our systems have detected unusual traffic</form></body></html>"));
         Assert.False(SerpParser.LooksBlocked(DuckDuckGo));
+        // Google без JavaScript и проверка Anubis (Startpage) — тоже не выдача
+        Assert.True(SerpParser.LooksBlocked("<html><body><a href=\"/httpservice/retry/enablejs?sei=abc\">here</a></body></html>"));
+        Assert.True(SerpParser.LooksBlocked("<body><h1>Verifying your request...</h1><p>Anubis could not load its JavaScript.</p></body>"));
 
         var domains = WebToolsSettings.ParseDomains("Pinterest.com, https://www.quora.com/topic\nvk.com");
         Assert.Equal(new[] { "pinterest.com", "quora.com", "vk.com" }, domains);

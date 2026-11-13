@@ -376,7 +376,72 @@
   <data name="Tools_MaxStepsLabel" xml:space="preserve"><value>Максимум шагов с инструментами на один ответ</value></data>
   <data name="Tools_Builtin" xml:space="preserve"><value>Встроенные инструменты</value></data>
   <data name="Tools_Sandbox" xml:space="preserve"><value>Папка, которую может читать инструмент read_file (пусто — выключен)</value></data>
-  <data name="Tools_Searxng" xml:space="preserve"><value>Адрес SearXNG для web_search (пусто — выключен)</value></data>
+  <data name="Tools_Searxng" xml:space="preserve"><value>Адрес SearXNG</value></data>
+  <data name="Tools_SearxngHint" xml:space="preserve"><value>Свой экземпляр с включённым форматом JSON, например http://127.0.0.1:8888</value></data>
+  <data name="Weather_Title" xml:space="preserve"><value>Погода</value></data>
+  <data name="Weather_City" xml:space="preserve"><value>Город по умолчанию</value></data>
+  <data name="Weather_CityHint" xml:space="preserve"><value>Подставляется в инструменты погоды, если в вопросе не назван другой город; пусто — город никуда не передаётся</value></data>
+  <data name="Web_Title" xml:space="preserve"><value>Веб-страницы и поиск</value></data>
+  <data name="Web_Hint" xml:space="preserve"><value>Настройки web_fetch и web_search: чем чище страница, тем меньше она занимает контекста и тем реже сбивает модель</value></data>
+  <data name="Web_Search" xml:space="preserve"><value>Поиск</value></data>
+  <data name="Web_Engine" xml:space="preserve"><value>Поисковая система</value></data>
+  <data name="Web_EngineHint" xml:space="preserve"><value>Куда web_search отправляет запрос</value></data>
+  <data name="Web_EngineWarning" xml:space="preserve"><value>Эта система часто отвечает программам проверкой «я не робот» или страницей, которой нужен JavaScript; если поиск не работает, выберите DuckDuckGo, Bing или Brave</value></data>
+  <data name="Web_CustomUrl" xml:space="preserve"><value>Адрес поиска</value></data>
+  <data name="Web_CustomUrlHint" xml:space="preserve"><value>Вместо {query} подставляется запрос; без метки запрос дописывается в конец, например https://html.duckduckgo.com/html/?q=</value></data>
+  <data name="Web_Region" xml:space="preserve"><value>Регион</value></data>
+  <data name="Web_RegionHint" xml:space="preserve"><value>Страна и язык выдачи, например ru-ru или us-en (пусто — без региона)</value></data>
+  <data name="Web_SafeSearch" xml:space="preserve"><value>Безопасный поиск</value></data>
+  <data name="Web_MaxResults" xml:space="preserve"><value>Результатов за один поиск</value></data>
+  <data name="Web_ReadPages" xml:space="preserve"><value>Сразу читать первые страницы</value></data>
+  <data name="Web_ReadPagesHint" xml:space="preserve"><value>Модель получает текст первых результатов без отдельных вызовов web_fetch, но ответ инструмента длиннее и дольше</value></data>
+  <data name="Web_ReadPageChars" xml:space="preserve"><value>Символов с каждой такой страницы</value></data>
+  <data name="Web_Exclude" xml:space="preserve"><value>Исключить сайты</value></data>
+  <data name="Web_ExcludeHint" xml:space="preserve"><value>Через запятую; домен закрывает и свои поддомены</value></data>
+  <data name="Web_Snippets" xml:space="preserve"><value>Добавлять к ссылкам фрагменты текста из выдачи</value></data>
+  <data name="Web_Requests" xml:space="preserve"><value>Запросы</value></data>
+  <data name="Web_UserAgent" xml:space="preserve"><value>Кем представляться сайтам (User-Agent)</value></data>
+  <data name="Web_UserAgentHint" xml:space="preserve"><value>Многие сайты отдают незнакомым программам заглушку или ошибку; мобильные версии страниц обычно легче</value></data>
+  <data name="Web_CustomUserAgent" xml:space="preserve"><value>Строка User-Agent</value></data>
+  <data name="Web_AcceptLanguage" xml:space="preserve"><value>Предпочитаемый язык страниц (Accept-Language)</value></data>
+  <data name="Web_AcceptLanguageHint" xml:space="preserve"><value>Например ru-RU,ru;q=0.9,en;q=0.5 (пусто — не отправляется)</value></data>
+  <data name="Web_Timeout" xml:space="preserve"><value>Ждать страницу, секунд</value></data>
+  <data name="Web_MaxDownload" xml:space="preserve"><value>Скачивать не больше, КБ</value></data>
+  <data name="Web_AllowLocal" xml:space="preserve"><value>Разрешить адреса этого компьютера и локальной сети</value></data>
+  <data name="Web_AllowLocalHint" xml:space="preserve"><value>По умолчанию выключено: иначе модель сможет открывать страницы роутера, NAS и локальных служб</value></data>
+  <data name="Web_Cleaning" xml:space="preserve"><value>Очистка страниц</value></data>
+  <data name="Web_CleaningHint" xml:space="preserve"><value>Каждое правило можно выключить, если на каком-то сайте оно убирает нужное</value></data>
+  <data name="Web_MainOnly" xml:space="preserve"><value>Оставлять только основной блок страницы (статью)</value></data>
+  <data name="Web_StripNav" xml:space="preserve"><value>Убирать меню, шапку, подвал, боковые колонки и «хлебные крошки»</value></data>
+  <data name="Web_StripJunk" xml:space="preserve"><value>Убирать рекламу, баннеры cookie, блоки «поделиться» и «подписаться», скрытый текст и поля форм</value></data>
+  <data name="Web_StripComments" xml:space="preserve"><value>Убирать комментарии</value></data>
+  <data name="Web_DropDuplicates" xml:space="preserve"><value>Убирать повторяющиеся строки</value></data>
+  <data name="Web_Markdown" xml:space="preserve"><value>Размечать заголовки, списки, цитаты и код</value></data>
+  <data name="Web_KeepLinks" xml:space="preserve"><value>Оставлять ссылки в виде [текст](адрес)</value></data>
+  <data name="Web_KeepLinksHint" xml:space="preserve"><value>Модель сможет переходить по ним, но текст станет длиннее</value></data>
+  <data name="Web_MaxChars" xml:space="preserve"><value>Текста страницы за один вызов, символов</value></data>
+  <data name="Web_MaxCharsHint" xml:space="preserve"><value>Длинная страница приходит частями — следующую модель запрашивает сама</value></data>
+  <data name="Enum_SearchEngine_DuckDuckGo" xml:space="preserve"><value>DuckDuckGo</value></data>
+  <data name="Enum_SearchEngine_Bing" xml:space="preserve"><value>Bing</value></data>
+  <data name="Enum_SearchEngine_Google" xml:space="preserve"><value>Google</value></data>
+  <data name="Enum_SearchEngine_Yandex" xml:space="preserve"><value>Яндекс</value></data>
+  <data name="Enum_SearchEngine_Brave" xml:space="preserve"><value>Brave Search</value></data>
+  <data name="Enum_SearchEngine_Mojeek" xml:space="preserve"><value>Mojeek</value></data>
+  <data name="Enum_SearchEngine_Startpage" xml:space="preserve"><value>Startpage</value></data>
+  <data name="Enum_SearchEngine_Yahoo" xml:space="preserve"><value>Yahoo</value></data>
+  <data name="Enum_SearchEngine_Searxng" xml:space="preserve"><value>SearXNG (свой сервер)</value></data>
+  <data name="Enum_SearchEngine_Custom" xml:space="preserve"><value>Свой адрес</value></data>
+  <data name="Enum_SafeSearchLevel_Off" xml:space="preserve"><value>Выключен</value></data>
+  <data name="Enum_SafeSearchLevel_Moderate" xml:space="preserve"><value>Умеренный</value></data>
+  <data name="Enum_SafeSearchLevel_Strict" xml:space="preserve"><value>Строгий</value></data>
+  <data name="Enum_UserAgentPreset_App" xml:space="preserve"><value>Offline Chatter (своё имя)</value></data>
+  <data name="Enum_UserAgentPreset_ChromeWindows" xml:space="preserve"><value>Chrome, Windows</value></data>
+  <data name="Enum_UserAgentPreset_EdgeWindows" xml:space="preserve"><value>Edge, Windows</value></data>
+  <data name="Enum_UserAgentPreset_FirefoxWindows" xml:space="preserve"><value>Firefox, Windows</value></data>
+  <data name="Enum_UserAgentPreset_SafariMac" xml:space="preserve"><value>Safari, macOS</value></data>
+  <data name="Enum_UserAgentPreset_ChromeAndroid" xml:space="preserve"><value>Chrome, Android (мобильный)</value></data>
+  <data name="Enum_UserAgentPreset_SafariIphone" xml:space="preserve"><value>Safari, iPhone (мобильный)</value></data>
+  <data name="Enum_UserAgentPreset_Custom" xml:space="preserve"><value>Своя строка</value></data>
   <data name="Tools_ChatToggle" xml:space="preserve"><value>Инструменты (встроенные и MCP)</value></data>
   <data name="Tools_ConsentTitle" xml:space="preserve"><value>Вызов инструмента</value></data>
   <data name="Tools_ConsentHeader" xml:space="preserve"><value>Модель хочет вызвать «{0}»</value></data>
