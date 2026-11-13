@@ -573,6 +573,36 @@ No — only remove from the list</value></data>
   <data name="Settings_ToolsByDefault" xml:space="preserve"><value>Tools on in new chats</value></data>
   <data name="Settings_ToolsByDefaultHint" xml:space="preserve"><value>Models call built-in and MCP tools only after your confirmation, unless you allowed a tool permanently</value></data>
   <data name="Appearance_Hex" xml:space="preserve"><value>Hex color</value></data>
+  <data name="Settings_AutoTitle" xml:space="preserve"><value>Name chats with the model</value></data>
+  <data name="Settings_AutoTitleHint" xml:space="preserve"><value>After the first answer the model gets a short request for a title; if it does not answer, the first words of the question are used</value></data>
+  <data name="Fonts_Title" xml:space="preserve"><value>Fonts</value></data>
+  <data name="Fonts_Reset" xml:space="preserve"><value>Reset fonts</value></data>
+  <data name="Fonts_Ui" xml:space="preserve"><value>Interface</value></data>
+  <data name="Fonts_Chat" xml:space="preserve"><value>Messages</value></data>
+  <data name="Fonts_Code" xml:space="preserve"><value>Code</value></data>
+  <data name="Fonts_CodeHint" xml:space="preserve"><value>Code blocks, as well as statistics numbers and logs</value></data>
+  <data name="Fonts_Family" xml:space="preserve"><value>Font</value></data>
+  <data name="Fonts_Size" xml:space="preserve"><value>Size</value></data>
+  <data name="Fonts_UiSizeHint" xml:space="preserve"><value>Captions and headings change by the same amount</value></data>
+  <data name="Fonts_LineSpacing" xml:space="preserve"><value>Line spacing</value></data>
+  <data name="Fonts_LineDefault" xml:space="preserve"><value>As the font sets it</value></data>
+  <data name="Fonts_Default" xml:space="preserve"><value>Default ({0})</value></data>
+  <data name="Fonts_SameAsUi" xml:space="preserve"><value>as the interface</value></data>
+  <data name="Fonts_SampleUi" xml:space="preserve"><value>Settings, models and the chat list use this font</value></data>
+  <data name="Fonts_SampleChat" xml:space="preserve"><value>The quick brown fox jumps over the lazy dog. 0123456789</value></data>
+  <data name="Fonts_SampleCode" xml:space="preserve"><value>for (int i = 0; i &lt; 10; i++) Print(i); // 0O 1lI</value></data>
+  <data name="Fonts_Rendering" xml:space="preserve"><value>Text rendering</value></data>
+  <data name="Fonts_Sharpness" xml:space="preserve"><value>Sharpness</value></data>
+  <data name="Fonts_SharpnessHintLegacy" xml:space="preserve"><value>On Windows 7 and 8 «Auto» snaps text to pixels, like in system windows</value></data>
+  <data name="Fonts_SharpnessHintModern" xml:space="preserve"><value>«Auto» snaps text to pixels at 100% scale and keeps exact outlines on high-density screens</value></data>
+  <data name="Fonts_Smoothing" xml:space="preserve"><value>Smoothing</value></data>
+  <data name="Fonts_SmoothingHint" xml:space="preserve"><value>ClearType is sharper on ordinary monitors; grayscale suits projectors and rotated screens</value></data>
+  <data name="Enum_TextSharpness_Auto" xml:space="preserve"><value>Auto</value></data>
+  <data name="Enum_TextSharpness_Sharp" xml:space="preserve"><value>Sharp (to pixels)</value></data>
+  <data name="Enum_TextSharpness_Smooth" xml:space="preserve"><value>Smooth (exact outlines)</value></data>
+  <data name="Enum_TextSmoothing_Auto" xml:space="preserve"><value>As in Windows</value></data>
+  <data name="Enum_TextSmoothing_ClearType" xml:space="preserve"><value>ClearType</value></data>
+  <data name="Enum_TextSmoothing_Grayscale" xml:space="preserve"><value>Grayscale</value></data>
   <data name="Prompts_Title" xml:space="preserve"><value>System prompt presets</value></data>
   <data name="Prompts_Hint" xml:space="preserve"><value>Pick a preset in the chat side panel. The default preset is used for new chats.</value></data>
   <data name="Prompts_Preset" xml:space="preserve"><value>Preset</value></data>

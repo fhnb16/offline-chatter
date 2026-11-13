@@ -79,7 +79,7 @@
         <Setter Property="Foreground" Value="{DynamicResource HeadingBrush}" />
     </Style>
     <Style x:Key="SubtitleText" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="{DynamicResource SubtitleFontSize}" />
         <Setter Property="FontWeight" Value="{DynamicResource HeadingFontWeight}" />
         <Setter Property="Foreground" Value="{DynamicResource HeadingBrush}" />
     </Style>
@@ -89,12 +89,12 @@
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
     <Style x:Key="CaptionText" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
     </Style>
     <Style x:Key="SectionHeaderText" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
         <Setter Property="FontWeight" Value="{DynamicResource HeadingFontWeight}" />
         <Setter Property="Margin" Value="0,14,0,6" />
         <Setter Property="Foreground" Value="{DynamicResource SectionHeaderBrush}" />
@@ -197,7 +197,7 @@
     <!-- Цифры статистики: моноширинные, чтобы значения не «прыгали» при обновлении -->
     <Style x:Key="StatText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="{DynamicResource SmallFontSize}" />
         <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
     </Style>
 

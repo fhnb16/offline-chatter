@@ -106,6 +106,13 @@ public sealed class ChatSession
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string Title { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Название пока временное (первые слова вопроса) и ждёт названия от модели. Название от модели заменяет только его:
+    /// после первой попытки (удачной или нет) флаг снимается.
+    /// </summary>
+    public bool TitlePending { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public bool Pinned { get; set; }

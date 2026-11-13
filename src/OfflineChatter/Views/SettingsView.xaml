@@ -62,6 +62,14 @@
                         </CheckBox>
                     </Border>
                     <Border Style="{StaticResource SettingCard}">
+                        <CheckBox IsChecked="{Binding AutoTitle}">
+                            <StackPanel>
+                                <TextBlock Text="{l:Loc Settings_AutoTitle}" Style="{StaticResource SettingLabel}" />
+                                <TextBlock Text="{l:Loc Settings_AutoTitleHint}" Style="{StaticResource CaptionText}" />
+                            </StackPanel>
+                        </CheckBox>
+                    </Border>
+                    <Border Style="{StaticResource SettingCard}">
                         <CheckBox IsChecked="{Binding CloseToTray}">
                             <TextBlock Text="{l:Loc Settings_CloseToTray}" Style="{StaticResource SettingLabel}" />
                         </CheckBox>
@@ -199,13 +207,100 @@
                             <StackPanel>
                                 <TextBlock Text="{l:Loc Appearance_DiagnosticsHint}" Style="{StaticResource CaptionText}" Margin="0,0,0,8" />
                                 <TextBox Text="{Binding BackdropDiagnostics, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
-                                         FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" />
+                                         FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" />
                                 <Button Content="{l:Loc Appearance_CopyDiagnostics}" Command="{Binding CopyBackdropDiagnosticsCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" />
                             </StackPanel>
                         </Border>
                     </Expander>
                 </StackPanel>
                     </Border>
+
+                    <!-- Шрифты: интерфейс, сообщения, код и чёткость текста. Образцы рисуются теми же токенами, что и программа -->
+                    <StackPanel DataContext="{Binding DataContext.Fonts, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                        <DockPanel Margin="0,16,0,8">
+                            <Button DockPanel.Dock="Right" Content="{l:Loc Fonts_Reset}" Command="{Binding ResetCommand}" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Loc Fonts_Title}" Style="{StaticResource SubtitleText}" VerticalAlignment="Center" />
+                        </DockPanel>
+
+                        <Border Style="{StaticResource SettingCard}">
+                            <StackPanel>
+                                <TextBlock Text="{l:Loc Fonts_Ui}" Style="{StaticResource SectionHeaderText}" Margin="0,0,0,8" />
+                                <c:AdaptiveRow Style="{StaticResource Row}">
+                                    <TextBlock Text="{l:Loc Fonts_Family}" Style="{StaticResource SettingLabel}" VerticalAlignment="Center" />
+                                    <ComboBox ItemsSource="{Binding UiFamilies}" SelectedItem="{Binding UiFamily}" DisplayMemberPath="Title" />
+                                </c:AdaptiveRow>
+                                <c:AdaptiveRow Style="{StaticResource Row}" Margin="0,8,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="{l:Loc Fonts_Size}" Style="{StaticResource SettingLabel}" />
+                                        <TextBlock Text="{l:Loc Fonts_UiSizeHint}" Style="{StaticResource CaptionText}" />
+                                    </StackPanel>
+                                    <ComboBox ItemsSource="{Binding UiSizes}" SelectedItem="{Binding UiSize}" DisplayMemberPath="Title" VerticalAlignment="Center" />
+                                </c:AdaptiveRow>
+                                <TextBlock Text="{l:Loc Fonts_SampleUi}" Style="{StaticResource BodyText}" Margin="0,12,0,0" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingCard}">
+                            <StackPanel>
+                                <TextBlock Text="{l:Loc Fonts_Chat}" Style="{StaticResource SectionHeaderText}" Margin="0,0,0,8" />
+                                <c:AdaptiveRow Style="{StaticResource Row}">
+                                    <TextBlock Text="{l:Loc Fonts_Family}" Style="{StaticResource SettingLabel}" VerticalAlignment="Center" />
+                                    <ComboBox ItemsSource="{Binding ChatFamilies}" SelectedItem="{Binding ChatFamily}" DisplayMemberPath="Title" />
+                                </c:AdaptiveRow>
+                                <c:AdaptiveRow Style="{StaticResource Row}" Margin="0,8,0,0">
+                                    <TextBlock Text="{l:Loc Fonts_Size}" Style="{StaticResource SettingLabel}" VerticalAlignment="Center" />
+                                    <ComboBox ItemsSource="{Binding ChatSizes}" SelectedItem="{Binding ChatSize}" DisplayMemberPath="Title" />
+                                </c:AdaptiveRow>
+                                <c:AdaptiveRow Style="{StaticResource Row}" Margin="0,8,0,0">
+                                    <TextBlock Text="{l:Loc Fonts_LineSpacing}" Style="{StaticResource SettingLabel}" VerticalAlignment="Center" />
+                                    <ComboBox ItemsSource="{Binding LineSpacings}" SelectedItem="{Binding ChatLineSpacing}" DisplayMemberPath="Title" />
+                                </c:AdaptiveRow>
+                                <TextBlock Text="{l:Loc Fonts_SampleChat}" TextWrapping="Wrap" Margin="0,12,0,0"
+                                           FontFamily="{DynamicResource ChatFontFamily}" FontSize="{DynamicResource ChatFontSize}"
+                                           LineHeight="{DynamicResource ChatLineHeight}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingCard}">
+                            <StackPanel>
+                                <TextBlock Text="{l:Loc Fonts_Code}" Style="{StaticResource SectionHeaderText}" Margin="0,0,0,2" />
+                                <TextBlock Text="{l:Loc Fonts_CodeHint}" Style="{StaticResource CaptionText}" Margin="0,0,0,8" />
+                                <c:AdaptiveRow Style="{StaticResource Row}">
+                                    <TextBlock Text="{l:Loc Fonts_Family}" Style="{StaticResource SettingLabel}" VerticalAlignment="Center" />
+                                    <ComboBox ItemsSource="{Binding CodeFamilies}" SelectedItem="{Binding CodeFamily}" DisplayMemberPath="Title" />
+                                </c:AdaptiveRow>
+                                <c:AdaptiveRow Style="{StaticResource Row}" Margin="0,8,0,0">
+                                    <TextBlock Text="{l:Loc Fonts_Size}" Style="{StaticResource SettingLabel}" VerticalAlignment="Center" />
+                                    <ComboBox ItemsSource="{Binding CodeSizes}" SelectedItem="{Binding CodeSize}" DisplayMemberPath="Title" />
+                                </c:AdaptiveRow>
+                                <Border Background="{DynamicResource CodeBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                        CornerRadius="{DynamicResource ControlCornerRadius}" Padding="10,8" Margin="0,12,0,0">
+                                    <TextBlock Text="{l:Loc Fonts_SampleCode}" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CodeFontSize}"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="NoWrap" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingCard}">
+                            <StackPanel>
+                                <TextBlock Text="{l:Loc Fonts_Rendering}" Style="{StaticResource SectionHeaderText}" Margin="0,0,0,8" />
+                                <c:AdaptiveRow Style="{StaticResource Row}">
+                                    <StackPanel>
+                                        <TextBlock Text="{l:Loc Fonts_Sharpness}" Style="{StaticResource SettingLabel}" />
+                                        <TextBlock Text="{Binding SharpnessHint}" Style="{StaticResource CaptionText}" />
+                                    </StackPanel>
+                                    <ComboBox ItemsSource="{Binding SharpnessOptions}" SelectedItem="{Binding Sharpness}" ItemTemplate="{StaticResource EnumItemTemplate}" VerticalAlignment="Center" />
+                                </c:AdaptiveRow>
+                                <c:AdaptiveRow Style="{StaticResource Row}" Margin="0,8,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="{l:Loc Fonts_Smoothing}" Style="{StaticResource SettingLabel}" />
+                                        <TextBlock Text="{l:Loc Fonts_SmoothingHint}" Style="{StaticResource CaptionText}" />
+                                    </StackPanel>
+                                    <ComboBox ItemsSource="{Binding SmoothingOptions}" SelectedItem="{Binding Smoothing}" ItemTemplate="{StaticResource EnumItemTemplate}" VerticalAlignment="Center" />
+                                </c:AdaptiveRow>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                 </StackPanel>
 
                 <!-- ================= Чат ================= -->
@@ -543,7 +638,7 @@
                                     <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
                                 </Button>
                                 <Border Background="{DynamicResource CodeBackgroundBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="10,8">
-                                    <TextBlock Text="{Binding ModelsExample}" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" TextWrapping="Wrap"
+                                    <TextBlock Text="{Binding ModelsExample}" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" TextWrapping="Wrap"
                                                Foreground="{DynamicResource TextSecondaryBrush}" />
                                 </Border>
                             </DockPanel>
@@ -554,7 +649,7 @@
                                     <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
                                 </Button>
                                 <Border Background="{DynamicResource CodeBackgroundBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="10,8">
-                                    <TextBlock Text="{Binding Example}" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" TextWrapping="Wrap"
+                                    <TextBlock Text="{Binding Example}" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" TextWrapping="Wrap"
                                                Foreground="{DynamicResource TextSecondaryBrush}" />
                                 </Border>
                             </DockPanel>

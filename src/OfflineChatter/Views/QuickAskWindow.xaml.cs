@@ -106,7 +106,9 @@ public partial class QuickAskWindow : Window
             var chat = item.Session;
             chat.Append(new ChatMessage { Role = ChatRole.User, Content = _question });
             chat.Append(new ChatMessage { Role = ChatRole.Assistant, Content = _answer });
-            item.Title = _question.Length > 48 ? _question.Substring(0, 48) + "…" : _question;
+            // Название — первые слова; от модели — после следующего ответа уже в чате
+            item.Title = ChatTitles.FromText(_question) ?? item.Title;
+            chat.TitlePending = _s.Settings.Current.Window.AutoTitle;
             _s.Chats.Save(chat);
             _main.Chat.SelectedChat = null;
             _main.Chat.SelectedChat = item;

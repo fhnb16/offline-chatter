@@ -139,6 +139,8 @@ public sealed class SettingsStore
         if (s.Attachments.ImageMaxSide is > 0 and < 256) s.Attachments.ImageMaxSide = 256;
         if (s.Attachments.ImageQuality is < 40 or > 100) s.Attachments.ImageQuality = 85;
 
+        s.Appearance.Fonts ??= new FontSettings();
+        s.Appearance.Fonts.Normalize();
         if (string.IsNullOrWhiteSpace(s.Appearance.CustomAccent) || !ColorHex.TryParse(s.Appearance.CustomAccent, out _, out _, out _))
             s.Appearance.CustomAccent = "#0078D4";
 

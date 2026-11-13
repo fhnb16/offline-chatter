@@ -591,6 +591,36 @@ Settings_ImageOriginal	Original size	Исходный размер
 Settings_ToolsByDefault	Tools on in new chats	Инструменты включены в новых чатах
 Settings_ToolsByDefaultHint	Models call built-in and MCP tools only after your confirmation, unless you allowed a tool permanently	Модель вызывает встроенные и MCP-инструменты только после вашего подтверждения, если инструмент не разрешён навсегда
 Appearance_Hex	Hex color	Цвет в HEX
+Settings_AutoTitle	Name chats with the model	Называть чаты с помощью модели
+Settings_AutoTitleHint	After the first answer the model gets a short request for a title; if it does not answer, the first words of the question are used	После первого ответа модель получает короткий запрос названия; если она не ответит, названием станут первые слова вопроса
+Fonts_Title	Fonts	Шрифты
+Fonts_Reset	Reset fonts	Сбросить шрифты
+Fonts_Ui	Interface	Интерфейс
+Fonts_Chat	Messages	Сообщения
+Fonts_Code	Code	Код
+Fonts_CodeHint	Code blocks, as well as statistics numbers and logs	Блоки кода, а также цифры статистики и журналы
+Fonts_Family	Font	Шрифт
+Fonts_Size	Size	Размер
+Fonts_UiSizeHint	Captions and headings change by the same amount	Подписи и заголовки меняются на ту же величину
+Fonts_LineSpacing	Line spacing	Межстрочный интервал
+Fonts_LineDefault	As the font sets it	Как задумано шрифтом
+Fonts_Default	Default ({0})	По умолчанию ({0})
+Fonts_SameAsUi	as the interface	как в интерфейсе
+Fonts_SampleUi	Settings, models and the chat list use this font	Этим шрифтом написаны настройки, модели и список чатов
+Fonts_SampleChat	The quick brown fox jumps over the lazy dog. 0123456789	Съешь же ещё этих мягких французских булок, да выпей чаю. 0123456789
+Fonts_SampleCode	for (int i = 0; i < 10; i++) Print(i); // 0O 1lI	for (int i = 0; i < 10; i++) Print(i); // 0O 1lI
+Fonts_Rendering	Text rendering	Отрисовка текста
+Fonts_Sharpness	Sharpness	Чёткость
+Fonts_SharpnessHintLegacy	On Windows 7 and 8 «Auto» snaps text to pixels, like in system windows	На Windows 7 и 8 «Авто» рисует текст по пикселям, как в системных окнах
+Fonts_SharpnessHintModern	«Auto» snaps text to pixels at 100% scale and keeps exact outlines on high-density screens	«Авто» рисует текст по пикселям при масштабе 100 % и точными контурами на экранах высокой плотности
+Fonts_Smoothing	Smoothing	Сглаживание
+Fonts_SmoothingHint	ClearType is sharper on ordinary monitors; grayscale suits projectors and rotated screens	ClearType чётче на обычных мониторах; оттенки серого подходят для проекторов и повёрнутых экранов
+Enum_TextSharpness_Auto	Auto	Авто
+Enum_TextSharpness_Sharp	Sharp (to pixels)	Чётко (по пикселям)
+Enum_TextSharpness_Smooth	Smooth (exact outlines)	Плавно (точные контуры)
+Enum_TextSmoothing_Auto	As in Windows	Как в Windows
+Enum_TextSmoothing_ClearType	ClearType	ClearType
+Enum_TextSmoothing_Grayscale	Grayscale	Оттенки серого
 Prompts_Title	System prompt presets	Пресеты системного промпта
 Prompts_Hint	Pick a preset in the chat side panel. The default preset is used for new chats.	Пресет выбирается в правой панели чата. Пресет по умолчанию подставляется в новые чаты.
 Prompts_Preset	Preset	Пресет

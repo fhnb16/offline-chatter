@@ -6,7 +6,7 @@
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource WindowBackgroundBrush}"
         Foreground="{DynamicResource TextPrimaryBrush}"
-        FontFamily="{DynamicResource AppFontFamily}" FontSize="13"
+        FontFamily="{DynamicResource AppFontFamily}" FontSize="{DynamicResource AppFontSize}"
         UseLayoutRounding="True">
     <DockPanel Background="{DynamicResource ContentBackgroundBrush}">
         <!-- Панель действий -->
@@ -30,13 +30,13 @@
                     <Button Style="{StaticResource IconButton}" Click="OnZoomOut" ToolTip="{l:Loc Preview_ZoomOut}" AutomationProperties.Name="{l:Loc Preview_ZoomOut}">
                         <Path Data="M3,8 H13" Style="{StaticResource IconPath}" />
                     </Button>
-                    <TextBlock x:Name="ZoomText" Style="{StaticResource StatText}" FontSize="12" Width="48" TextAlignment="Center" VerticalAlignment="Center" />
+                    <TextBlock x:Name="ZoomText" Style="{StaticResource StatText}" FontSize="{DynamicResource CaptionFontSize}" Width="48" TextAlignment="Center" VerticalAlignment="Center" />
                     <Button Style="{StaticResource IconButton}" Click="OnZoomIn" ToolTip="{l:Loc Preview_ZoomIn}" AutomationProperties.Name="{l:Loc Preview_ZoomIn}">
                         <Path Data="{StaticResource IconPlus}" Style="{StaticResource IconPath}" />
                     </Button>
                     <Button Style="{DynamicResource SubtleButtonStyle}" Click="OnFit" Content="{l:Loc Preview_Fit}" Margin="8,0,0,0" />
                     <Button Style="{DynamicResource SubtleButtonStyle}" Click="OnActualSize" Content="{l:Loc Preview_ActualSize}" Margin="4,0,0,0" />
-                    <TextBlock x:Name="Info" Style="{StaticResource StatText}" FontSize="12" VerticalAlignment="Center" Margin="12,0,0,0" />
+                    <TextBlock x:Name="Info" Style="{StaticResource StatText}" FontSize="{DynamicResource CaptionFontSize}" VerticalAlignment="Center" Margin="12,0,0,0" />
                 </StackPanel>
             </DockPanel>
         </Border>

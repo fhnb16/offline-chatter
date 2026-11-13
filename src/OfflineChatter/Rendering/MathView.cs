@@ -83,12 +83,12 @@ public static class MathView
         var tb = new TextBlock
         {
             Text = display ? latex : "$" + latex + "$",
-            FontSize = 12.5,
             TextWrapping = display ? TextWrapping.Wrap : TextWrapping.NoWrap,
             ToolTip = latex,
             ContextMenu = CopyMenu(latex),
         };
         tb.SetResourceReference(TextBlock.FontFamilyProperty, ThemeKeys.MonoFontFamily);
+        tb.SetResourceReference(TextBlock.FontSizeProperty, ThemeKeys.CodeFontSize);
         tb.SetResourceReference(TextBlock.ForegroundProperty, ThemeKeys.StatusWarn);
         return tb;
     }

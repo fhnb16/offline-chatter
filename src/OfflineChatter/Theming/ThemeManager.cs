@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -38,7 +38,29 @@ public static class ThemeManager
     {
         _settings = settings;
         SystemParameters.StaticPropertyChanged += OnSystemParameterChanged;
+        // Подсказки и контекстные меню — отдельные окна вне дерева элементов: настройки текста им ставим при открытии
+        EventManager.RegisterClassHandler(typeof(ToolTip), ToolTip.OpenedEvent, new RoutedEventHandler((s, _) => ApplyTextOptions((DependencyObject)s, null)));
+        EventManager.RegisterClassHandler(typeof(ContextMenu), ContextMenu.OpenedEvent, new RoutedEventHandler((s, _) => ApplyTextOptions((DependencyObject)s, null)));
         Apply();
+    }
+
+    /// <summary>
+    /// Чёткость и сглаживание текста по настройкам. <paramref name="dpiScale"/> — масштаб экрана окна
+    /// (null — взять у самого элемента).
+    /// </summary>
+    private static void ApplyTextOptions(DependencyObject target, double? dpiScale)
+    {
+        var f = _settings.Fonts ?? new FontSettings();
+        var scale = dpiScale ?? (target is System.Windows.Media.Visual v ? System.Windows.Media.VisualTreeHelper.GetDpi(v).DpiScaleX : 1.0);
+        System.Windows.Media.TextOptions.SetTextFormattingMode(target, Typography.UseDisplayMode(f.Sharpness, OsInfo.IsWin10OrNewer, scale)
+            ? System.Windows.Media.TextFormattingMode.Display
+            : System.Windows.Media.TextFormattingMode.Ideal);
+        System.Windows.Media.TextOptions.SetTextRenderingMode(target, f.Smoothing switch
+        {
+            TextSmoothing.ClearType => System.Windows.Media.TextRenderingMode.ClearType,
+            TextSmoothing.Grayscale => System.Windows.Media.TextRenderingMode.Grayscale,
+            _ => System.Windows.Media.TextRenderingMode.Auto,
+        });
     }
 
     public static void Apply(AppearanceSettings settings)
@@ -56,6 +78,10 @@ public static class ThemeManager
             AttachedWindows.RemoveAll(w => !w.TryGetTarget(out var t) || ReferenceEquals(t, window));
             WindowBackdrop.Forget(new WindowInteropHelper(window).Handle);
         };
+
+        // Текст: до первого показа (по масштабу основного экрана), затем по масштабу экрана окна и при его смене
+        ApplyTextOptions(window, null);
+        window.DpiChanged += (_, e) => ApplyTextOptions(window, e.NewDpi.DpiScaleX);
 
         var hwnd = new WindowInteropHelper(window).Handle;
         if (hwnd != IntPtr.Zero)
@@ -123,6 +149,7 @@ public static class ThemeManager
     private static void ApplyToWindow(Window window, bool force = false)
     {
         if (Current == null) return;
+        ApplyTextOptions(window, null);
         // Системные скины (Aero, Aero2, Classic…) — со стандартным заголовком окна своей Windows: значок, название и
         // кнопки рисует система. Совмещённый с содержимым заголовок — приём Fluent, в Win7 он смотрится чужим.
         var extended = ShellChrome.Update(window, WindowBackdrop.UsesAccentPolicy(Current), allowExtend: Current.Skin == SkinKind.Fluent);
@@ -143,7 +170,9 @@ public static class ThemeManager
 
         if (skinChanged) ApplySkin(app, resolved);
 
-        foreach (var kv in ThemeTokens.Build(resolved))
+        var tokens = ThemeTokens.Build(resolved);
+        ThemeTokens.AddTypography(tokens, _settings.Fonts ?? new FontSettings());
+        foreach (var kv in tokens)
             app.Resources[kv.Key] = kv.Value;
 
         foreach (var w in AttachedWindows.ToList())
@@ -161,6 +190,13 @@ public static class ThemeManager
             backdrop = resolved.Backdrop.ToString(),
             highContrast = resolved.HighContrast,
             requested = new { _settings.Skin, _settings.Mode, _settings.Backdrop, _settings.Accent },
+            fonts = _settings.Fonts == null ? null : new
+            {
+                ui = _settings.Fonts.UiFamily, uiSize = _settings.Fonts.UiSize,
+                chat = _settings.Fonts.ChatFamily, chatSize = _settings.Fonts.ChatSize, lineSpacing = _settings.Fonts.ChatLineSpacing,
+                code = _settings.Fonts.CodeFamily, codeSize = _settings.Fonts.CodeSize,
+                sharpness = _settings.Fonts.Sharpness.ToString(), smoothing = _settings.Fonts.Smoothing.ToString(),
+            },
         });
         Changed?.Invoke(null, EventArgs.Empty);
     }

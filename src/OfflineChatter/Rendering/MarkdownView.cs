@@ -48,7 +48,11 @@ public sealed class MarkdownView : RichTextBox
         Cursor = Cursors.IBeam;
         FocusVisualStyle = null;
         Document = new FlowDocument { PagePadding = new Thickness(0), FontSize = 14 };
-        Document.SetResourceReference(FlowDocument.FontFamilyProperty, ThemeKeys.AppFontFamily);
+        // Шрифт, размер и интервал сообщений — из настройки «Шрифты»; интервал работает как минимум высоты строки,
+        // поэтому заголовки и формулы крупнее текста не обрезаются
+        Document.SetResourceReference(FlowDocument.FontFamilyProperty, ThemeKeys.ChatFontFamily);
+        Document.SetResourceReference(FlowDocument.LineHeightProperty, ThemeKeys.ChatLineHeight);
+        SetResourceReference(TextSizeProperty, ThemeKeys.ChatFontSize);
         // Цвет текста — от самого контрола (наследуется документом), чтобы шаблон сообщения мог его переопределить
         SetResourceReference(ForegroundProperty, ThemeKeys.TextPrimary);
         SetResourceReference(SelectionBrushProperty, ThemeKeys.Selection);
@@ -74,14 +78,27 @@ public sealed class MarkdownView : RichTextBox
         set => SetValue(IsStreamingProperty, value);
     }
 
+    public static readonly DependencyProperty TextSizeProperty = DependencyProperty.Register(
+        nameof(TextSize), typeof(double), typeof(MarkdownView), new PropertyMetadata(14.0, (d, e) => ((MarkdownView)d).OnTextSizeChanged((double)e.NewValue)));
+
+    /// <summary>Размер текста; заголовки и встроенный код считаются от него, поэтому смена размера перерисовывает документ.</summary>
     public double TextSize
     {
-        get => _renderer.FontSize;
-        set
-        {
-            _renderer.FontSize = value;
-            Document.FontSize = value;
-        }
+        get => (double)GetValue(TextSizeProperty);
+        set => SetValue(TextSizeProperty, value);
+    }
+
+    private void OnTextSizeChanged(double value)
+    {
+        if (double.IsNaN(value) || value <= 0) return;
+        _renderer.FontSize = value;
+        Document.FontSize = value;
+        if (Document.Blocks.Count == 0) return;
+        Document.Blocks.Clear();
+        _tail.Clear();
+        _stableLength = 0;
+        _rendered = string.Empty;
+        Schedule();
     }
 
     private static ControlTemplate CreateTemplate()

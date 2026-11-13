@@ -58,11 +58,11 @@
                     <Expander Header="{l:Loc Engine_ServerLog}" Margin="0,4,0,0">
                         <StackPanel>
                             <TextBox Text="{Binding ServerCommandLine, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
-                                     FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" Margin="0,0,0,6"
+                                     FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" Margin="0,0,0,6"
                                      Visibility="{Binding ServerCommandLine, Converter={StaticResource NullToCollapsed}}" />
                             <Border Style="{StaticResource Card}" Padding="2">
                                 <ListBox ItemsSource="{Binding ServerLines}" Height="260" c:AutoScroll.ToEnd="True"
-                                         FontFamily="{DynamicResource MonoFontFamily}" FontSize="11" BorderThickness="0" Background="Transparent"
+                                         FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource SmallFontSize}" BorderThickness="0" Background="Transparent"
                                          VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
                                          ScrollViewer.HorizontalScrollBarVisibility="Auto">
                                     <ListBox.ItemContainerStyle>
@@ -157,7 +157,7 @@
                                         <TextBlock Text="{Binding Title}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
                                         <Border Style="{StaticResource StatusPill}" Margin="8,0,0,0" Padding="7,1"
                                                 Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibility}}">
-                                            <TextBlock Text="{l:Loc Engine_Active}" FontSize="11" Foreground="{DynamicResource AccentTextBrush}" />
+                                            <TextBlock Text="{l:Loc Engine_Active}" FontSize="{DynamicResource SmallFontSize}" Foreground="{DynamicResource AccentTextBrush}" />
                                         </Border>
                                         <TextBlock Text="{Binding Kind}" Style="{StaticResource CaptionText}" Margin="8,0,0,0" VerticalAlignment="Center" />
                                     </StackPanel>

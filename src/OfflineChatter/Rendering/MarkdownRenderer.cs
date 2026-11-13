@@ -300,9 +300,11 @@ public static class CodeBlockView
 
         var dock = new DockPanel();
         var header = new DockPanel { Margin = new Thickness(10, 4, 4, 0) };
-        var lang = new TextBlock { Text = string.IsNullOrWhiteSpace(language) ? "code" : language!.Trim(), FontSize = 11.5, VerticalAlignment = VerticalAlignment.Center };
+        var lang = new TextBlock { Text = string.IsNullOrWhiteSpace(language) ? "code" : language!.Trim(), VerticalAlignment = VerticalAlignment.Center };
+        lang.SetResourceReference(TextBlock.FontSizeProperty, ThemeKeys.SmallFontSize);
         lang.SetResourceReference(TextBlock.ForegroundProperty, ThemeKeys.TextTertiary);
-        var copy = new Button { Content = L.Get("Chat_Copy"), FontSize = 11.5, Padding = new Thickness(8, 2, 8, 2), MinHeight = 0 };
+        var copy = new Button { Content = L.Get("Chat_Copy"), Padding = new Thickness(8, 2, 8, 2), MinHeight = 0 };
+        copy.SetResourceReference(Control.FontSizeProperty, ThemeKeys.SmallFontSize);
         copy.SetResourceReference(FrameworkElement.StyleProperty, "SubtleButtonStyle");
         copy.Click += (_, _) =>
         {
@@ -315,8 +317,11 @@ public static class CodeBlockView
         DockPanel.SetDock(header, Dock.Top);
         dock.Children.Add(header);
 
-        var text = new TextBlock { FontSize = 12.5, Margin = new Thickness(10, 2, 10, 10), TextWrapping = TextWrapping.NoWrap };
+        var text = new TextBlock { Margin = new Thickness(10, 2, 10, 10), TextWrapping = TextWrapping.NoWrap };
         text.SetResourceReference(TextBlock.FontFamilyProperty, ThemeKeys.MonoFontFamily);
+        text.SetResourceReference(TextBlock.FontSizeProperty, ThemeKeys.CodeFontSize);
+        // Межстрочный интервал сообщений к коду не относится
+        text.LineHeight = double.NaN;
         foreach (var r in SyntaxHighlighter.Highlight(code, language)) text.Inlines.Add(r);
         var scroll = new ScrollViewer
         {

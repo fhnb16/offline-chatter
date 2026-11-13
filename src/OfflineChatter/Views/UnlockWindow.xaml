@@ -4,7 +4,7 @@
         xmlns:l="clr-namespace:OfflineChatter.Localization"
         Title="Offline Chatter" Width="420" SizeToContent="Height" ResizeMode="NoResize" WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
-        FontFamily="{DynamicResource AppFontFamily}" FontSize="13">
+        FontFamily="{DynamicResource AppFontFamily}" FontSize="{DynamicResource AppFontSize}">
     <Border Background="{DynamicResource ContentBackgroundBrush}" Padding="20,16">
         <StackPanel>
             <TextBlock Text="{l:Loc Security_UnlockTitle}" Style="{StaticResource SubtitleText}" />

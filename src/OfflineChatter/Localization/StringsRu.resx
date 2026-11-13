@@ -573,6 +573,36 @@
   <data name="Settings_ToolsByDefault" xml:space="preserve"><value>Инструменты включены в новых чатах</value></data>
   <data name="Settings_ToolsByDefaultHint" xml:space="preserve"><value>Модель вызывает встроенные и MCP-инструменты только после вашего подтверждения, если инструмент не разрешён навсегда</value></data>
   <data name="Appearance_Hex" xml:space="preserve"><value>Цвет в HEX</value></data>
+  <data name="Settings_AutoTitle" xml:space="preserve"><value>Называть чаты с помощью модели</value></data>
+  <data name="Settings_AutoTitleHint" xml:space="preserve"><value>После первого ответа модель получает короткий запрос названия; если она не ответит, названием станут первые слова вопроса</value></data>
+  <data name="Fonts_Title" xml:space="preserve"><value>Шрифты</value></data>
+  <data name="Fonts_Reset" xml:space="preserve"><value>Сбросить шрифты</value></data>
+  <data name="Fonts_Ui" xml:space="preserve"><value>Интерфейс</value></data>
+  <data name="Fonts_Chat" xml:space="preserve"><value>Сообщения</value></data>
+  <data name="Fonts_Code" xml:space="preserve"><value>Код</value></data>
+  <data name="Fonts_CodeHint" xml:space="preserve"><value>Блоки кода, а также цифры статистики и журналы</value></data>
+  <data name="Fonts_Family" xml:space="preserve"><value>Шрифт</value></data>
+  <data name="Fonts_Size" xml:space="preserve"><value>Размер</value></data>
+  <data name="Fonts_UiSizeHint" xml:space="preserve"><value>Подписи и заголовки меняются на ту же величину</value></data>
+  <data name="Fonts_LineSpacing" xml:space="preserve"><value>Межстрочный интервал</value></data>
+  <data name="Fonts_LineDefault" xml:space="preserve"><value>Как задумано шрифтом</value></data>
+  <data name="Fonts_Default" xml:space="preserve"><value>По умолчанию ({0})</value></data>
+  <data name="Fonts_SameAsUi" xml:space="preserve"><value>как в интерфейсе</value></data>
+  <data name="Fonts_SampleUi" xml:space="preserve"><value>Этим шрифтом написаны настройки, модели и список чатов</value></data>
+  <data name="Fonts_SampleChat" xml:space="preserve"><value>Съешь же ещё этих мягких французских булок, да выпей чаю. 0123456789</value></data>
+  <data name="Fonts_SampleCode" xml:space="preserve"><value>for (int i = 0; i &lt; 10; i++) Print(i); // 0O 1lI</value></data>
+  <data name="Fonts_Rendering" xml:space="preserve"><value>Отрисовка текста</value></data>
+  <data name="Fonts_Sharpness" xml:space="preserve"><value>Чёткость</value></data>
+  <data name="Fonts_SharpnessHintLegacy" xml:space="preserve"><value>На Windows 7 и 8 «Авто» рисует текст по пикселям, как в системных окнах</value></data>
+  <data name="Fonts_SharpnessHintModern" xml:space="preserve"><value>«Авто» рисует текст по пикселям при масштабе 100 % и точными контурами на экранах высокой плотности</value></data>
+  <data name="Fonts_Smoothing" xml:space="preserve"><value>Сглаживание</value></data>
+  <data name="Fonts_SmoothingHint" xml:space="preserve"><value>ClearType чётче на обычных мониторах; оттенки серого подходят для проекторов и повёрнутых экранов</value></data>
+  <data name="Enum_TextSharpness_Auto" xml:space="preserve"><value>Авто</value></data>
+  <data name="Enum_TextSharpness_Sharp" xml:space="preserve"><value>Чётко (по пикселям)</value></data>
+  <data name="Enum_TextSharpness_Smooth" xml:space="preserve"><value>Плавно (точные контуры)</value></data>
+  <data name="Enum_TextSmoothing_Auto" xml:space="preserve"><value>Как в Windows</value></data>
+  <data name="Enum_TextSmoothing_ClearType" xml:space="preserve"><value>ClearType</value></data>
+  <data name="Enum_TextSmoothing_Grayscale" xml:space="preserve"><value>Оттенки серого</value></data>
   <data name="Prompts_Title" xml:space="preserve"><value>Пресеты системного промпта</value></data>
   <data name="Prompts_Hint" xml:space="preserve"><value>Пресет выбирается в правой панели чата. Пресет по умолчанию подставляется в новые чаты.</value></data>
   <data name="Prompts_Preset" xml:space="preserve"><value>Пресет</value></data>

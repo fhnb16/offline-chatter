@@ -65,7 +65,8 @@ public sealed partial class SettingsViewModel : PageViewModel
         _services = services;
         _main = main;
         Appearance = new AppearanceViewModel(services.Settings);
-        Network = new NetworkSettingsViewModel(services);
+        Fonts = new FontsViewModel(services.Settings);
+        Network =new NetworkSettingsViewModel(services);
         Network.OfflineChanged += (_, _) => main.NotifyOfflineChanged();
         Api = new LocalApiViewModel(services);
         Prompts = new PromptPresetsViewModel(services);
@@ -99,6 +100,15 @@ public sealed partial class SettingsViewModel : PageViewModel
     public IReadOnlyList<SettingsSection> Sections { get; } = Enum.GetValues(typeof(SettingsSection)).Cast<SettingsSection>().ToList();
 
     [ObservableProperty] private SettingsSection _selectedSection = SettingsSection.General;
+
+    // Список шрифтов системы читается только когда открыта вкладка оформления
+    partial void OnSelectedSectionChanged(SettingsSection value)
+    {
+        if (value == SettingsSection.Appearance) Fonts.EnsureFamilies();
+    }
+
+    /// <summary>Шрифты интерфейса, сообщений и кода (вкладка «Оформление»).</summary>
+    public FontsViewModel Fonts { get; }
 
     /// <summary>Открыть настройки на нужной вкладке (из других разделов и палитры команд).</summary>
     public void Show(SettingsSection section)
@@ -154,6 +164,13 @@ public sealed partial class SettingsViewModel : PageViewModel
     }
 
     public string QuickAskHint => string.IsNullOrEmpty(App.QuickAskHotkeyText) ? L.Get("Settings_QuickAskHint") : L.F("Settings_QuickAskActive", App.QuickAskHotkeyText);
+
+    /// <summary>Название чата — коротким запросом к модели после первого ответа (иначе первые слова вопроса).</summary>
+    public bool AutoTitle
+    {
+        get => _services.Settings.Current.Window.AutoTitle;
+        set { _services.Settings.Current.Window.AutoTitle = value; _services.Settings.Save(); OnPropertyChanged(); }
+    }
 
     public bool SendWithCtrlEnter
     {

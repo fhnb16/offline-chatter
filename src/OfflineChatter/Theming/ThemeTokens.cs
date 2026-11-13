@@ -60,7 +60,10 @@ public static class ThemeKeys
     public const string CodeNumber = "CodeNumberBrush";
     public const string QuoteBar = "QuoteBarBrush";
     public const string AppFontFamily = "AppFontFamily";
+    /// <summary>Моноширинный шрифт: код, цифры статистики, журналы.</summary>
     public const string MonoFontFamily = "MonoFontFamily";
+    /// <summary>Текст сообщений (Markdown).</summary>
+    public const string ChatFontFamily = "ChatFontFamily";
     public const string CardCornerRadius = "CardCornerRadius";
 
     // --- Форма и строение оболочки: у каждого скина свои (Fluent — скруглённый «слой», Aero — панели Проводника) ---
@@ -94,6 +97,24 @@ public static class ThemeKeys
     public const string PageTitleFontSize = "PageTitleFontSize";
     public const string TitleFontSize = "TitleFontSize";
     public const string AppFontSize = "AppFontSize";
+
+    // Шкала размеров (настройка «Шрифты»): по умолчанию — прежние значения разметки, Fluent не меняется
+    /// <summary>Подписи и пояснения (12 px).</summary>
+    public const string CaptionFontSize = "CaptionFontSize";
+    /// <summary>Мелкие пометки и цифры статистики (11 px).</summary>
+    public const string SmallFontSize = "SmallFontSize";
+    /// <summary>Подзаголовки групп (14 px).</summary>
+    public const string SubtitleFontSize = "SubtitleFontSize";
+    /// <summary>Поле ввода быстрых окон: палитра команд, быстрый вопрос (15 px).</summary>
+    public const string LargeFontSize = "LargeFontSize";
+    /// <summary>Текст сообщений и поле ввода чата (14 px).</summary>
+    public const string ChatFontSize = "ChatFontSize";
+    /// <summary>Размышления модели (на 1,5 px меньше текста сообщений).</summary>
+    public const string ChatSmallFontSize = "ChatSmallFontSize";
+    /// <summary>Межстрочный интервал сообщений, px (NaN — как задумано шрифтом).</summary>
+    public const string ChatLineHeight = "ChatLineHeight";
+    /// <summary>Блоки кода (12,5 px).</summary>
+    public const string CodeFontSize = "CodeFontSize";
 
     /// <summary>Курсор над кнопками-иконками: во Fluent — «рука», в системных скинах — обычная стрелка, как у кнопок Windows.</summary>
     public const string ActionCursor = "ActionCursor";
@@ -430,9 +451,45 @@ internal static class ThemeTokens
 
     private static void AddFonts(Dictionary<string, object?> r)
     {
-        r[ThemeKeys.AppFontFamily] = OsInfo.IsWin11OrNewer
-            ? new FontFamily("Segoe UI Variable Text, Segoe UI")
-            : new FontFamily("Segoe UI");
-        r[ThemeKeys.MonoFontFamily] = new FontFamily("Cascadia Mono, Consolas, Courier New");
+        r[ThemeKeys.AppFontFamily] = new FontFamily(DefaultUiFamily);
+        r[ThemeKeys.MonoFontFamily] = new FontFamily(DefaultMonoFamily);
     }
+
+    /// <summary>Шрифт интерфейса по умолчанию: Segoe UI Variable на Win11, Segoe UI на Win7–10.</summary>
+    public static string DefaultUiFamily => OsInfo.IsWin11OrNewer ? "Segoe UI Variable Text, Segoe UI" : "Segoe UI";
+
+    /// <summary>Моноширинный по умолчанию: Cascadia Mono (Win11), иначе Consolas (есть начиная с Vista).</summary>
+    public const string DefaultMonoFamily = "Cascadia Mono, Consolas, Courier New";
+
+    /// <summary>
+    /// Шрифты и размеры из настроек поверх значений скина. Свой шрифт дополняется шрифтом по умолчанию
+    /// как запасным: если выбранный удалён из системы или в нём нет нужных букв, текст не превращается в квадраты.
+    /// </summary>
+    public static void AddTypography(Dictionary<string, object?> r, FontSettings f)
+    {
+        var scale = Typography.Resolve(f,
+            r.TryGetValue(ThemeKeys.AppFontSize, out var ui) && ui is double u ? u : 13,
+            r.TryGetValue(ThemeKeys.TitleFontSize, out var ti) && ti is double t ? t : 20,
+            r.TryGetValue(ThemeKeys.PageTitleFontSize, out var pt) && pt is double p ? p : 24);
+
+        r[ThemeKeys.AppFontSize] = scale.Ui;
+        r[ThemeKeys.CaptionFontSize] = scale.Caption;
+        r[ThemeKeys.SmallFontSize] = scale.Small;
+        r[ThemeKeys.SubtitleFontSize] = scale.Subtitle;
+        r[ThemeKeys.LargeFontSize] = scale.Large;
+        r[ThemeKeys.TitleFontSize] = scale.Title;
+        r[ThemeKeys.PageTitleFontSize] = scale.PageTitle;
+        r[ThemeKeys.ChatFontSize] = scale.Chat;
+        r[ThemeKeys.ChatSmallFontSize] = scale.ChatSmall;
+        r[ThemeKeys.CodeFontSize] = scale.Code;
+        r[ThemeKeys.ChatLineHeight] = scale.ChatLineHeight ?? double.NaN;
+
+        var uiFamily = Family(f.UiFamily, DefaultUiFamily);
+        r[ThemeKeys.AppFontFamily] = uiFamily;
+        r[ThemeKeys.ChatFontFamily] = f.ChatFamily != null ? Family(f.ChatFamily, DefaultUiFamily) : uiFamily;
+        r[ThemeKeys.MonoFontFamily] = Family(f.CodeFamily, DefaultMonoFamily);
+    }
+
+    private static FontFamily Family(string? chosen, string fallback) =>
+        new(string.IsNullOrWhiteSpace(chosen) ? fallback : chosen + ", " + fallback);
 }

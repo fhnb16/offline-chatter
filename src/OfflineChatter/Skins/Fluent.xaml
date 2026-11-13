@@ -435,7 +435,7 @@
                 <ControlTemplate TargetType="ToolTip">
                     <Border Background="{DynamicResource PopupBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
                             BorderThickness="1" CornerRadius="4" Padding="8,5">
-                        <ContentPresenter TextElement.FontSize="12" />
+                        <ContentPresenter TextElement.FontSize="{DynamicResource CaptionFontSize}" />
                     </Border>
                 </ControlTemplate>
             </Setter.Value>

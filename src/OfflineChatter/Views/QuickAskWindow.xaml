@@ -6,7 +6,7 @@
         Title="{l:Loc Tray_QuickAsk}" Width="640" Height="420" MinHeight="200" MinWidth="420"
         WindowStartupLocation="CenterScreen" Topmost="True" ShowInTaskbar="True"
         Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
-        FontFamily="{DynamicResource AppFontFamily}" FontSize="13" UseLayoutRounding="True">
+        FontFamily="{DynamicResource AppFontFamily}" FontSize="{DynamicResource AppFontSize}" UseLayoutRounding="True">
     <Window.InputBindings>
         <KeyBinding Key="Escape" Command="ApplicationCommands.Close" />
     </Window.InputBindings>
@@ -21,9 +21,9 @@
                         <Path Data="{StaticResource IconSend}" Style="{StaticResource IconPath}" />
                     </Button>
                     <Grid Margin="4,0">
-                        <TextBox x:Name="Input" FontSize="15" Background="Transparent" BorderThickness="0" AcceptsReturn="False" VerticalContentAlignment="Center"
+                        <TextBox x:Name="Input" FontSize="{DynamicResource LargeFontSize}" Background="Transparent" BorderThickness="0" AcceptsReturn="False" VerticalContentAlignment="Center"
                                  KeyDown="OnInputKeyDown" />
-                        <TextBlock Text="{l:Loc QuickAsk_Placeholder}" Margin="10,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="15"
+                        <TextBlock Text="{l:Loc QuickAsk_Placeholder}" Margin="10,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="{DynamicResource LargeFontSize}"
                                    Foreground="{DynamicResource TextTertiaryBrush}"
                                    Visibility="{Binding Text, ElementName=Input, Converter={StaticResource EmptyToVisible}}" />
                     </Grid>

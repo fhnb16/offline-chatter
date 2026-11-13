@@ -4,21 +4,21 @@
         xmlns:l="clr-namespace:OfflineChatter.Localization"
         Width="560" Height="420" WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner" Background="{DynamicResource PopupBackgroundBrush}"
-        Foreground="{DynamicResource TextPrimaryBrush}" FontFamily="{DynamicResource AppFontFamily}" FontSize="13"
+        Foreground="{DynamicResource TextPrimaryBrush}" FontFamily="{DynamicResource AppFontFamily}" FontSize="{DynamicResource AppFontSize}"
         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" Deactivated="OnDeactivated">
     <DockPanel Margin="10">
         <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
-            <TextBox x:Name="Query" FontSize="15" Padding="32,6,9,6" PreviewKeyDown="OnQueryKeyDown" TextChanged="OnQueryChanged" />
+            <TextBox x:Name="Query" FontSize="{DynamicResource LargeFontSize}" Padding="32,6,9,6" PreviewKeyDown="OnQueryKeyDown" TextChanged="OnQueryChanged" />
             <Path Data="{StaticResource IconSearch}" Style="{StaticResource IconPath}" Margin="10,0,0,0" HorizontalAlignment="Left" IsHitTestVisible="False"
                   TextElement.Foreground="{DynamicResource TextTertiaryBrush}" />
-            <TextBlock Text="{l:Loc Palette_Placeholder}" Margin="33,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="15"
+            <TextBlock Text="{l:Loc Palette_Placeholder}" Margin="33,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="{DynamicResource LargeFontSize}"
                        Foreground="{DynamicResource TextTertiaryBrush}" Visibility="{Binding Text, ElementName=Query, Converter={StaticResource EmptyToVisible}}" />
         </Grid>
         <ListBox x:Name="Items" MouseDoubleClick="OnItemActivated" KeyDown="OnListKeyDown">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Right" Text="{Binding Hint}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="11.5" VerticalAlignment="Center" />
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding Hint}" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="{DynamicResource SmallFontSize}" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
                     </DockPanel>
                 </DataTemplate>

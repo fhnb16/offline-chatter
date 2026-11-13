@@ -79,18 +79,8 @@ public partial class MainWindow : Window
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
-        UpdateTextFormatting(VisualTreeHelper.GetDpi(this));
+        // Чёткость и сглаживание текста ставит ThemeManager (настройка «Шрифты», все окна и масштабы)
     }
-
-    protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
-    {
-        base.OnDpiChanged(oldDpi, newDpi);
-        UpdateTextFormatting(newDpi);
-    }
-
-    /// <summary>При 100% масштабе Display-режим даёт чёткий текст (особенно на Win7), на HiDPI лучше Ideal.</summary>
-    private void UpdateTextFormatting(DpiScale dpi) =>
-        TextOptions.SetTextFormattingMode(this, dpi.DpiScaleX <= 1.0 ? TextFormattingMode.Display : TextFormattingMode.Ideal);
 
     // ---------- Положение окна ----------
 

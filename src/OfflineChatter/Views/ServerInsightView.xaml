@@ -24,7 +24,7 @@
                                         <ColumnDefinition Width="3*" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="{Binding Label}" Style="{StaticResource CaptionText}" />
-                                    <TextBlock x:Name="Value" Grid.Column="2" Text="{Binding Value}" FontSize="12" TextWrapping="Wrap"
+                                    <TextBlock x:Name="Value" Grid.Column="2" Text="{Binding Value}" FontSize="{DynamicResource CaptionFontSize}" TextWrapping="Wrap"
                                                Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </Grid>
                                 <DataTemplate.Triggers>

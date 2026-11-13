@@ -30,7 +30,7 @@
         </c:AdaptiveRow>        <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Style="{StaticResource CaptionText}" Margin="0,6,0,0" />
         <Border Style="{StaticResource Card}" Padding="2">
             <ListBox x:Name="Entries" ItemsSource="{Binding Entries}" c:AutoScroll.ToEnd="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12">
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                         <Setter Property="Padding" Value="6,2" />

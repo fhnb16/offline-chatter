@@ -115,11 +115,11 @@
                 <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
                     <Image Source="pack://application:,,,/OfflineChatter;component/Assets/app.ico" Width="16" Height="16"
                            RenderOptions.BitmapScalingMode="HighQuality" />
-                    <TextBlock Text="Offline Chatter" Margin="8,0,0,0" FontSize="12" Style="{StaticResource GlassText}"
+                    <TextBlock Text="Offline Chatter" Margin="8,0,0,0" FontSize="{DynamicResource CaptionFontSize}" Style="{StaticResource GlassText}"
                                Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"
                                Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisibility}}" />
                 </StackPanel>
-                <TextBlock Grid.Column="1" Text="{Binding CurrentPage.Title}" FontSize="12" Margin="16,0,0,0"
+                <TextBlock Grid.Column="1" Text="{Binding CurrentPage.Title}" FontSize="{DynamicResource CaptionFontSize}" Margin="16,0,0,0"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Style="{StaticResource GlassText}"
                            Foreground="{DynamicResource TextSecondaryBrush}"
                            MaxWidth="600" HorizontalAlignment="Left" />
@@ -192,7 +192,7 @@
                             </Grid.ColumnDefinitions>
                             <Ellipse DataContext="{Binding Chat.Endpoint}" Style="{StaticResource EndpointStateDot}" HorizontalAlignment="Center" />
                             <StackPanel Grid.Column="1" Margin="10,0,0,0" Style="{StaticResource ExpandedOnly}">
-                                <TextBlock Text="{Binding Chat.Endpoint.Title}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="{Binding Chat.Endpoint.Title}" FontSize="{DynamicResource CaptionFontSize}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
                                 <TextBlock Text="{Binding Chat.Endpoint.Line}" Style="{StaticResource StatText}" TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                         </Grid>
@@ -203,7 +203,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <Path Data="{StaticResource IconDownload}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource TextSecondaryBrush}" />
                                 <TextBlock Text="{Binding Downloads.ActiveSummary}" Style="{StaticResource SidebarLabel}" FontFamily="{DynamicResource MonoFontFamily}"
-                                           FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                           FontSize="{DynamicResource SmallFontSize}" Foreground="{DynamicResource TextSecondaryBrush}" />
                             </StackPanel>
                             <ProgressBar Value="{Binding Downloads.AggregatePercent, Mode=OneWay}" Maximum="100" Height="3" Margin="0,6,0,0"
                                          IsIndeterminate="{Binding Downloads.IsAggregateIndeterminate, Mode=OneWay}" />

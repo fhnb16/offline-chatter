@@ -665,8 +665,12 @@ public sealed partial class ChatPageViewModel : PageViewModel
             chat.Append(user);
         }
 
-        if (chat.Messages.Count(m => m.Role == ChatRole.User) == 1 && !string.IsNullOrEmpty(text))
-            item.Title = text.Length > 48 ? text.Substring(0, 48).TrimEnd() + "…" : text;
+        // Первый вопрос: сразу название из первых слов, а после ответа — короткий запрос названия к модели
+        if (chat.Messages.Count(m => m.Role == ChatRole.User) == 1 && ChatTitles.FromText(text) is { } firstWords)
+        {
+            item.Title = firstWords;
+            chat.TitlePending = _s.Settings.Current.Window.AutoTitle;
+        }
         InputText = string.Empty;
         PendingAttachments.Clear();
         OnPropertyChanged(nameof(HasPending));
@@ -728,6 +732,8 @@ public sealed partial class ChatPageViewModel : PageViewModel
                 Messages.LastOrDefault(m => m.Message.Id == answer.Id)?.RefreshTools();
                 if (step == maxSteps - 1) Status = L.Get("Tools_MaxSteps");
             }
+            // В фоне: генерация уже закончилась, модель загружена — запрос короткий
+            if (chat.TitlePending && !cts.IsCancellationRequested) _ = RequestTitleAsync(item, client, model);
         }
         catch (OperationCanceledException) { }
         finally
@@ -739,6 +745,45 @@ public sealed partial class ChatPageViewModel : PageViewModel
             chat.UpdatedAt = DateTime.UtcNow;
             _s.Chats.Save(chat);
         }
+    }
+
+    /// <summary>
+    /// Название чата от выбранной модели: вопрос и начало ответа → 2–6 слов. Не вышло (ошибка, пустой или странный ответ,
+    /// модель застряла в размышлениях) — остаётся название из первых слов. Пробуем один раз, после удачного ответа.
+    /// </summary>
+    private async Task RequestTitleAsync(ChatListItem item, ChatClient client, string? model)
+    {
+        var chat = item.Session;
+        var path = chat.ActivePath().ToList();
+        var question = path.FirstOrDefault(m => m.Role == ChatRole.User)?.Content;
+        var answer = path.LastOrDefault(m => m.Role == ChatRole.Assistant && m.Error == null && m.Content.Length > 0)?.Content;
+        // Ответа ещё нет (ошибка, остановка) — попробуем после следующего
+        if (string.IsNullOrWhiteSpace(question) || answer == null) return;
+        chat.TitlePending = false;
+
+        var temporary = item.Title;
+        string? title = null;
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+            var result = await client.StreamAsync(ChatTitles.BuildRequest(question!, answer, model), _ => { }, cts.Token);
+            var recovered = AnswerRecovery.Finish(result.Reasoning, result.Content, result.ToolCalls, result.Stats.FinishReason, null);
+            title = ChatTitles.Clean(recovered.Content);
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or System.Net.Http.HttpRequestException or IOException
+                                       or InvalidOperationException or Newtonsoft.Json.JsonException)
+        {
+            Log.Info("Chat", "Title request failed: " + ex.GetBaseException().Message);
+        }
+
+        // Пока шёл запрос, название могли сменить — тогда оставляем как есть
+        if (title != null && item.Title == temporary)
+        {
+            item.Title = title;
+            if (ReferenceEquals(SelectedChat, item)) OnPropertyChanged(nameof(Title));
+        }
+        _s.Chats.Save(chat);
+        Log.Info("Chat", "Chat title", new { chat = chat.Id, fromModel = title != null && item.Title == title });
     }
 
     /// <summary>Один запрос к модели со стримингом в новое сообщение ассистента.</summary>

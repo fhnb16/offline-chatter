@@ -47,7 +47,7 @@
                         <!-- Рассуждения -->
                         <Expander x:Name="Think" Header="{Binding ReasoningHeader}" Margin="0,0,0,6"
                                   Visibility="{Binding HasReasoning, Converter={StaticResource BoolToVisibility}}">
-                            <TextBox Text="{Binding Reasoning, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontSize="12.5"
+                            <TextBox Text="{Binding Reasoning, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontFamily="{DynamicResource ChatFontFamily}" FontSize="{DynamicResource ChatSmallFontSize}"
                                      Foreground="{DynamicResource TextSecondaryBrush}" Background="Transparent" BorderThickness="0" MinHeight="0" Padding="0"
                                      MaxHeight="360" VerticalScrollBarVisibility="Auto">
                                 <TextBox.Template>
@@ -80,15 +80,15 @@
                                             <Expander.Header>
                                                 <StackPanel Orientation="Horizontal">
                                                     <Path Data="{StaticResource IconTool}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource TextSecondaryBrush}" />
-                                                    <TextBlock Text="{Binding Header}" Margin="8,0,0,0" VerticalAlignment="Center" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" />
+                                                    <TextBlock Text="{Binding Header}" Margin="8,0,0,0" VerticalAlignment="Center" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" />
                                                 </StackPanel>
                                             </Expander.Header>
                                             <StackPanel>
                                                 <TextBlock Text="{l:Loc Tools_Arguments}" Style="{StaticResource CaptionText}" />
-                                                <TextBox Text="{Binding Arguments, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" />
+                                                <TextBox Text="{Binding Arguments, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" />
                                                 <TextBlock Text="{l:Loc Tools_Result}" Style="{StaticResource CaptionText}" Margin="0,6,0,0" />
                                                 <TextBox x:Name="Res" Text="{Binding Result, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="240"
-                                                         VerticalScrollBarVisibility="Auto" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" VerticalContentAlignment="Top" />
+                                                         VerticalScrollBarVisibility="Auto" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" VerticalContentAlignment="Top" />
                                             </StackPanel>
                                         </Expander>
                                     </Border>
@@ -186,7 +186,7 @@
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconChip}" Style="{StaticResource IconPath}" />
                             <TextBlock Text="{Binding Title}" Margin="8,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding Group}" Margin="8,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="11" />
+                            <TextBlock Text="{Binding Group}" Margin="8,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}" FontSize="{DynamicResource SmallFontSize}" />
                         </StackPanel>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
@@ -223,7 +223,7 @@
                     Visibility="{Binding DataContext.IsCompact, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBoolToVisibility}}">
                 <DockPanel>
                     <Ellipse DockPanel.Dock="Left" Style="{StaticResource EndpointStateDot}" />
-                    <TextBlock Text="{Binding PillText}" Margin="8,0,0,0" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                    <TextBlock Text="{Binding PillText}" Margin="8,0,0,0" FontSize="{DynamicResource CaptionFontSize}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                                Foreground="{DynamicResource TextSecondaryBrush}" />
                 </DockPanel>
             </Button>
@@ -238,7 +238,7 @@
         <!-- Пустое состояние -->
         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="640"
                     Visibility="{Binding HasMessages, Converter={StaticResource InverseBoolToVisibility}}">
-            <TextBlock Text="{l:Loc Chat_EmptyTitle}" Style="{StaticResource TitleText}" HorizontalAlignment="Center" FontSize="24" />
+            <TextBlock Text="{l:Loc Chat_EmptyTitle}" Style="{StaticResource TitleText}" HorizontalAlignment="Center" FontSize="{DynamicResource PageTitleFontSize}" />
             <TextBlock Text="{l:Loc Chat_EmptySubtitle}" Style="{StaticResource CaptionText}" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,6,0,18" />
             <WrapPanel HorizontalAlignment="Center">
                 <Button Margin="4" Command="{Binding UseSuggestionCommand}" CommandParameter="{l:Loc Chat_Suggest1Prompt}" Content="{l:Loc Chat_Suggest1}" />
@@ -291,9 +291,9 @@
                     </Button>
                     <Grid Grid.Column="1" Margin="4,0">
                         <TextBox x:Name="InputBox" Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap"
-                                 MaxHeight="220" MinHeight="34" VerticalScrollBarVisibility="Auto" FontSize="14" Background="Transparent" BorderThickness="0"
+                                 MaxHeight="220" MinHeight="34" VerticalScrollBarVisibility="Auto" FontFamily="{DynamicResource ChatFontFamily}" FontSize="{DynamicResource ChatFontSize}" Background="Transparent" BorderThickness="0"
                                  VerticalContentAlignment="Center" PreviewKeyDown="OnInputPreviewKeyDown" />
-                        <TextBlock Text="{Binding InputHint}" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="14"
+                        <TextBlock Text="{Binding InputHint}" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" IsHitTestVisible="False" FontFamily="{DynamicResource ChatFontFamily}" FontSize="{DynamicResource ChatFontSize}"
                                    Foreground="{DynamicResource TextTertiaryBrush}" Visibility="{Binding Text, ElementName=InputBox, Converter={StaticResource EmptyToVisible}}" />
                     </Grid>
                     <Grid Grid.Column="2" VerticalAlignment="Bottom">
@@ -393,7 +393,7 @@
                                 <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
                             </Button>
                             <Ellipse DataContext="{Binding Server}" Style="{StaticResource ServerStateDot}" />
-                            <TextBlock Text="{l:Loc Res_Title}" Style="{StaticResource SubtitleText}" FontSize="13" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Loc Res_Title}" Style="{StaticResource SubtitleText}" FontSize="{DynamicResource AppFontSize}" Margin="8,0,0,0" VerticalAlignment="Center" />
                         </DockPanel>
                         <views:ServerInsightView Source="{Binding Server.InspectorGroups}" />
                     </StackPanel>

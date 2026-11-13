@@ -5,14 +5,14 @@
         Title="{l:Loc Tools_ConsentTitle}" Width="520" SizeToContent="Height" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
-        FontFamily="{DynamicResource AppFontFamily}" FontSize="13" UseLayoutRounding="True">
+        FontFamily="{DynamicResource AppFontFamily}" FontSize="{DynamicResource AppFontSize}" UseLayoutRounding="True">
     <Border Background="{DynamicResource ContentBackgroundBrush}" Padding="20,16">
         <StackPanel>
             <TextBlock x:Name="Header" Style="{StaticResource SubtitleText}" TextWrapping="Wrap" />
             <TextBlock x:Name="Source" Style="{StaticResource CaptionText}" Margin="0,4,0,10" />
             <TextBlock Text="{l:Loc Tools_Arguments}" Style="{StaticResource CaptionText}" />
             <TextBox x:Name="Args" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="220" VerticalScrollBarVisibility="Auto"
-                     FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" Margin="0,4,0,12" VerticalContentAlignment="Top" />
+                     FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" Margin="0,4,0,12" VerticalContentAlignment="Top" />
             <TextBlock x:Name="Warning" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}" Margin="0,0,0,12" Visibility="Collapsed" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="{l:Loc Tools_Deny}" Click="OnDeny" IsCancel="True" MinWidth="100" />

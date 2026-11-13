@@ -39,7 +39,7 @@
                             </ComboBox.ItemTemplate>
                         </ComboBox>
                         <StackPanel Margin="0,8,0,0" Visibility="{Binding IsPartialMode, Converter={StaticResource BoolToVisibility}}" IsEnabled="{Binding IsGpuEngine}">
-                            <TextBlock Text="{Binding GpuLayersText}" Style="{StaticResource StatText}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="{Binding GpuLayersText}" Style="{StaticResource StatText}" FontSize="{DynamicResource CaptionFontSize}" Foreground="{DynamicResource TextPrimaryBrush}" />
                             <Slider Minimum="1" Maximum="{Binding LayerCount}" Value="{Binding GpuLayersSlider}" TickFrequency="1" IsSnapToTickEnabled="True"
                                     SmallChange="1" LargeChange="4" Margin="0,4,0,0" />
                             <ItemsControl ItemsSource="{Binding GpuRatios}" Focusable="False" Margin="0,4,0,0">
@@ -84,7 +84,7 @@
                             <TextBlock Text="{l:Loc Profiles_CpuTitle}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
                         </DockPanel>
                         <TextBlock Text="{l:Loc Profiles_CpuSubtitle}" Style="{StaticResource CaptionText}" Margin="0,2,0,8" />
-                        <TextBlock Text="{Binding ThreadsText}" Style="{StaticResource StatText}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding ThreadsText}" Style="{StaticResource StatText}" FontSize="{DynamicResource CaptionFontSize}" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <Slider Minimum="0" Maximum="{Binding MaxThreads}" Value="{Binding ThreadsSlider}" TickFrequency="1" IsSnapToTickEnabled="True"
                                 SmallChange="1" LargeChange="2" Margin="0,4,0,0" />
                         <TextBlock Text="{Binding ThreadsWarning}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}" Margin="0,4,0,0"
@@ -206,7 +206,7 @@
             <TextBlock Style="{StaticResource FieldLabel}" Margin="0,14,0,2">
                 <Run Text="{l:Loc Profiles_Preview}" /><Run Text="{Binding ActiveModelName, Mode=OneWay, StringFormat=' — {0}'}" />
             </TextBlock>
-            <TextBox Text="{Binding Preview, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontFamily="{DynamicResource MonoFontFamily}" FontSize="12" />
+            <TextBox Text="{Binding Preview, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" />
             <TextBlock x:Name="Estimate" Text="{Binding EstimateText}" Style="{StaticResource CaptionText}" Margin="0,6,0,0" Foreground="{DynamicResource StatusOkBrush}" />
             <TextBlock Text="{Binding SkippedText}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}"
                        Visibility="{Binding SkippedText, Converter={StaticResource NullToCollapsed}}" />

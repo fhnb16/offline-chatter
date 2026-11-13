@@ -16,7 +16,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="40,32,40,32" MaxWidth="760" HorizontalAlignment="Center">
             <TextBlock Text="{l:Loc Welcome_Title}" Style="{StaticResource PageTitleText}" FontSize="28" />
-            <TextBlock Text="{l:Loc Welcome_Subtitle}" Style="{StaticResource CaptionText}" FontSize="13" Margin="0,-8,0,20" />
+            <TextBlock Text="{l:Loc Welcome_Subtitle}" Style="{StaticResource CaptionText}" FontSize="{DynamicResource AppFontSize}" Margin="0,-8,0,20" />
 
             <!-- 1. Железо -->
             <Border Style="{StaticResource SettingCard}">

@@ -145,6 +145,9 @@ public sealed class AppearanceSettings
 
     /// <summary>#RRGGBB, используется при Accent = Custom.</summary>
     public string CustomAccent { get; set; } = "#0078D4";
+
+    /// <summary>Шрифты интерфейса, сообщений и кода, чёткость и сглаживание текста.</summary>
+    public FontSettings Fonts { get; set; } = new();
 }
 
 public sealed class WindowPlacementSettings
@@ -186,6 +189,11 @@ public sealed class WindowPlacementSettings
 
     /// <summary>Отправка сообщения: Enter (false) или Ctrl+Enter (true).</summary>
     public bool SendWithCtrlEnter { get; set; }
+
+    /// <summary>
+    /// Название чата просить у модели коротким запросом после первого ответа. Выключено — первые слова вопроса.
+    /// </summary>
+    public bool AutoTitle { get; set; } = true;
 }
 
 /// <summary>Блок правой панели чата. Порядок значений — порядок блоков в панели.</summary>

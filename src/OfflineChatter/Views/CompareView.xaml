@@ -39,7 +39,7 @@
                     </Button>
                 </StackPanel>
                 <TextBox Text="{Binding Prompt, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="160"
-                         Background="Transparent" BorderThickness="0" FontSize="14" VerticalScrollBarVisibility="Auto" />
+                         Background="Transparent" BorderThickness="0" FontFamily="{DynamicResource ChatFontFamily}" FontSize="{DynamicResource ChatFontSize}" VerticalScrollBarVisibility="Auto" />
             </DockPanel>
         </Border>
         <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />
