@@ -443,6 +443,22 @@
   <data name="Enum_UserAgentPreset_SafariIphone" xml:space="preserve"><value>Safari, iPhone (мобильный)</value></data>
   <data name="Enum_UserAgentPreset_Custom" xml:space="preserve"><value>Своя строка</value></data>
   <data name="Tools_ChatToggle" xml:space="preserve"><value>Инструменты (встроенные и MCP)</value></data>
+  <data name="Tools_ChatSet" xml:space="preserve"><value>Инструменты в этом чате</value></data>
+  <data name="Tools_ChatSetHint" xml:space="preserve"><value>Описания включённых инструментов уходят в каждом запросе и занимают контекст</value></data>
+  <data name="Tools_ChatList" xml:space="preserve"><value>Выбрать инструменты</value></data>
+  <data name="Tools_Sent" xml:space="preserve"><value>{0} из {1} · ~{2} ток. в каждом запросе</value></data>
+  <data name="Tools_SentNone" xml:space="preserve"><value>Инструменты не отправляются</value></data>
+  <data name="Tools_CompactSchemas" xml:space="preserve"><value>Убирать служебные поля из схем инструментов</value></data>
+  <data name="Tools_CompactSchemasHint" xml:space="preserve"><value>$schema, title и additionalProperties модели не помогают; описания и примеры остаются</value></data>
+  <data name="Tools_CompactOldResults" xml:space="preserve"><value>Сокращать результаты инструментов из прошлых вопросов</value></data>
+  <data name="Tools_CompactOldResultsHint" xml:space="preserve"><value>Модель получает их начало и пометку вместо всей страницы; в чате они остаются полными</value></data>
+  <data name="Enum_ToolPreset_All" xml:space="preserve"><value>Все</value></data>
+  <data name="Enum_ToolPreset_None" xml:space="preserve"><value>Без инструментов</value></data>
+  <data name="Enum_ToolPreset_Math" xml:space="preserve"><value>Вычисления</value></data>
+  <data name="Enum_ToolPreset_Web" xml:space="preserve"><value>Веб</value></data>
+  <data name="Enum_ToolPreset_Custom" xml:space="preserve"><value>Свой набор</value></data>
+  <data name="Tok_Tools" xml:space="preserve"><value>Инструменты</value></data>
+  <data name="Tok_ToolsValue" xml:space="preserve"><value>~{0} ({1} шт.)</value></data>
   <data name="Tools_ConsentTitle" xml:space="preserve"><value>Вызов инструмента</value></data>
   <data name="Tools_ConsentHeader" xml:space="preserve"><value>Модель хочет вызвать «{0}»</value></data>
   <data name="Tools_ConsentSource" xml:space="preserve"><value>Источник: {0}</value></data>

@@ -54,6 +54,15 @@ public sealed class ToolsSettings
     /// <summary>Включены ли инструменты в чатах по умолчанию.</summary>
     public bool EnabledByDefault { get; set; } = true;
 
+    /// <summary>Убирать из схем служебные поля ($schema, title, additionalProperties) перед отправкой модели.</summary>
+    public bool CompactSchemas { get; set; } = true;
+
+    /// <summary>Результаты инструментов из прошлых вопросов отправлять модели сокращёнными (в чате они полные).</summary>
+    public bool CompactOldResults { get; set; }
+
+    /// <summary>Сколько символов старого результата оставлять.</summary>
+    public int OldResultChars { get; set; } = 600;
+
     /// <summary>Встроенный коннектор MCP уже добавлялся в mcp.json (если пользователь его удалил — не возвращаем).</summary>
     public bool BuiltinMcpSeeded { get; set; }
 }
@@ -102,6 +111,9 @@ public sealed class ToolRegistry : IDisposable
     public event EventHandler? Changed;
 
     public IReadOnlyDictionary<string, McpClient> Clients => _clients;
+
+    /// <summary>Сообщить, что список или описания инструментов изменились (настройки, офлайн-режим).</summary>
+    public void NotifyChanged() => Changed?.Invoke(this, EventArgs.Empty);
 
     // ---------------- MCP ----------------
 
@@ -175,16 +187,32 @@ public sealed class ToolRegistry : IDisposable
     public ConsentMode ConsentFor(ToolDefinition t) => _settings.Consent.TryGetValue(t.Id, out var m) ? m : t.DefaultConsent;
 
     /// <summary>
-    /// Описания для запроса к модели (OpenAI tools). Выключенные инструменты не передаются;
-    /// в офлайн-режиме не передаются и те, которым нужен интернет, — вызов всё равно закончился бы ошибкой.
+    /// Можно ли предложить инструмент модели: не выключен пользователем и не требует интернета в офлайн-режиме
+    /// (вызов всё равно закончился бы ошибкой).
     /// </summary>
-    public JArray ToOpenAiTools() => new(All()
-        .Where(t => ConsentFor(t) != ConsentMode.Disabled && !(t.NeedsInternet && _http.Settings.OfflineMode))
-        .Select(t => new JObject
+    public bool IsOffered(ToolDefinition t) => ConsentFor(t) != ConsentMode.Disabled && !(t.NeedsInternet && _http.Settings.OfflineMode);
+
+    /// <summary>
+    /// Описания для запроса к модели (OpenAI tools). <paramref name="enabled"/> — инструменты, включённые в чате
+    /// (null — все предложенные).
+    /// </summary>
+    public JArray ToOpenAiTools(Func<ToolDefinition, bool>? enabled = null) =>
+        new(All().Where(t => IsOffered(t) && enabled?.Invoke(t) != false).Select(ToOpenAi));
+
+    /// <summary>Описание одного инструмента в том виде, в каком оно уходит модели.</summary>
+    public JObject ToOpenAi(ToolDefinition t) => new()
+    {
+        ["type"] = "function",
+        ["function"] = new JObject
         {
-            ["type"] = "function",
-            ["function"] = new JObject { ["name"] = t.Name, ["description"] = t.Description, ["parameters"] = t.Schema },
-        }));
+            ["name"] = t.Name,
+            ["description"] = t.Description,
+            ["parameters"] = _settings.CompactSchemas ? ToolSchemaCompactor.CompactSchema(t.Schema) : t.Schema,
+        },
+    };
+
+    /// <summary>Сколько токенов описание инструмента занимает в каждом запросе (оценка по тексту JSON).</summary>
+    public int EstimateTokens(ToolDefinition t) => Chat.TokenEstimator.Estimate(ToOpenAi(t).ToString(Newtonsoft.Json.Formatting.None));
 
     public ToolDefinition? Find(string name) => All().FirstOrDefault(t => t.Name == name);
 

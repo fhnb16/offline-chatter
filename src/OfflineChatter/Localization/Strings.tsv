@@ -459,6 +459,22 @@ Enum_UserAgentPreset_ChromeAndroid	Chrome, Android (mobile)	Chrome, Android (м�
 Enum_UserAgentPreset_SafariIphone	Safari, iPhone (mobile)	Safari, iPhone (мобильный)
 Enum_UserAgentPreset_Custom	Custom string	Своя строка
 Tools_ChatToggle	Tools (built-in and MCP)	Инструменты (встроенные и MCP)
+Tools_ChatSet	Tools in this chat	Инструменты в этом чате
+Tools_ChatSetHint	Descriptions of the enabled tools are sent with every request and take context	Описания включённых инструментов уходят в каждом запросе и занимают контекст
+Tools_ChatList	Choose tools	Выбрать инструменты
+Tools_Sent	{0} of {1} · ~{2} tokens per request	{0} из {1} · ~{2} ток. в каждом запросе
+Tools_SentNone	Tools are not sent	Инструменты не отправляются
+Tools_CompactSchemas	Remove service fields from tool schemas	Убирать служебные поля из схем инструментов
+Tools_CompactSchemasHint	$schema, title and additionalProperties do not help the model; descriptions and examples stay	$schema, title и additionalProperties модели не помогают; описания и примеры остаются
+Tools_CompactOldResults	Shorten tool results from earlier questions	Сокращать результаты инструментов из прошлых вопросов
+Tools_CompactOldResultsHint	The model gets their beginning and a note instead of the whole page; in the chat they stay complete	Модель получает их начало и пометку вместо всей страницы; в чате они остаются полными
+Enum_ToolPreset_All	All	Все
+Enum_ToolPreset_None	No tools	Без инструментов
+Enum_ToolPreset_Math	Calculations	Вычисления
+Enum_ToolPreset_Web	Web	Веб
+Enum_ToolPreset_Custom	Custom set	Свой набор
+Tok_Tools	Tools	Инструменты
+Tok_ToolsValue	~{0} ({1} pcs.)	~{0} ({1} шт.)
 Tools_ConsentTitle	Tool call	Вызов инструмента
 Tools_ConsentHeader	The model wants to call «{0}»	Модель хочет вызвать «{0}»
 Tools_ConsentSource	Source: {0}	Источник: {0}

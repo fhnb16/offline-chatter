@@ -97,6 +97,31 @@ public sealed partial class McpViewModel : PageViewModel
     [ObservableProperty] private string _newCommand = string.Empty;
     [ObservableProperty] private string _newUrl = string.Empty;
 
+    /// <summary>Убирать из схем служебные поля перед отправкой модели.</summary>
+    public bool CompactSchemas
+    {
+        get => _s.Settings.Current.Tools.CompactSchemas;
+        set
+        {
+            _s.Settings.Current.Tools.CompactSchemas = value;
+            _s.Settings.Save();
+            OnPropertyChanged();
+            _s.Tools.NotifyChanged(); // цена инструментов в правой панели чата пересчитывается
+        }
+    }
+
+    /// <summary>Отправлять результаты инструментов из прошлых вопросов сокращёнными.</summary>
+    public bool CompactOldResults
+    {
+        get => _s.Settings.Current.Tools.CompactOldResults;
+        set
+        {
+            _s.Settings.Current.Tools.CompactOldResults = value;
+            _s.Settings.Save();
+            OnPropertyChanged();
+        }
+    }
+
     public string ConfigPath => _s.Mcp.FilePath;
     public bool HasServers => Servers.Count > 0;
 
@@ -138,6 +163,8 @@ public sealed partial class McpViewModel : PageViewModel
         if (_loading) return;
         _s.Settings.Current.Tools.Consent[tool.Id] = mode;
         _s.Settings.Save();
+        // Выключенный инструмент пропадает из набора чата и из его цены
+        _s.Tools.NotifyChanged();
     }
 
     partial void OnFileSandboxChanged(string value) => SaveSettings();

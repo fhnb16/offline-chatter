@@ -443,6 +443,22 @@ No — only remove from the list</value></data>
   <data name="Enum_UserAgentPreset_SafariIphone" xml:space="preserve"><value>Safari, iPhone (mobile)</value></data>
   <data name="Enum_UserAgentPreset_Custom" xml:space="preserve"><value>Custom string</value></data>
   <data name="Tools_ChatToggle" xml:space="preserve"><value>Tools (built-in and MCP)</value></data>
+  <data name="Tools_ChatSet" xml:space="preserve"><value>Tools in this chat</value></data>
+  <data name="Tools_ChatSetHint" xml:space="preserve"><value>Descriptions of the enabled tools are sent with every request and take context</value></data>
+  <data name="Tools_ChatList" xml:space="preserve"><value>Choose tools</value></data>
+  <data name="Tools_Sent" xml:space="preserve"><value>{0} of {1} · ~{2} tokens per request</value></data>
+  <data name="Tools_SentNone" xml:space="preserve"><value>Tools are not sent</value></data>
+  <data name="Tools_CompactSchemas" xml:space="preserve"><value>Remove service fields from tool schemas</value></data>
+  <data name="Tools_CompactSchemasHint" xml:space="preserve"><value>$schema, title and additionalProperties do not help the model; descriptions and examples stay</value></data>
+  <data name="Tools_CompactOldResults" xml:space="preserve"><value>Shorten tool results from earlier questions</value></data>
+  <data name="Tools_CompactOldResultsHint" xml:space="preserve"><value>The model gets their beginning and a note instead of the whole page; in the chat they stay complete</value></data>
+  <data name="Enum_ToolPreset_All" xml:space="preserve"><value>All</value></data>
+  <data name="Enum_ToolPreset_None" xml:space="preserve"><value>No tools</value></data>
+  <data name="Enum_ToolPreset_Math" xml:space="preserve"><value>Calculations</value></data>
+  <data name="Enum_ToolPreset_Web" xml:space="preserve"><value>Web</value></data>
+  <data name="Enum_ToolPreset_Custom" xml:space="preserve"><value>Custom set</value></data>
+  <data name="Tok_Tools" xml:space="preserve"><value>Tools</value></data>
+  <data name="Tok_ToolsValue" xml:space="preserve"><value>~{0} ({1} pcs.)</value></data>
   <data name="Tools_ConsentTitle" xml:space="preserve"><value>Tool call</value></data>
   <data name="Tools_ConsentHeader" xml:space="preserve"><value>The model wants to call «{0}»</value></data>
   <data name="Tools_ConsentSource" xml:space="preserve"><value>Source: {0}</value></data>

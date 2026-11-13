@@ -140,6 +140,19 @@ public sealed class ChatSession
 
     /// <summary>Разрешить модели вызывать инструменты (встроенные и MCP). null — по настройке по умолчанию.</summary>
     public bool? Tools { get; set; }
+
+    /// <summary>
+    /// Набор инструментов чата; null — «Все» (или «Без инструментов», если <see cref="Tools"/> = false):
+    /// старые чаты ведут себя как раньше.
+    /// </summary>
+    public Tools.ToolPreset? ToolPreset { get; set; }
+
+    /// <summary>Свой список инструментов (id) для набора <see cref="OfflineChatter.Core.Tools.ToolPreset.Custom"/>.</summary>
+    public List<string>? ToolIds { get; set; }
+
+    /// <summary>Набор с учётом старого флага <see cref="Tools"/> и настройки по умолчанию.</summary>
+    public Tools.ToolPreset EffectiveToolPreset(bool enabledByDefault) =>
+        ToolPreset ?? ((Tools ?? enabledByDefault) ? OfflineChatter.Core.Tools.ToolPreset.All : OfflineChatter.Core.Tools.ToolPreset.None);
     public double? Temperature { get; set; }
     public int? MaxTokens { get; set; }
 

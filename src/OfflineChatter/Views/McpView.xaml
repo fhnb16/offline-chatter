@@ -40,10 +40,23 @@
             <Border Style="{StaticResource SettingCard}">
                 <StackPanel>
                     <CheckBox Content="{l:Loc Tools_EnabledByDefault}" IsChecked="{Binding EnabledByDefault}" Margin="0,0,0,12" />
-                    <c:AdaptiveRow Style="{StaticResource Row}" Margin="0">
+                    <c:AdaptiveRow Style="{StaticResource Row}">
                         <TextBlock Text="{l:Loc Tools_MaxStepsLabel}" Style="{StaticResource BodyText}" VerticalAlignment="Center" />
                         <TextBox Text="{Binding MaxSteps}" FontFamily="{DynamicResource MonoFontFamily}" />
                     </c:AdaptiveRow>
+                    <!-- Экономия контекста: описания инструментов и их результаты уходят модели в каждом запросе -->
+                    <CheckBox IsChecked="{Binding CompactSchemas}" Style="{StaticResource Check}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Tools_CompactSchemas}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Tools_CompactSchemasHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding CompactOldResults}" Margin="0">
+                        <StackPanel>
+                            <TextBlock Text="{l:Loc Tools_CompactOldResults}" Style="{StaticResource BodyText}" />
+                            <TextBlock Text="{l:Loc Tools_CompactOldResultsHint}" Style="{StaticResource Hint}" />
+                        </StackPanel>
+                    </CheckBox>
                 </StackPanel>
             </Border>
 

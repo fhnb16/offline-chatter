@@ -209,6 +209,15 @@ public sealed partial class ChatPageViewModel : PageViewModel
         Layout = layout;
         Endpoint = new EndpointStatusViewModel(services, server);
         TokensGroup = new InsightGroup(L.Get("Inspector_Section_Tokens"));
+        ToolSet = new ChatToolSetViewModel(services, () =>
+        {
+            if (SelectedChat != null) SaveChat();
+        });
+        // Цена инструментов — строка блока «Токены»: пересчёт и при смене набора, и при подключении MCP-сервера
+        ToolSet.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ChatToolSetViewModel.SentTokens)) RefreshTokens();
+        };
         Layout.Changed += (_, _) => RebuildStatGroups();
         RebuildStatGroups();
         // Размер контекста известен только у запущенного сервера — строка «Контекст» обновляется вместе с ним
@@ -245,6 +254,9 @@ public sealed partial class ChatPageViewModel : PageViewModel
 
     /// <summary>Блок «Токены»: контекст, последний ответ, всего за чат.</summary>
     public InsightGroup TokensGroup { get; }
+
+    /// <summary>Инструменты этого чата: набор, галочки и цена в токенах.</summary>
+    public ChatToolSetViewModel ToolSet { get; }
 
     /// <summary>Блоки статистики беседы в правой панели («Подключение», «Токены») — те, что включены.</summary>
     public ObservableCollection<InsightGroup> StatGroups { get; } = new();
@@ -330,7 +342,6 @@ public sealed partial class ChatPageViewModel : PageViewModel
     [ObservableProperty] private ThinkingOption? _thinking;
     [ObservableProperty] private double _temperature = 0.7;
     [ObservableProperty] private bool _overrideTemperature;
-    [ObservableProperty] private bool _toolsEnabled;
 
     public bool IsEditing => Editing != null;
     public bool HasMessages => Messages.Count > 0;
@@ -417,7 +428,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
         ReasoningStyle = ReasoningStyles.FirstOrDefault(r => r.Value == (s.ReasoningStyle ?? Core.Chat.ReasoningStyle.Auto)) ?? ReasoningStyles[0];
         ReasoningHint = null;
         OverrideTemperature = s.Temperature.HasValue;
-        ToolsEnabled = s.Tools ?? _s.Settings.Current.Tools.EnabledByDefault;
+        ToolSet.Load(s);
         Temperature = s.Temperature ?? 0.7;
         if (s.ModelRef != null && ModelOptions.FirstOrDefault(o => o.Ref == s.ModelRef) is { } opt) SelectedModel = opt;
         else if (SelectedModel != null) s.ModelRef = SelectedModel.Ref;
@@ -468,12 +479,6 @@ public sealed partial class ChatPageViewModel : PageViewModel
         SaveChat();
     }
 
-    partial void OnToolsEnabledChanged(bool value)
-    {
-        if (SelectedChat == null) return;
-        SelectedChat.Session.Tools = value;
-        SaveChat();
-    }
 
     partial void OnTemperatureChanged(double value) => ApplyTemperature();
     partial void OnOverrideTemperatureChanged(bool value) => ApplyTemperature();
@@ -709,19 +714,19 @@ public sealed partial class ChatPageViewModel : PageViewModel
             }
             Status = null;
 
-            var useTools = (chat.Tools ?? _s.Settings.Current.Tools.EnabledByDefault) && _s.Tools.All().Count > 0;
+            var enabledTools = ChatToolSetViewModel.EnabledFilter(_s, chat);
             var maxSteps = Math.Max(1, _s.Settings.Current.Tools.MaxSteps);
             var current = parent;
             for (var step = 0; step < maxSteps && !cts.IsCancellationRequested; step++)
             {
-                var answer = await StreamStepAsync(chat, current, client, model, useTools, cts.Token);
+                var answer = await StreamStepAsync(chat, current, client, model, enabledTools, cts.Token);
                 if (answer.ToolCalls.Count == 0 || answer.Error != null || cts.IsCancellationRequested) break;
 
                 // Выполнить вызовы инструментов и записать результаты сообщениями роли tool
                 current = answer;
                 foreach (var call in answer.ToolCalls)
                 {
-                    var (text, isError) = await RunToolAsync(call, cts.Token);
+                    var (text, isError) = await RunToolAsync(call, enabledTools, cts.Token);
                     call.Result = text;
                     call.IsError = isError;
                     current = new ChatMessage { Role = ChatRole.Tool, ParentId = current.Id, ToolCallId = call.Id, Content = text };
@@ -787,7 +792,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
     }
 
     /// <summary>Один запрос к модели со стримингом в новое сообщение ассистента.</summary>
-    private async Task<ChatMessage> StreamStepAsync(ChatSession chat, ChatMessage parent, ChatClient client, string? model, bool useTools, CancellationToken ct)
+    private async Task<ChatMessage> StreamStepAsync(ChatSession chat, ChatMessage parent, ChatClient client, string? model, Func<Core.Tools.ToolDefinition, bool>? enabledTools, CancellationToken ct)
     {
         var answer = new ChatMessage { Role = ChatRole.Assistant, ParentId = parent.Id };
         chat.Messages.Add(answer);
@@ -863,14 +868,17 @@ public sealed partial class ChatPageViewModel : PageViewModel
                 Seed = sampling.Seed,
                 Reasoning = chat.EffectiveReasoning,
                 ReasoningStyle = chat.ReasoningStyle ?? Core.Chat.ReasoningStyle.Auto,
-                Tools = useTools ? _s.Tools.ToOpenAiTools() : null,
+                Tools = enabledTools != null ? _s.Tools.ToOpenAiTools(enabledTools) : null,
             };
             if (chat.ModelRef?.StartsWith("provider:", StringComparison.Ordinal) != true)
                 request.ChatTemplate = await _s.GetLocalChatTemplateAsync(ct);
             if (!string.IsNullOrWhiteSpace(chat.SystemPrompt))
                 request.Messages.Add(new ChatMessage { Role = ChatRole.System, Content = chat.SystemPrompt! });
-            request.Messages.AddRange(chat.ActivePath().Where(m => m.Id != answer.Id && m.Error == null &&
-                                                                   (m.Role != ChatRole.Assistant || m.Content.Length > 0 || m.ToolCalls.Count > 0)));
+            var history = chat.ActivePath().Where(m => m.Id != answer.Id && m.Error == null &&
+                                                       (m.Role != ChatRole.Assistant || m.Content.Length > 0 || m.ToolCalls.Count > 0)).ToList();
+            // Результаты инструментов из прошлых вопросов — сокращёнными (настройка; в чате они остаются полными)
+            var toolSettings = _s.Settings.Current.Tools;
+            request.Messages.AddRange(toolSettings.CompactOldResults ? Core.Tools.ToolHistory.CompactOldResults(history, toolSettings.OldResultChars) : history);
 
             if (_s.Settings.Current.Logging.LogMessageContent)
                 Log.Info("Chat", "Request", new { chat = chat.Id, messages = request.Messages.Select(m => new { m.Role, m.Content }) });
@@ -954,12 +962,14 @@ public sealed partial class ChatPageViewModel : PageViewModel
     }
 
     /// <summary>Выполнить вызов инструмента с учётом согласия пользователя.</summary>
-    private async Task<(string text, bool isError)> RunToolAsync(ToolCall call, CancellationToken ct)
+    private async Task<(string text, bool isError)> RunToolAsync(ToolCall call, Func<Core.Tools.ToolDefinition, bool>? enabledTools, CancellationToken ct)
     {
         var tool = _s.Tools.Find(call.Name);
         if (tool == null) return ($"Unknown tool: {call.Name}", true);
         var mode = _s.Tools.ConsentFor(tool);
         if (mode == Core.Tools.ConsentMode.Disabled) return ("Tool is disabled by the user", true);
+        // Модель может назвать инструмент, которого в этом чате нет (вспомнила из прошлых сообщений или выдумала)
+        if (enabledTools?.Invoke(tool) != true) return ("Tool is not enabled in this chat", true);
         // Аргументы с учётом настроек (город по умолчанию): в запросе согласия видно то, что действительно уйдёт
         var arguments = _s.Tools.PrepareArguments(tool, call.Arguments);
         if (mode == Core.Tools.ConsentMode.Ask)
@@ -1054,6 +1064,10 @@ public sealed partial class ChatPageViewModel : PageViewModel
             if (answers > 0)
                 rows.Add(new InsightRowData(L.Get("Tok_Chat"), L.F("Tok_ChatValue", (estimated ? "≈" : string.Empty) + totalIn.ToString("N0"), totalOut.ToString("N0"), answers)));
         }
+        // Описания инструментов уходят в каждом запросе — видно, сколько контекста они занимают
+        rows.Add(new InsightRowData(L.Get("Tok_Tools"), ToolSet.SentCount == 0
+            ? "—"
+            : L.F("Tok_ToolsValue", ToolSet.SentTokens.ToString("N0"), ToolSet.SentCount)));
         TokensGroup.Set(rows);
     }
 

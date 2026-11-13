@@ -67,7 +67,12 @@ public sealed partial class SettingsViewModel : PageViewModel
         Appearance = new AppearanceViewModel(services.Settings);
         Fonts = new FontsViewModel(services.Settings);
         Network =new NetworkSettingsViewModel(services);
-        Network.OfflineChanged += (_, _) => main.NotifyOfflineChanged();
+        Network.OfflineChanged += (_, _) =>
+        {
+            main.NotifyOfflineChanged();
+            // В офлайн-режиме веб-инструменты не предлагаются модели — набор чата и его цена меняются
+            services.Tools.NotifyChanged();
+        };
         Api = new LocalApiViewModel(services);
         Prompts = new PromptPresetsViewModel(services);
         Data = new DataViewModel(services, () => main.Chat);

@@ -93,6 +93,7 @@ public sealed class SettingsStore
         s.Tools ??= new Tools.ToolsSettings();
         s.Tools.Consent ??= new System.Collections.Generic.Dictionary<string, Tools.ConsentMode>();
         if (s.Tools.MaxSteps is < 1 or > 20) s.Tools.MaxSteps = 6;
+        if (s.Tools.OldResultChars is < 200 or > 5000) s.Tools.OldResultChars = 600;
         s.Tools.Web ??= new Tools.WebToolsSettings();
         s.Tools.Web.Normalize();
         s.Tools.DefaultCity = Tools.DefaultLocation.Normalize(s.Tools.DefaultCity);
