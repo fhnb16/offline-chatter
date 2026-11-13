@@ -72,11 +72,14 @@ public static class ToolPresets
 
     private static bool Is(Regex re, ToolDefinition t) => re.IsMatch(t.Name) || re.IsMatch(t.Description);
 
+    // Дата и время — только по имени: «time» в описаниях встречается слишком часто (единицы времени, таймауты)
+    private static bool IsTime(ToolDefinition t) => TimeTool.IsMatch(t.Name);
+
     public static bool Contains(ToolPreset preset, ToolDefinition tool) => preset switch
     {
         ToolPreset.All => true,
-        ToolPreset.Math => Is(MathTool, tool) || Is(TimeTool, tool),
-        ToolPreset.Web => Is(WebTool, tool) || Is(TimeTool, tool) || DefaultLocation.IsWeatherTool(tool.Name, tool.Description),
+        ToolPreset.Math => Is(MathTool, tool) || IsTime(tool),
+        ToolPreset.Web => Is(WebTool, tool) || IsTime(tool) || DefaultLocation.IsWeatherTool(tool.Name, tool.Description),
         _ => false,
     };
 
