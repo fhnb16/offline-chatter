@@ -60,9 +60,34 @@ public sealed partial class VariantItem : ObservableObject
     }
 }
 
+/// <summary>Вкладки раздела «Движок».</summary>
+public enum EngineTab
+{
+    /// <summary>llama.cpp: чат.</summary>
+    Text,
+    /// <summary>stable-diffusion.cpp: изображения.</summary>
+    Images,
+}
+
 /// <summary>Раздел «Движок»: железо, установленные сборки, загрузка новых, состояние сервера.</summary>
 public sealed partial class EngineViewModel : PageViewModel
 {
+    public IReadOnlyList<EngineTab> Tabs { get; } = new[] { EngineTab.Text, EngineTab.Images };
+
+    [ObservableProperty] private EngineTab _selectedTab;
+
+    /// <summary>stable-diffusion.cpp: сборки, параметры генератора, API изображений.</summary>
+    public ImageEngineViewModel ImageEngine { get; }
+
+    public MainViewModel Main => _main;
+
+    public void ShowTab(EngineTab tab) => SelectedTab = tab;
+
+    partial void OnSelectedTabChanged(EngineTab value)
+    {
+        if (value == EngineTab.Images) ImageEngine.OnShown();
+    }
+
     private readonly AppServices _s;
     private readonly MainViewModel _main;
     private HardwareInfo? _hw;
@@ -74,6 +99,7 @@ public sealed partial class EngineViewModel : PageViewModel
         _s = services;
         _main = main;
         Profiles = new ProfilesViewModel(services);
+        ImageEngine = new ImageEngineViewModel(services, main);
         _s.Engine.EnginesChanged += (_, _) =>
         {
             RefreshInstalled();
@@ -316,6 +342,7 @@ public sealed partial class EngineViewModel : PageViewModel
         _ = LoadHardwareAsync();
         if (Releases.Count == 0 && !IsLoadingReleases) _ = RefreshReleasesAsync();
         _ = Profiles.UpdatePreviewAsync();
+        if (SelectedTab == EngineTab.Images) ImageEngine.OnShown();
     }
 
     private ServerState _lastState = Core.Engine.ServerState.Stopped;

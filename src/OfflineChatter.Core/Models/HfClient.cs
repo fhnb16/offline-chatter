@@ -51,6 +51,82 @@ public enum HfSort
     Updated,
 }
 
+/// <summary>Задача модели (pipeline_tag на Hugging Face). Порядок — порядок в списке фильтра.</summary>
+public enum HfTask
+{
+    /// <summary>Модели для чата: text-generation и близкие (как раньше по умолчанию).</summary>
+    Chat,
+    /// <summary>Понимают изображения (image-text-to-text).</summary>
+    Vision,
+    /// <summary>Текст в текст (text2text-generation: T5, перевод, пересказ).</summary>
+    TextToText,
+    /// <summary>Любой вход и выход (any-to-any: омни-модели).</summary>
+    AnyToAny,
+    /// <summary>Картинка из текста.</summary>
+    TextToImage,
+    /// <summary>Картинка из картинки (редактирование, перерисовка).</summary>
+    ImageToImage,
+    TextToVideo,
+    ImageToVideo,
+    TextToSpeech,
+    SpeechToText,
+    /// <summary>Эмбеддинги (feature-extraction / sentence-similarity).</summary>
+    Embeddings,
+    /// <summary>Без фильтра по задаче.</summary>
+    All,
+}
+
+/// <summary>Чем программа может запустить модель этой задачи.</summary>
+public enum HfRuntime
+{
+    /// <summary>llama.cpp (GGUF): чат.</summary>
+    Llama,
+    /// <summary>stable-diffusion.cpp: изображения.</summary>
+    StableDiffusion,
+    /// <summary>Встроенного движка для такой задачи нет — модель можно только скачать.</summary>
+    None,
+}
+
+public static class HfTasks
+{
+    public static string? PipelineTag(HfTask t) => t switch
+    {
+        HfTask.Chat => "text-generation",
+        HfTask.Vision => "image-text-to-text",
+        HfTask.TextToText => "text2text-generation",
+        HfTask.AnyToAny => "any-to-any",
+        HfTask.TextToImage => "text-to-image",
+        HfTask.ImageToImage => "image-to-image",
+        HfTask.TextToVideo => "text-to-video",
+        HfTask.ImageToVideo => "image-to-video",
+        HfTask.TextToSpeech => "text-to-speech",
+        HfTask.SpeechToText => "automatic-speech-recognition",
+        HfTask.Embeddings => "feature-extraction",
+        _ => null,
+    };
+
+    public static HfRuntime RuntimeFor(HfTask t) => t switch
+    {
+        HfTask.Chat or HfTask.Vision or HfTask.TextToText or HfTask.AnyToAny => HfRuntime.Llama,
+        HfTask.TextToImage or HfTask.ImageToImage => HfRuntime.StableDiffusion,
+        _ => HfRuntime.None,
+    };
+
+    /// <summary>Движок по pipeline_tag найденной модели (у модели без тега — llama.cpp, если есть GGUF).</summary>
+    public static HfRuntime RuntimeFor(string? pipelineTag) => pipelineTag switch
+    {
+        null or "text-generation" or "image-text-to-text" or "text2text-generation" or "conversational" or "any-to-any" => HfRuntime.Llama,
+        "text-to-image" or "image-to-image" or "unconditional-image-generation" => HfRuntime.StableDiffusion,
+        _ => HfRuntime.None,
+    };
+
+    /// <summary>
+    /// Нужен ли фильтр «только GGUF» по умолчанию: для чата — да (llama.cpp читает только GGUF), для изображений — нет
+    /// (stable-diffusion.cpp загружает и safetensors).
+    /// </summary>
+    public static bool GgufByDefault(HfTask t) => RuntimeFor(t) != HfRuntime.StableDiffusion;
+}
+
 /// <summary>Клиент Hugging Face Hub (или зеркала): поиск GGUF, файлы репозитория, README, ссылки на скачивание.</summary>
 public sealed class HfClient
 {
@@ -81,7 +157,17 @@ public sealed class HfClient
         return d;
     }
 
-    public async Task<IReadOnlyList<HfModelSummary>> SearchAsync(string? query, bool visionOnly, HfSort sort, int limit, CancellationToken ct)
+    public Task<IReadOnlyList<HfModelSummary>> SearchAsync(string? query, bool visionOnly, HfSort sort, int limit, CancellationToken ct) =>
+        SearchAsync(query, visionOnly ? HfTask.Vision : HfTask.All, ggufOnly: true, sort, limit, ct);
+
+    /// <summary>Поиск по задаче. <paramref name="ggufOnly"/> — только репозитории с GGUF (фильтр library=gguf).</summary>
+    public async Task<IReadOnlyList<HfModelSummary>> SearchAsync(string? query, HfTask task, bool ggufOnly, HfSort sort, int limit, CancellationToken ct)
+    {
+        var json = await _http.GetJsonAsync(SearchUrl(Endpoint, query, task, ggufOnly, sort, limit), ct, Authorize).ConfigureAwait(false);
+        return ((JArray)json).Select(ParseSummary).ToList();
+    }
+
+    public static string SearchUrl(string endpoint, string? query, HfTask task, bool ggufOnly, HfSort sort, int limit)
     {
         var sortKey = sort switch
         {
@@ -90,12 +176,24 @@ public sealed class HfClient
             HfSort.Updated => "lastModified",
             _ => "downloads",
         };
-        var url = $"{Endpoint}/api/models?filter=gguf&sort={sortKey}&direction=-1&limit={limit}" +
+        var url = $"{endpoint.TrimEnd('/')}/api/models?sort={sortKey}&direction=-1&limit={limit}" +
                   "&expand[]=gguf&expand[]=downloads&expand[]=likes&expand[]=pipeline_tag&expand[]=lastModified&expand[]=gated";
+        if (ggufOnly) url += "&filter=gguf";
         if (!string.IsNullOrWhiteSpace(query)) url += "&search=" + Uri.EscapeDataString(query!.Trim());
-        if (visionOnly) url += "&pipeline_tag=image-text-to-text";
-        var json = await _http.GetJsonAsync(url, ct, Authorize).ConfigureAwait(false);
-        return ((JArray)json).Select(ParseSummary).ToList();
+        if (HfTasks.PipelineTag(task) is { } tag) url += "&pipeline_tag=" + tag;
+        return url;
+    }
+
+    /// <summary>Все файлы весов репозитория (gguf, safetensors…), без частей формата diffusers — для моделей изображений.</summary>
+    public async Task<IReadOnlyList<HfFile>> GetWeightFilesAsync(string repo, CancellationToken ct)
+    {
+        var json = await _http.GetJsonAsync($"{Endpoint}/api/models/{repo}/tree/main?recursive=true", ct, Authorize).ConfigureAwait(false);
+        return ((JArray)json)
+            .Where(t => (string?)t["type"] == "file")
+            .Select(t => new HfFile((string)t["path"]!, (long?)t["lfs"]?["size"] ?? (long?)t["size"] ?? 0, (string?)t["lfs"]?["oid"]))
+            .Where(f => Images.ImagePresets.IsWeightFile(f.Path) && !Images.ImagePresets.IsDiffusersPart(f.Path))
+            .OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     public async Task<HfModelSummary> GetModelAsync(string repo, CancellationToken ct)

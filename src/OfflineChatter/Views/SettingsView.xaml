@@ -53,6 +53,21 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Вариант интерфейса: сколько пояснений и параметров показывать на страницах движков, моделей и изображений -->
+                    <Border Style="{StaticResource SettingCard}">
+                        <StackPanel>
+                            <c:AdaptiveRow Style="{StaticResource Row}">
+                                <StackPanel>
+                                    <TextBlock Text="{l:Loc Ui_Detail}" Style="{StaticResource SettingLabel}" />
+                                    <TextBlock Text="{l:Loc Ui_DetailHint}" Style="{StaticResource CaptionText}" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <ComboBox ItemsSource="{Binding Main.DetailLevels}" SelectedItem="{Binding Main.Detail}" ItemTemplate="{StaticResource EnumItemTemplate}" />
+                            </c:AdaptiveRow>
+                            <TextBlock Text="{Binding Main.Detail, Converter={StaticResource EnumDisplay}, ConverterParameter=Hint}" Style="{StaticResource CaptionText}"
+                                       Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextTertiaryBrush}" />
+                        </StackPanel>
+                    </Border>
+
                     <Border Style="{StaticResource SettingCard}">
                         <CheckBox IsChecked="{Binding SendWithCtrlEnter}">
                             <StackPanel>

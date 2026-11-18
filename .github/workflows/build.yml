@@ -3,11 +3,16 @@
 # push в master/main → Release-сборка (один exe через Costura) → тесты → релиз vX.Y.N на GitHub.
 # Тег создаётся автоматически (gh release create --target <commit>): без тега GitHub релиз не публикует.
 # Версия: X.Y — из <Version> в Directory.Build.props, N — номер запуска workflow.
-# В релизе: OfflineChatter-X.Y.N.zip и .rar (папка OfflineChatter\ с exe и готовой структурой models\, engine\, chats\),
-# установщики OfflineChatter-X.Y.N-Setup.exe и -Setup-NET48.exe (со встроенным офлайн-установщиком .NET Framework 4.8
+# В релизе: OfflineChatter.zip и .rar (папка OfflineChatter\ с exe и готовой структурой models\, engine\, chats\),
+# установщики OfflineChatter-Setup.exe и -Setup-NET48.exe (со встроенным офлайн-установщиком .NET Framework 4.8
 # для Windows 7/8.1 и машин без сети) и SHA256SUMS.txt. Голого exe нет.
 # Программа сама находит релиз (настройки → «О программе»), качает zip, сверяет SHA-256 с полем digest ассета
 # и берёт exe из архива.
+#
+# Имена файлов без версии: постоянные ссылки вида
+#   https://github.com/fhnb16/offline-chatter/releases/latest/download/OfflineChatter-Setup.exe
+# всегда ведут на последний релиз. Версия — в теге, названии релиза и свойствах exe.
+# Защита: шаг упаковки падает, если в имени файла релиза оказалась версия.
 #
 # Не публиковать конкретный коммит: добавьте [skip release] в сообщение коммита.
 # Pull request: только сборка и тесты.
@@ -179,6 +184,10 @@ jobs:
           # Только архивы и установщик: голый exe в релиз не кладём (Windows 11 и антивирусы агрессивнее к скачанным exe)
           New-Item -ItemType Directory -Force release | Out-Null
           Get-ChildItem out -File | Where-Object { $_.Extension -in '.zip', '.rar', '.exe' } | Copy-Item -Destination release
+          # Постоянные ссылки на latest работают, только если имена файлов одинаковы во всех релизах
+          $expected = @('OfflineChatter.zip', 'OfflineChatter.rar', 'OfflineChatter-Setup.exe', 'OfflineChatter-Setup-NET48.exe')
+          $versioned = Get-ChildItem release -File | Where-Object { $_.Name -match '\d+\.\d+\.\d+' -or $_.Name -notin $expected }
+          if ($versioned) { throw "Unexpected release file names (must not contain a version): $($versioned.Name -join ', ')" }
           $lines = Get-ChildItem release -File | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)" }
           $lines | Set-Content release/SHA256SUMS.txt -Encoding ascii
           Get-ChildItem release | Format-Table Name, Length

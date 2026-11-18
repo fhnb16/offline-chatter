@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -81,10 +81,19 @@ public sealed partial class ModelsViewModel : PageViewModel
     {
         _s = services;
         _main = main;
-        main.Downloads.Updated += (_, _) => RefreshSelectedDownload();
+        main.Downloads.Updated += (_, _) =>
+        {
+            RefreshSelectedDownload();
+            RefreshKitDownloads();
+        };
         _s.Models.Changed += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(RefreshLocal));
+        _s.ImageModels.Changed += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(RefreshImageModels));
+        _s.ImageSetupChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(RefreshImageModels));
         RefreshLocal();
+        InitImages();
     }
+
+    public MainViewModel Main => _main;
 
     public override PageKind Kind => PageKind.Models;
 
@@ -92,7 +101,7 @@ public sealed partial class ModelsViewModel : PageViewModel
 
     // ---------- Загрузка выбранной модели (полоса прямо под кнопкой «Скачать») ----------
 
-    private string? SelectedGroup => SelectedResult == null ? null : "model:" + SelectedResult.Id;
+    private string? SelectedGroup => SelectedResult == null ? null : (IsImageResult ? "image-model:" : "model:") + SelectedResult.Id;
 
     [ObservableProperty] private DownloadSummary? _selectedDownload;
 
@@ -102,6 +111,7 @@ public sealed partial class ModelsViewModel : PageViewModel
     {
         OnPropertyChanged(nameof(IsSelectedDownloading));
         DownloadCommand.NotifyCanExecuteChanged();
+        DownloadImageCommand.NotifyCanExecuteChanged();
     }
 
     private void RefreshSelectedDownload() => SelectedDownload = SelectedGroup is { } g ? Downloads.Summarize(g) : null;
@@ -132,7 +142,22 @@ public sealed partial class ModelsViewModel : PageViewModel
     public bool HasHfToken => !string.IsNullOrEmpty(_s.Settings.Current.Models.HfTokenProtected);
 
     [ObservableProperty] private string _searchText = string.Empty;
-    [ObservableProperty] private bool _visionOnly;
+
+    /// <summary>Задачи для фильтра поиска (pipeline_tag на Hugging Face).</summary>
+    public IReadOnlyList<HfTask> Tasks { get; } = Enum.GetValues(typeof(HfTask)).Cast<HfTask>().ToList();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TaskHint), nameof(TaskRuntime), nameof(IsImageTask), nameof(IsUnsupportedTask))]
+    private HfTask _searchTask = HfTask.Chat;
+
+    /// <summary>Только репозитории с GGUF. Для изображений по умолчанию выключено: stable-diffusion.cpp читает и safetensors.</summary>
+    [ObservableProperty] private bool _ggufOnly = true;
+
+    public HfRuntime TaskRuntime => HfTasks.RuntimeFor(SearchTask);
+    public bool IsImageTask => TaskRuntime == HfRuntime.StableDiffusion;
+    public bool IsUnsupportedTask => TaskRuntime == HfRuntime.None;
+    public string TaskHint => L.Get("Models_TaskHint_" + SearchTask);
+
     [ObservableProperty] private bool _fitsOnly = true;
     [ObservableProperty] private HfSort _sort = HfSort.Downloads;
     [ObservableProperty] private bool _isSearching;
@@ -277,7 +302,22 @@ public sealed partial class ModelsViewModel : PageViewModel
 
     // ---------------- Hugging Face ----------------
 
-    partial void OnVisionOnlyChanged(bool value) => _ = SearchAsync();
+    private bool _taskSwitching;
+
+    partial void OnSearchTaskChanged(HfTask value)
+    {
+        // Смена задачи задаёт разумное «только GGUF»; один поиск вместо двух
+        _taskSwitching = true;
+        GgufOnly = HfTasks.GgufByDefault(value);
+        _taskSwitching = false;
+        _ = SearchAsync();
+    }
+
+    partial void OnGgufOnlyChanged(bool value)
+    {
+        if (!_taskSwitching) _ = SearchAsync();
+    }
+
     partial void OnFitsOnlyChanged(bool value) => _ = SearchAsync();
     partial void OnSortChanged(HfSort value) => _ = SearchAsync();
     partial void OnSelectedResultChanged(HfModelSummary? value)
@@ -296,16 +336,16 @@ public sealed partial class ModelsViewModel : PageViewModel
         try
         {
             _hw ??= await _s.Engine.GetHardwareAsync();
-            var list = await _s.Hf.SearchAsync(SearchText, VisionOnly, Sort, 50, cts.Token);
+            // «Чат» — как раньше: GGUF любой задачи, затем отбор чат-моделей (у многих GGUF-репозиториев тега нет вовсе)
+            var apiTask = SearchTask == HfTask.Chat ? HfTask.All : SearchTask;
+            var list = await _s.Hf.SearchAsync(SearchText, apiTask, GgufOnly, Sort, 50, cts.Token);
             if (cts.IsCancellationRequested) return;
             var budget = _hw.TotalRam + _hw.TotalVram;
             Results.Clear();
             foreach (var m in list)
             {
                 if (FitsOnly && m.TotalFileSize is { } size && size > budget * 0.8) continue;
-                // Только чат-модели: TTS, видео, эмбеддинги и пр. в чате бесполезны
-                if (m.PipelineTag is not (null or "text-generation" or "image-text-to-text" or "text2text-generation" or "conversational" or "any-to-any"))
-                    continue;
+                if (SearchTask == HfTask.Chat && HfTasks.RuntimeFor(m.PipelineTag) != HfRuntime.Llama) continue;
                 Results.Add(m);
             }
         }
@@ -339,6 +379,8 @@ public sealed partial class ModelsViewModel : PageViewModel
     {
         _detailsCts?.Cancel();
         Quants.Clear();
+        ImageFiles.Clear();
+        OnImageResultChanged();
         Readme = null;
         MmprojInfo = null;
         DetailsError = null;
@@ -351,6 +393,15 @@ public sealed partial class ModelsViewModel : PageViewModel
         try
         {
             _hw ??= await _s.Engine.GetHardwareAsync();
+            if (IsImageResult)
+            {
+                // Модель изображений: все файлы весов с ролями (основная модель, VAE, кодировщики)
+                var weights = await _s.Hf.GetWeightFilesAsync(model.Id, cts.Token);
+                if (cts.IsCancellationRequested) return;
+                FillImageFiles(model, weights);
+                Readme = StripFrontMatter(await _s.Hf.GetReadmeAsync(model.Id, cts.Token));
+                return;
+            }
             var files = await _s.Hf.GetFilesAsync(model.Id, cts.Token);
             if (cts.IsCancellationRequested) return;
             _files = files;

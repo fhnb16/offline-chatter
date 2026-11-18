@@ -17,6 +17,7 @@ public sealed partial class MainViewModel : ObservableObject
         Services = services;
         AllNavItems = new List<NavItem>
         {
+            new(PageKind.Images, "IconImage"),
             new(PageKind.Models, "IconCube"),
             new(PageKind.Engine, "IconChip"),
             new(PageKind.Providers, "IconCloud"),
@@ -41,6 +42,7 @@ public sealed partial class MainViewModel : ObservableObject
         Register(new McpViewModel(services));
         Register(new WelcomeViewModel(services, this));
         Register(new CompareViewModel(services, this));
+        Register(new ImagesViewModel(services, this));
 
         services.UpdateFound += (_, _) => System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() => OnPropertyChanged(nameof(UpdateBadge))));
         services.EngineUpdateChanged += (_, _) => System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() => OnPropertyChanged(nameof(EngineUpdateBadge))));
@@ -95,6 +97,25 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>Загрузки показываются наверху раздела «Модели».</summary>
     [RelayCommand]
     private void OpenDownloads() => Navigate(PageKind.Models);
+
+    // ---------- Вариант интерфейса ----------
+
+    public IReadOnlyList<Core.Storage.UiDetail> DetailLevels { get; } =
+        Enum.GetValues(typeof(Core.Storage.UiDetail)).Cast<Core.Storage.UiDetail>().ToList();
+
+    /// <summary>Подробность пояснений на страницах движков, моделей и изображений (переключается и в настройках, и на самих страницах).</summary>
+    public Core.Storage.UiDetail Detail
+    {
+        get => Services.Settings.Current.Window.Detail;
+        set
+        {
+            if (Services.Settings.Current.Window.Detail == value) return;
+            Services.Settings.Current.Window.Detail = value;
+            Services.Settings.Save();
+            Theming.UiDetailResources.Apply(value);
+            OnPropertyChanged();
+        }
+    }
 
     // ---------- Боковая панель ----------
 

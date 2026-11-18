@@ -28,6 +28,9 @@ public sealed class AppSettings
 
     public Models.ModelsSettings Models { get; set; } = new();
 
+    /// <summary>Генерация изображений: stable-diffusion.cpp, модели, публичный API.</summary>
+    public Images.ImageSettings Images { get; set; } = new();
+
     public Tools.ToolsSettings Tools { get; set; } = new();
 
     public SecuritySettings Security { get; set; } = new();
@@ -187,6 +190,9 @@ public sealed class WindowPlacementSettings
     /// <summary>Компактный режим: только чат и кнопка настроек, без боковой и правой панелей.</summary>
     public bool CompactMode { get; set; }
 
+    /// <summary>Сколько пояснений и параметров показывать на страницах движков, моделей и изображений.</summary>
+    public UiDetail Detail { get; set; } = UiDetail.Standard;
+
     /// <summary>Отправка сообщения: Enter (false) или Ctrl+Enter (true).</summary>
     public bool SendWithCtrlEnter { get; set; }
 
@@ -194,6 +200,17 @@ public sealed class WindowPlacementSettings
     /// Название чата просить у модели коротким запросом после первого ответа. Выключено — первые слова вопроса.
     /// </summary>
     public bool AutoTitle { get; set; } = true;
+}
+
+/// <summary>Вариант интерфейса: подробность пояснений и набор видимых параметров.</summary>
+public enum UiDetail
+{
+    /// <summary>Пошагово: подсказки к каждому полю, шаги «что сделать дальше», только основные параметры.</summary>
+    Guided,
+    /// <summary>Обычный: основные параметры с краткими пояснениями, дополнительные — в раскрывающихся блоках.</summary>
+    Standard,
+    /// <summary>Эксперт: все параметры сразу, без пояснений, с командной строкой.</summary>
+    Expert,
 }
 
 /// <summary>Блок правой панели чата. Порядок значений — порядок блоков в панели.</summary>

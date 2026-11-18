@@ -6,7 +6,9 @@
 ;   iscc /DAppVersion=0.1.42 /DStageDir=..\out\stage\OfflineChatter /DOutDir=..\out installer\OfflineChatter.iss
 ; Вариант со встроенным .NET Framework 4.8 (офлайн-установщик Microsoft, ~120 МБ) — для Windows 7/8.1 и машин без сети:
 ;   iscc ... /DNet48=...\NDP48-x86-x64-AllOS-ENU.exe /DKB4490628=...\kb4490628-x64.msu /DKB4474419=...\kb4474419-v3-x64.msu installer\OfflineChatter.iss
-;   → OfflineChatter-X.Y.N-Setup-NET48.exe
+;   → OfflineChatter-Setup-NET48.exe
+; Версии в имени файла нет: ссылка .../releases/latest/download/OfflineChatter-Setup.exe не устаревает.
+; Версия — в свойствах файла (VersionInfoVersion) и в названии релиза.
 
 #ifndef AppVersion
   #define AppVersion "0.0.0"
@@ -23,6 +25,9 @@ AppId={{6B1E2F0A-3C4D-4E7B-9A51-0F7C2D9E8B14}
 AppName=Offline Chatter
 AppVersion={#AppVersion}
 AppVerName=Offline Chatter {#AppVersion}
+; Имя файла установщика без версии — версия видна в «Свойства → Подробно»
+VersionInfoVersion={#AppVersion}
+VersionInfoProductVersion={#AppVersion}
 AppPublisher=fhnb16
 AppPublisherURL=https://github.com/fhnb16/offline-chatter
 AppSupportURL=https://github.com/fhnb16/offline-chatter/issues
@@ -41,9 +46,9 @@ OutputDir={#OutDir}
 #ifndef KB4474419
   #error "KB4474419 x64 package is required for the NET48 installer"
 #endif
-OutputBaseFilename=OfflineChatter-{#AppVersion}-Setup-NET48
+OutputBaseFilename=OfflineChatter-Setup-NET48
 #else
-OutputBaseFilename=OfflineChatter-{#AppVersion}-Setup
+OutputBaseFilename=OfflineChatter-Setup
 #endif
 SetupIconFile=..\src\OfflineChatter\Assets\app.ico
 UninstallDisplayIcon={app}\OfflineChatter.exe

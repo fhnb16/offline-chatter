@@ -52,10 +52,18 @@ $env:OC_E2E=1; dotnet test                   # + сквозной: устано�
 
 | Файл | Что это |
 |---|---|
-| `OfflineChatter-X.Y.N.zip`, `.rar` | папка `OfflineChatter\` с exe и готовой структурой: `models\` (сюда — свои GGUF), `engine\`, `chats\`, README |
-| `OfflineChatter-X.Y.N-Setup.exe` | установщик: по умолчанию для текущего пользователя в `%LOCALAPPDATA%\Programs\OfflineChatter`, без прав администратора; ярлык в «Пуск» |
-| `OfflineChatter-X.Y.N-Setup-NET48.exe` | тот же установщик со встроенным офлайн-установщиком .NET Framework 4.8 и x64-обновлениями KB для Windows 7 (~180 МБ до сжатия) — для Windows 7 SP1 / 8.1 и машин без сети. .NET ставится, только если его нет (один запрос прав администратора). На Windows 7 x64 при необходимости сначала устанавливаются KB4490628 и KB4474419; если нужна перезагрузка, установщик остановится — после перезапуска компьютера его нужно запустить повторно. При отсутствии корневого сертификата Microsoft Root Certificate Authority 2011 он добавляется перед установкой .NET ([рекомендация Microsoft](https://learn.microsoft.com/en-us/previous-versions/dotnet/framework/install/on-windows-7)) |
+| `OfflineChatter.zip`, `.rar` | папка `OfflineChatter\` с exe и готовой структурой: `models\` (сюда — свои GGUF), `engine\`, `chats\`, README |
+| `OfflineChatter-Setup.exe` | установщик: по умолчанию для текущего пользователя в `%LOCALAPPDATA%\Programs\OfflineChatter`, без прав администратора; ярлык в «Пуск» |
+| `OfflineChatter-Setup-NET48.exe` | тот же установщик со встроенным офлайн-установщиком .NET Framework 4.8 и x64-обновлениями KB для Windows 7 (~180 МБ до сжатия) — для Windows 7 SP1 / 8.1 и машин без сети. .NET ставится, только если его нет (один запрос прав администратора). На Windows 7 x64 при необходимости сначала устанавливаются KB4490628 и KB4474419; если нужна перезагрузка, установщик остановится — после перезапуска компьютера его нужно запустить повторно. При отсутствии корневого сертификата Microsoft Root Certificate Authority 2011 он добавляется перед установкой .NET ([рекомендация Microsoft](https://learn.microsoft.com/en-us/previous-versions/dotnet/framework/install/on-windows-7)) |
 | `SHA256SUMS.txt` | контрольные суммы |
+
+Версии в именах файлов нет — поэтому постоянные ссылки на последний релиз не устаревают:
+
+- https://github.com/fhnb16/offline-chatter/releases/latest/download/OfflineChatter-Setup.exe
+- https://github.com/fhnb16/offline-chatter/releases/latest/download/OfflineChatter-Setup-NET48.exe
+- https://github.com/fhnb16/offline-chatter/releases/latest/download/OfflineChatter.zip
+
+Версия видна в названии релиза, в свойствах exe и установщика («Свойства → Подробно») и в «Настройки → О программе». Workflow не опубликует релиз, если в имени файла окажется номер версии.
 
 Голый exe в релиз не кладётся: и обновление внутри программы скачивает zip (Windows 11 и антивирусы спокойнее относятся к архивам). Если запустить программу из «Загрузок», с рабочего стола или прямо из архива, она предложит перенести себя в `%LOCALAPPDATA%\Programs\OfflineChatter`. Локально поставка собирается так: `pwsh tools/package.ps1 -BinDir src/OfflineChatter/bin/Release/net48 -Version 0.1.0 -Out out`. Для варианта с .NET дополнительно нужны официальные x64 `.msu` для KB4490628 и KB4474419, а также `NDP48-x86-x64-AllOS-ENU.exe`; пути передаются компилятору Inno Setup через `/DKB4490628=...`, `/DKB4474419=...` и `/DNet48=...`.
 

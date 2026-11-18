@@ -104,6 +104,7 @@ public partial class App : Application
         });
 
         ThemeManager.Initialize(Settings.Current.Appearance);
+        UiDetailResources.Apply(Settings.Current.Window.Detail);
         Secrets.LoadMode(Settings.Current.Security);
         if (Secrets.NeedsUnlock)
         {
@@ -126,6 +127,15 @@ public partial class App : Application
             {
                 var error = await Services.StartPublicApiAsync(System.Threading.CancellationToken.None).ConfigureAwait(false);
                 if (error != null) Log.Warn("App", "Public API not started: " + error);
+            });
+        }
+        if (Settings.Current.Images.ExposeApi)
+        {
+            // Публичный API изображений: генератор тоже поднимается вместе с программой
+            _ = System.Threading.Tasks.Task.Run(async () =>
+            {
+                var error = await Services.StartImageApiAsync(System.Threading.CancellationToken.None).ConfigureAwait(false);
+                if (error != null) Log.Warn("App", "Image API not started: " + error);
             });
         }
         _mainVm = new MainViewModel(Services);

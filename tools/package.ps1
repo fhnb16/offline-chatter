@@ -1,5 +1,5 @@
 # Собирает поставку Offline Chatter из Release-сборки:
-#   OfflineChatter-<версия>.zip и .rar — папка OfflineChatter\ с exe и готовой структурой (models\, engine\, chats\ с подсказками);
+#   OfflineChatter.zip и .rar (без версии в имени — ссылки на latest-релиз не устаревают) — папка OfflineChatter\ с exe и готовой структурой (models\, engine\, chats\ с подсказками);
 #   папка stage\OfflineChatter — её же берёт установщик (installer\OfflineChatter.iss).
 # Пример:
 #   pwsh tools/package.ps1 -BinDir src/OfflineChatter/bin/Release/net48 -Version 0.1.42 -Out out
@@ -77,7 +77,7 @@ Remove old builds with "Engine → Clean up old builds".
 New-Item -ItemType Directory -Force (Join-Path $app 'chats') | Out-Null
 
 # ZIP: папка OfflineChatter в корне архива
-$zip = Join-Path $Out "OfflineChatter-$Version.zip"
+$zip = Join-Path $Out "OfflineChatter.zip"
 if (Test-Path $zip) { Remove-Item $zip }
 [IO.Compression.ZipFile]::CreateFromDirectory($stageRoot, $zip, [IO.Compression.CompressionLevel]::Optimal, $false)
 Write-Host "ZIP: $zip ($([math]::Round((Get-Item $zip).Length / 1MB, 2)) MB)"
@@ -86,7 +86,7 @@ Write-Host "ZIP: $zip ($([math]::Round((Get-Item $zip).Length / 1MB, 2)) MB)"
 $rarExe = @("$env:ProgramFiles\WinRAR\Rar.exe", "${env:ProgramFiles(x86)}\WinRAR\Rar.exe") | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 if (-not $rarExe) { $rarExe = (Get-Command rar -ErrorAction SilentlyContinue)?.Source }
 if ($rarExe) {
-    $rar = Join-Path $Out "OfflineChatter-$Version.rar"
+    $rar = Join-Path $Out "OfflineChatter.rar"
     if (Test-Path $rar) { Remove-Item $rar }
     & $rarExe a -r -ep1 -m5 -idq $rar $app
     if ($LASTEXITCODE -ne 0) { throw "rar failed with code $LASTEXITCODE" }

@@ -5,9 +5,32 @@
              xmlns:views="clr-namespace:OfflineChatter.Views"
              xmlns:l="clr-namespace:OfflineChatter.Localization"
              xmlns:c="clr-namespace:OfflineChatter.Controls">
+    <UserControl.Resources>
+        <DataTemplate x:Key="EnumItemTemplate">
+            <TextBlock Text="{Binding Converter={StaticResource EnumDisplay}}" />
+        </DataTemplate>
+        <DataTemplate x:Key="EmptyTemplate" />
+    </UserControl.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="24,20,24,32">
-            <TextBlock Text="{l:Loc Nav_Engine}" Style="{StaticResource PageTitleText}" />
+            <c:AdaptiveRow Breakpoint="560">
+                <TextBlock Text="{l:Loc Nav_Engine}" Style="{StaticResource PageTitleText}" Margin="0,0,0,12" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                    <TextBlock Text="{l:Loc Ui_DetailShort}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox ItemsSource="{Binding Main.DetailLevels}" SelectedItem="{Binding Main.Detail}" MinWidth="140"
+                              ItemTemplate="{StaticResource EnumItemTemplate}" ToolTip="{l:Loc Ui_DetailHint}" />
+                </StackPanel>
+            </c:AdaptiveRow>
+            <!-- Вкладки: текст (llama.cpp) и изображения (stable-diffusion.cpp) -->
+            <TabControl Style="{DynamicResource TabStrip}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding SelectedTab}"
+                        ItemTemplate="{StaticResource EnumItemTemplate}" ContentTemplate="{StaticResource EmptyTemplate}" />
+            <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,4,0,12" />
+            <TextBlock Text="{l:Loc Engine_TabTextHint}" Style="{StaticResource CaptionText}" Margin="0,0,0,12" Visibility="{DynamicResource UiHintVisibility}" />
+
+            <views:ImageEngineView DataContext="{Binding ImageEngine}"
+                                   Visibility="{Binding DataContext.SelectedTab, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource EqualsToVisibility}, ConverterParameter=Images}" />
+
+            <StackPanel Visibility="{Binding SelectedTab, Converter={StaticResource EqualsToVisibility}, ConverterParameter=Text}">
 
             <!-- ===== Обновление llama.cpp ===== -->
             <Border Style="{StaticResource SettingCard}" Visibility="{Binding HasEngineUpdate, Converter={StaticResource BoolToVisibility}}">
@@ -238,6 +261,8 @@
                     </StackPanel>
                 </StackPanel>
             </Border>
+
+            </StackPanel>
 
             <views:DownloadsView DataContext="{Binding Downloads}" Margin="0,16,0,0" />
         </StackPanel>

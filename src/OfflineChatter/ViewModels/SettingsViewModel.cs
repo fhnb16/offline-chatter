@@ -60,6 +60,9 @@ public sealed partial class SettingsViewModel : PageViewModel
     private readonly MainViewModel _main;
     private readonly string _initialLanguage;
 
+    /// <summary>Оболочка: вариант интерфейса (подробность пояснений) хранится и меняется там.</summary>
+    public MainViewModel Main => _main;
+
     public SettingsViewModel(AppServices services, MainViewModel main)
     {
         _services = services;

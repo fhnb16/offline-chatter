@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using OfflineChatter.Core.Images;
 using System.Reflection;
 using OfflineChatter.Core.Chat;
 using OfflineChatter.Core.Models;
@@ -44,6 +46,200 @@ public sealed class AppServices : IDisposable
         EngineLog = new JsonlLogger(paths.Logs, "engine", log.MaxFileSizeMb * 1024L * 1024L, log.MaxFiles, LogLevel.Info);
         Engine.Server.OutputLine += (_, line) => EngineLog.Write(LogLevel.Info, "llama-server", line);
         Engine.Server.StateChanged += (_, _) => UpdateLoopbackForwarder();
+
+        // stable-diffusion.cpp: свои сборки, модели, процесс и журнал
+        ImageEngines = new SdEngineRegistry(paths.ImageEngine, settings.Current.Images);
+        ImageInstaller = new SdEngineInstaller(paths, Downloads, Releases);
+        ImageModels = new Core.Images.ImageModelRegistry(paths.ImageModelsFile);
+        EngineProcess.KillOrphan(paths.ImageEngine);
+        ImageServer = new ImageServer(paths.ImageEngine);
+        ImageLog = new JsonlLogger(paths.Logs, "image-engine", log.MaxFileSizeMb * 1024L * 1024L, log.MaxFiles, LogLevel.Info);
+        ImageServer.OutputLine += (_, line) => ImageLog.Write(LogLevel.Info, "sd-server", line);
+        ImageServer.StateChanged += (_, _) => UpdateImageProxy();
+    }
+
+    // =====================================================================
+    // Изображения (stable-diffusion.cpp)
+    // =====================================================================
+
+    public SdEngineRegistry ImageEngines { get; }
+    public SdEngineInstaller ImageInstaller { get; }
+    public Core.Images.ImageModelRegistry ImageModels { get; }
+    public ImageServer ImageServer { get; }
+    public JsonlLogger ImageLog { get; }
+
+    /// <summary>Сборки или модели изображений добавлены, удалены или сменилась активная.</summary>
+    public event EventHandler? ImageSetupChanged;
+
+    public void NotifyImageSetupChanged()
+    {
+        // Сборку могли переустановить в ту же папку — справку перечитаем
+        _imageFlags.Clear();
+        Settings.Save();
+        ImageSetupChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>Идёт генерация — генератор нельзя останавливать ради llama-server.</summary>
+    public bool ImageBusy { get; set; }
+
+    public Core.Images.ImageModel? ActiveImageModel =>
+        ImageModels.Find(Settings.Current.Images.ActiveModelId) ?? ImageModels.Models.FirstOrDefault(m => m.IsReady);
+
+    /// <summary>Папка для сгенерированных картинок.</summary>
+    public string ImagesFolder =>
+        string.IsNullOrWhiteSpace(Settings.Current.Images.OutputFolder) ? Paths.Images : Settings.Current.Images.OutputFolder!;
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, FlagCatalog?> _imageFlags = new();
+
+    /// <summary>Флаги этой сборки sd-server (--help, кэш help.txt рядом со сборкой или в cache/engine-help).</summary>
+    public async System.Threading.Tasks.Task<FlagCatalog?> GetImageFlagsAsync(SdEngineInstall e)
+    {
+        if (_imageFlags.TryGetValue(e.Id, out var cached)) return cached;
+        var helpFile = e.IsExternal
+            ? System.IO.Path.Combine(Paths.Cache, "engine-help", "sd-help-" + Math.Abs(e.Id.GetHashCode()).ToString("x", System.Globalization.CultureInfo.InvariantCulture) + ".txt")
+            : System.IO.Path.Combine(e.Directory, "help.txt");
+        string? help = null;
+        try
+        {
+            if (System.IO.File.Exists(helpFile) && System.IO.File.GetLastWriteTimeUtc(helpFile) >= System.IO.File.GetLastWriteTimeUtc(e.ServerExe))
+                help = System.IO.File.ReadAllText(helpFile);
+        }
+        catch (System.IO.IOException) { }
+        if (help == null)
+        {
+            var smoke = await SdEngineInstaller.SmokeTestAsync(e.ServerExe).ConfigureAwait(false);
+            if (smoke.Ok)
+            {
+                help = smoke.Output;
+                try
+                {
+                    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(helpFile)!);
+                    System.IO.File.WriteAllText(helpFile, help, System.Text.Encoding.UTF8);
+                }
+                catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException) { }
+            }
+        }
+        var catalog = SdHelp.Parse(help);
+        _imageFlags[e.Id] = catalog;
+        return catalog;
+    }
+
+    private string? _imageSignature;
+    private readonly System.Threading.SemaphoreSlim _imageGate = new(1, 1);
+
+    /// <summary>Ошибка последнего запуска генератора (или почему его нельзя запустить) — для UI.</summary>
+    public string? ImageServerError { get; private set; }
+
+    /// <summary>
+    /// Убедиться, что sd-server запущен с этой моделью и параметрами; иначе (пере)запустить.
+    /// При общей видеопамяти сначала останавливается llama-server (если его не держит публичный API).
+    /// </summary>
+    public async System.Threading.Tasks.Task<bool> EnsureImageServerAsync(Core.Images.ImageModel model, System.Threading.CancellationToken ct)
+    {
+        await _imageGate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var engine = ImageEngines.Active;
+            if (engine == null)
+            {
+                ImageServerError = Localization.L.Get("Img_NoEngine");
+                return false;
+            }
+            if (!model.IsReady)
+            {
+                ImageServerError = Localization.L.F("Img_ModelIncomplete", string.Join(", ", model.Missing().Select(c => Localization.L.Get("Enum_ImageComponent_" + c))));
+                return false;
+            }
+            var launch = Settings.Current.Images.Launch;
+            var options = Core.Images.ImageServerOptions.Resolve(model, launch);
+            var signature = engine.Id + "|" + Newtonsoft.Json.JsonConvert.SerializeObject(options) + "|" + model.Family;
+            if (ImageServer.State == ServerState.Ready && signature == _imageSignature) return true;
+
+            var s = Settings.Current;
+            if (s.Images.ShareVram && !s.Engine.ExposeApi && Engine.Server.State != ServerState.Stopped)
+            {
+                Log.Info("Images", "Stopping llama-server to free video memory");
+                Engine.Server.Stop();
+            }
+            var flags = await GetImageFlagsAsync(engine).ConfigureAwait(false);
+            await ImageServer.StartAsync(engine, model, options, flags, ct).ConfigureAwait(false);
+            var ok = ImageServer.State == ServerState.Ready;
+            _imageSignature = ok ? signature : null;
+            ImageServerError = ok ? null : ImageServer.LastError ?? "?";
+            return ok;
+        }
+        finally
+        {
+            _imageGate.Release();
+        }
+    }
+
+    /// <summary>Превью командной строки sd-server для модели (порт условный).</summary>
+    public async System.Threading.Tasks.Task<(string? command, IReadOnlyList<string> skipped)> PreviewImageLaunchAsync(Core.Images.ImageModel? model)
+    {
+        var engine = ImageEngines.Active;
+        if (engine == null || model == null) return (null, Array.Empty<string>());
+        var flags = await GetImageFlagsAsync(engine).ConfigureAwait(false);
+        var skipped = new List<string>();
+        var args = Core.Images.ImageServerOptions.Resolve(model, Settings.Current.Images.Launch).BuildArgs("127.0.0.1", 8081, flags, skipped);
+        return ("sd-server.exe " + ServerLaunchOptions.JoinCommandLine(args), skipped);
+    }
+
+    /// <summary>Публичному API изображений нужен постоянный ключ (как и у llama-server).</summary>
+    public void EnsureImageApiKey()
+    {
+        var i = Settings.Current.Images;
+        if (!i.ExposeApi || Secrets.UnprotectOrEmpty(i.ApiKeyProtected).Length > 0) return;
+        i.ApiKeyProtected = Secrets.Protect(EngineProcess.NewKey());
+        Settings.Save();
+        Log.Info("Images", "Image API key generated");
+    }
+
+    /// <summary>Поднять генератор с моделью по умолчанию (публичный API — при запуске программы и по кнопке).</summary>
+    public async System.Threading.Tasks.Task<string?> StartImageApiAsync(System.Threading.CancellationToken ct)
+    {
+        EnsureImageApiKey();
+        var model = ActiveImageModel;
+        if (model == null) return Localization.L.Get("Img_NoModel");
+        if (await EnsureImageServerAsync(model, ct).ConfigureAwait(false))
+        {
+            UpdateImageProxy();
+            return ImageProxyError;
+        }
+        return ImageServerError ?? "?";
+    }
+
+    private AuthProxy? _imageProxy;
+
+    /// <summary>Почему публичный API изображений не слушает порт (занят и т. п.).</summary>
+    public string? ImageProxyError { get; private set; }
+
+    public bool IsImageApiListening => _imageProxy?.IsRunning == true;
+
+    public event EventHandler? ImageApiChanged;
+
+    /// <summary>
+    /// Публичный API изображений: прокси с проверкой ключа на выбранном адресе и порту → sd-server на петле.
+    /// Пересоздаётся при перезапуске генератора (новый внутренний порт) и при смене настроек.
+    /// </summary>
+    public void UpdateImageProxy()
+    {
+        var i = Settings.Current.Images;
+        var srv = ImageServer;
+        var wanted = i.ExposeApi && srv.State == ServerState.Ready;
+        if (wanted && _imageProxy != null && _imageProxy.UpstreamPort == srv.Port && _imageProxy.Port == i.Port && _imageProxy.ListenAddress == i.ListenAddress)
+            return;
+        _imageProxy?.Dispose();
+        _imageProxy = null;
+        ImageProxyError = null;
+        if (wanted)
+        {
+            EnsureImageApiKey();
+            var proxy = new AuthProxy(i.ListenAddress, i.Port, srv.Port, () => Secrets.UnprotectOrEmpty(Settings.Current.Images.ApiKeyProtected));
+            ImageProxyError = proxy.Start();
+            if (ImageProxyError == null) _imageProxy = proxy;
+        }
+        ImageApiChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public string Version { get; }
@@ -289,6 +485,13 @@ public sealed class AppServices : IDisposable
 
             var resolved = await ResolveLaunchAsync(model, profile).ConfigureAwait(false);
             if (resolved == null) return false;
+            var images = Settings.Current.Images;
+            if (images.ShareVram && !images.ExposeApi && ImageServer.IsRunning && !ImageBusy)
+            {
+                // Генератор и llama-server на одной видеокарте часто не помещаются вместе
+                Log.Info("Images", "Stopping sd-server to free video memory");
+                ImageServer.Stop();
+            }
             await Engine.StartAsync(resolved.Options, ct).ConfigureAwait(false);
             _runningSignature = Engine.Server.State == ServerState.Ready ? signature : null;
             return Engine.Server.State == ServerState.Ready;
@@ -320,6 +523,7 @@ public sealed class AppServices : IDisposable
         s.Network.ProxyPasswordProtected = Secrets.Reprotect(s.Network.ProxyPasswordProtected);
         s.Models.HfTokenProtected = Secrets.Reprotect(s.Models.HfTokenProtected);
         s.Engine.ApiKeyProtected = Secrets.Reprotect(s.Engine.ApiKeyProtected);
+        s.Images.ApiKeyProtected = Secrets.Reprotect(s.Images.ApiKeyProtected);
         foreach (var p in Providers.Items) p.ApiKeyProtected = Secrets.Reprotect(p.ApiKeyProtected);
         Providers.Save();
         Settings.Save();
@@ -382,9 +586,12 @@ public sealed class AppServices : IDisposable
     public void Dispose()
     {
         _forwarder?.Dispose();
+        _imageProxy?.Dispose();
+        ImageServer.Dispose();
         Tools.Dispose();
         Engine.Dispose();
         Http.Dispose();
         EngineLog.Dispose();
+        ImageLog.Dispose();
     }
 }

@@ -24,6 +24,11 @@ public sealed class AppPaths
     public bool IsPortable { get; }
 
     public string Engine => Path.Combine(Root, "engine");
+    /// <summary>Сборки stable-diffusion.cpp (отдельно от llama.cpp: у них свой реестр и PID-файл).</summary>
+    public string ImageEngine => Path.Combine(Root, "engine-sd");
+    /// <summary>Сгенерированные изображения по умолчанию.</summary>
+    public string Images => Path.Combine(Root, "images");
+    public string ImageModelsFile => Path.Combine(Config, "image-models.json");
     public string Config => Path.Combine(Root, "config");
     public string Profiles => Path.Combine(Config, "profiles");
     public string Certs => Path.Combine(Config, "certs");

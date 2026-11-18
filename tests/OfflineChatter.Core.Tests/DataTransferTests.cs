@@ -263,3 +263,28 @@ public sealed class DataTransferTests : IDisposable
         Assert.Equal(1536, s.Attachments.ImageMaxSide);
     }
 }
+
+public class ReleaseNamingTests
+{
+    private static Engine.ReleaseAsset A(string name) => new(name, 1, "https://github.com/fhnb16/offline-chatter/releases/download/v1/" + name, "aa");
+
+    [Theory]
+    [InlineData("OfflineChatter.zip", true)]          // релизы без версии в имени (ссылки на latest)
+    [InlineData("OfflineChatter-0.3.1.zip", true)]    // старые релизы
+    [InlineData("OfflineChatter-Setup.exe", false)]
+    [InlineData("OfflineChatter-Setup-NET48.exe", false)]
+    [InlineData("OfflineChatter.rar", false)]
+    [InlineData("OfflineChatter-source.zip", false)]
+    public void Package_Is_Recognized_With_And_Without_Version(string name, bool expected) =>
+        Assert.Equal(expected, UpdateChecker.IsPackage(A(name)));
+
+    [Fact]
+    public void Unversioned_Package_Is_Picked_From_Release()
+    {
+        var json = JObject.Parse(@"{""tag_name"":""v0.4.7"",""html_url"":""https://github.com/fhnb16/offline-chatter/releases/tag/v0.4.7"",""assets"":[
+             {""name"":""OfflineChatter-Setup.exe"",""size"":10,""browser_download_url"":""https://github.com/fhnb16/offline-chatter/releases/download/v0.4.7/OfflineChatter-Setup.exe"",""digest"":""sha256:11""},
+             {""name"":""OfflineChatter.zip"",""size"":10,""browser_download_url"":""https://github.com/fhnb16/offline-chatter/releases/download/v0.4.7/OfflineChatter.zip"",""digest"":""sha256:33""}]}");
+        var release = Engine.GitHubReleases.Parse(json);
+        Assert.Equal("OfflineChatter.zip", release.Assets.Single(UpdateChecker.IsPackage).Name);
+    }
+}

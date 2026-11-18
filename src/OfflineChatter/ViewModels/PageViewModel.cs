@@ -15,6 +15,8 @@ public enum PageKind
     Settings,
     Welcome,
     Compare,
+    /// <summary>Генерация изображений (stable-diffusion.cpp).</summary>
+    Images,
 }
 
 /// <summary>Страница в основной области окна.</summary>

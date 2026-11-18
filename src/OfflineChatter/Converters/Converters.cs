@@ -88,8 +88,11 @@ public sealed class EnumDisplayConverter : IValueConverter
 {
     public static string Get(object value) => L.Get("Enum_" + value.GetType().Name + "_" + value);
 
+    /// <summary>Параметр "Hint" — пояснение к значению (ключ Enum_{Тип}_{Значение}_Hint).</summary>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
-        value == null ? string.Empty : Get(value);
+        value == null ? string.Empty
+        : parameter as string == "Hint" ? L.Get("Enum_" + value.GetType().Name + "_" + value + "_Hint")
+        : Get(value);
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
         throw new NotSupportedException();

@@ -94,6 +94,90 @@
                 </Border>
             </c:ResponsiveGrid>
 
+            <!-- Сколько модель помнит и сколько пишет за раз: две одинаковые карточки рядом, с быстрыми значениями -->
+            <c:ResponsiveGrid MinColumnWidth="320" MaxColumns="2" Margin="0,12,0,0">
+                <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="12">
+                    <StackPanel>
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Right" Text="-c" Style="{StaticResource StatText}" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Loc Tokens_ContextTitle}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
+                        </DockPanel>
+                        <TextBlock Text="{l:Loc Tokens_ContextSubtitle}" Style="{StaticResource CaptionText}" Margin="0,2,0,8" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding ContextValueText}" Style="{StaticResource StatText}" FontSize="{DynamicResource SubtitleFontSize}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding ContextAmountText}" Style="{StaticResource CaptionText}" Margin="0,0,0,8" TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding ContextOptions}" Focusable="False" ToolTip="{l:Loc Profiles_ContextPresetHint}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:TokenPresetOption}">
+                                    <ToggleButton IsChecked="{Binding IsCurrent, Mode=OneWay}" Margin="0,0,4,4" Padding="8,2" MinWidth="64" ToolTip="{Binding Detail}"
+                                                  Command="{Binding DataContext.SetContextPresetCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                  CommandParameter="{Binding Value}">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Label}" HorizontalAlignment="Center" FontFamily="{DynamicResource MonoFontFamily}" />
+                                            <TextBlock Text="{Binding Detail}" FontSize="{DynamicResource SmallFontSize}" HorizontalAlignment="Center"
+                                                       Foreground="{DynamicResource TextTertiaryBrush}" Visibility="{DynamicResource UiHintVisibility}" />
+                                        </StackPanel>
+                                    </ToggleButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <DockPanel Margin="0,4,0,0" Visibility="{DynamicResource UiAdvancedVisibility}">
+                            <TextBlock DockPanel.Dock="Left" Text="{l:Loc Tokens_Custom}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBox Text="{Binding ContextSize, UpdateSourceTrigger=PropertyChanged, Delay=600}" FontFamily="{DynamicResource MonoFontFamily}"
+                                     ToolTip="{l:Loc Profiles_ContextHint}" />
+                        </DockPanel>
+                        <TextBlock Text="{Binding ContextInfoText}" Style="{StaticResource CaptionText}" Margin="0,6,0,0" TextWrapping="Wrap"
+                                   Visibility="{Binding ContextInfoText, Converter={StaticResource NullToCollapsed}}" />
+                        <TextBlock Text="{l:Loc Tokens_ContextHint}" Style="{StaticResource CaptionText}" Margin="0,6,0,0" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextTertiaryBrush}" Visibility="{DynamicResource UiHintVisibility}" />
+                    </StackPanel>
+                </Border>
+                <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="12">
+                    <StackPanel>
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Right" Text="max_tokens" Style="{StaticResource StatText}" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Loc Tokens_AnswerTitle}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
+                        </DockPanel>
+                        <TextBlock Text="{l:Loc Tokens_AnswerSubtitle}" Style="{StaticResource CaptionText}" Margin="0,2,0,8" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding MaxTokensValueText}" Style="{StaticResource StatText}" FontSize="{DynamicResource SubtitleFontSize}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding MaxTokensAmountText}" Style="{StaticResource CaptionText}" Margin="0,0,0,8" TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding MaxTokensOptions}" Focusable="False">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:TokenPresetOption}">
+                                    <ToggleButton IsChecked="{Binding IsCurrent, Mode=OneWay}" Margin="0,0,4,4" Padding="8,2" MinWidth="64" ToolTip="{Binding Detail}"
+                                                  Command="{Binding DataContext.SetMaxTokensCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                  CommandParameter="{Binding Value}">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Label}" HorizontalAlignment="Center" FontFamily="{DynamicResource MonoFontFamily}" />
+                                            <TextBlock Text="{Binding Detail}" FontSize="{DynamicResource SmallFontSize}" HorizontalAlignment="Center"
+                                                       Foreground="{DynamicResource TextTertiaryBrush}" Visibility="{DynamicResource UiHintVisibility}" />
+                                        </StackPanel>
+                                    </ToggleButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <DockPanel Margin="0,4,0,0" Visibility="{DynamicResource UiAdvancedVisibility}">
+                            <TextBlock DockPanel.Dock="Left" Text="{l:Loc Tokens_Custom}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBox Text="{Binding MaxTokens, UpdateSourceTrigger=PropertyChanged, Delay=600}" FontFamily="{DynamicResource MonoFontFamily}"
+                                     ToolTip="{l:Loc Tokens_AnswerCustomHint}" />
+                        </DockPanel>
+                        <TextBlock Text="{l:Loc Tokens_AnswerHint}" Style="{StaticResource CaptionText}" Margin="0,6,0,0" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextTertiaryBrush}" Visibility="{DynamicResource UiHintVisibility}" />
+                    </StackPanel>
+                </Border>
+            </c:ResponsiveGrid>
+            <TextBlock Text="{Binding BudgetWarning}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}" Margin="0,8,0,0" TextWrapping="Wrap"
+                       Visibility="{Binding BudgetWarning, Converter={StaticResource NullToCollapsed}}" />
+
             <Grid Margin="0,4,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -107,24 +191,7 @@
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="{l:Loc Profiles_Name}" Style="{StaticResource FieldLabel}" />
                     <TextBox Text="{Binding Name}" />
-                    <TextBlock Text="{l:Loc Profiles_Context}" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding ContextSize}" ToolTip="{l:Loc Profiles_ContextHint}" />
-                    <ItemsControl ItemsSource="{Binding ContextOptions}" Margin="0,4,0,0" ToolTip="{l:Loc Profiles_ContextPresetHint}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Content="{Binding Label}" Margin="0,0,4,4" Padding="6,2"
-                                        Command="{Binding DataContext.SetContextPresetCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                        CommandParameter="{Binding ContextSize}" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <TextBlock Text="{Binding ContextInfoText}" Style="{StaticResource CaptionText}" Margin="0,4,0,0"
-                               Visibility="{Binding ContextInfoText, Converter={StaticResource NullToCollapsed}}" />
+
                 </StackPanel>
 
                 <!-- Батчи и кэш -->
@@ -176,8 +243,6 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="6" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="6" />
-                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <StackPanel>
                             <TextBlock Text="Top-K" Style="{StaticResource FieldLabel}" />
@@ -186,10 +251,6 @@
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Repeat" Style="{StaticResource FieldLabel}" />
                             <TextBox Text="{Binding RepeatPenalty}" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="4">
-                            <TextBlock Text="{l:Loc Profiles_MaxTokens}" Style="{StaticResource FieldLabel}" />
-                            <TextBox Text="{Binding MaxTokens}" />
                         </StackPanel>
                     </Grid>
                     <TextBlock Text="{l:Loc Profiles_Reasoning}" Style="{StaticResource FieldLabel}" />

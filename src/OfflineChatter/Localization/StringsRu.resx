@@ -1046,4 +1046,308 @@
   <data name="Tok_Speed" xml:space="preserve"><value>Скорость</value></data>
   <data name="Tok_Chat" xml:space="preserve"><value>За весь чат</value></data>
   <data name="Tok_ChatValue" xml:space="preserve"><value>вход {0} · выход {1} · ответов {2}</value></data>
+  <data name="Ui_Detail" xml:space="preserve"><value>Подробность интерфейса</value></data>
+  <data name="Ui_DetailShort" xml:space="preserve"><value>Пояснения</value></data>
+  <data name="Ui_DetailHint" xml:space="preserve"><value>Сколько пояснений и параметров показывают страницы «Движок», «Модели» и «Изображения»</value></data>
+  <data name="Enum_UiDetail_Guided" xml:space="preserve"><value>Пошагово</value></data>
+  <data name="Enum_UiDetail_Standard" xml:space="preserve"><value>Обычный</value></data>
+  <data name="Enum_UiDetail_Expert" xml:space="preserve"><value>Эксперт</value></data>
+  <data name="Enum_UiDetail_Guided_Hint" xml:space="preserve"><value>Подсказки под каждым полем, карточки «что дальше» и только основные параметры. Подходит для первой настройки.</value></data>
+  <data name="Enum_UiDetail_Standard_Hint" xml:space="preserve"><value>Основные параметры с краткими пояснениями; дополнительные — в раскрывающихся блоках.</value></data>
+  <data name="Enum_UiDetail_Expert_Hint" xml:space="preserve"><value>Все параметры сразу, без пояснений, командная строка всегда на виду.</value></data>
+  <data name="Enum_EngineTab_Text" xml:space="preserve"><value>Текст · llama.cpp</value></data>
+  <data name="Enum_EngineTab_Images" xml:space="preserve"><value>Изображения · stable-diffusion.cpp</value></data>
+  <data name="Engine_TabTextHint" xml:space="preserve"><value>llama.cpp запускает модели для чата, stable-diffusion.cpp — генераторы изображений. У каждого свои сборки и настройки.</value></data>
+  <data name="Tokens_ContextTitle" xml:space="preserve"><value>Память беседы (контекст)</value></data>
+  <data name="Tokens_ContextSubtitle" xml:space="preserve"><value>Сколько текста модель видит сразу: системный промпт, всю беседу и собственный ответ</value></data>
+  <data name="Tokens_AnswerTitle" xml:space="preserve"><value>Лимит длины ответа</value></data>
+  <data name="Tokens_AnswerSubtitle" xml:space="preserve"><value>Сколько токенов модель может написать в одном ответе, прежде чем её остановят</value></data>
+  <data name="Tokens_Value" xml:space="preserve"><value>{0} токенов</value></data>
+  <data name="Tokens_Auto" xml:space="preserve"><value>Авто</value></data>
+  <data name="Tokens_AutoNow" xml:space="preserve"><value>Авто · сейчас {0} токенов</value></data>
+  <data name="Tokens_AutoShort" xml:space="preserve"><value>Авто</value></data>
+  <data name="Tokens_AutoDetail" xml:space="preserve"><value>по памяти</value></data>
+  <data name="Tokens_Unlimited" xml:space="preserve"><value>Без лимита</value></data>
+  <data name="Tokens_UnlimitedShort" xml:space="preserve"><value>Без лимита</value></data>
+  <data name="Tokens_UnlimitedDetail" xml:space="preserve"><value>до конца</value></data>
+  <data name="Tokens_ContextAmount" xml:space="preserve"><value>Примерно {0} английских слов · около {1} стр. беседы</value></data>
+  <data name="Tokens_AnswerAmount" xml:space="preserve"><value>До ~{0} английских слов · около {1} стр. на ответ</value></data>
+  <data name="Tokens_ContextAutoHint" xml:space="preserve"><value>Размер подбирается под свободную память при запуске модели</value></data>
+  <data name="Tokens_UnlimitedHint" xml:space="preserve"><value>Модель пишет, пока не закончит мысль или не кончится контекст</value></data>
+  <data name="Tokens_WordsDetail" xml:space="preserve"><value>≈{0} слов</value></data>
+  <data name="Tokens_VramDetail" xml:space="preserve"><value>{0} видеопам.</value></data>
+  <data name="Tokens_RamDetail" xml:space="preserve"><value>{0} ОЗУ</value></data>
+  <data name="Tokens_AboveTrained" xml:space="preserve"><value>больше обучения</value></data>
+  <data name="Tokens_Custom" xml:space="preserve"><value>Точное значение</value></data>
+  <data name="Tokens_AnswerCustomHint" xml:space="preserve"><value>-1 — без лимита</value></data>
+  <data name="Tokens_ContextHint" xml:space="preserve"><value>Больший контекст помнит длинные беседы и документы, но занимает больше видеопамяти и замедляет начало каждого ответа. В русском тексте токен — примерно половина слова.</value></data>
+  <data name="Tokens_AnswerHint" xml:space="preserve"><value>Лимит защищает от бесконечных ответов и экономит время; размышляющие модели тратят часть лимита на размышления. Ответ тоже занимает место в контексте.</value></data>
+  <data name="Tokens_Warn_AnswerFillsContext" xml:space="preserve"><value>Лимит ответа ({1}) не меньше всего контекста ({0}): для вопроса и беседы места не останется</value></data>
+  <data name="Tokens_Warn_AnswerTakesMostOfContext" xml:space="preserve"><value>Ответ может занять больше половины контекста ({1} из {0}): длинная беседа быстро упрётся в предел</value></data>
+  <data name="Tokens_Warn_ContextAboveTrained" xml:space="preserve"><value>Контекст ({0}) больше, чем модель видела при обучении ({2}): дальше качество обычно хуже</value></data>
+  <data name="Models_PageIntro" xml:space="preserve"><value>Модели для чата работают на llama.cpp (файлы GGUF), генераторы изображений — на stable-diffusion.cpp. Выберите задачу, чтобы искать подходящие модели.</value></data>
+  <data name="Models_Task" xml:space="preserve"><value>Задача</value></data>
+  <data name="Models_GgufOnly" xml:space="preserve"><value>Только GGUF</value></data>
+  <data name="Models_GgufOnlyHint" xml:space="preserve"><value>llama.cpp читает только GGUF; stable-diffusion.cpp читает и safetensors</value></data>
+  <data name="Models_TaskUnsupported" xml:space="preserve"><value>Для этой задачи в программе нет встроенного движка: модели можно найти и открыть на Hugging Face, но не запустить здесь.</value></data>
+  <data name="Models_NoRuntime" xml:space="preserve"><value>Программа не умеет запускать модели этой задачи. Откройте страницу на Hugging Face, чтобы узнать, как ей пользоваться.</value></data>
+  <data name="Enum_HfTask_Chat" xml:space="preserve"><value>Чат (текст)</value></data>
+  <data name="Enum_HfTask_Vision" xml:space="preserve"><value>Картинка + текст → текст</value></data>
+  <data name="Enum_HfTask_TextToText" xml:space="preserve"><value>Текст → текст</value></data>
+  <data name="Enum_HfTask_AnyToAny" xml:space="preserve"><value>Любое → любое</value></data>
+  <data name="Enum_HfTask_TextToImage" xml:space="preserve"><value>Текст → картинка</value></data>
+  <data name="Enum_HfTask_ImageToImage" xml:space="preserve"><value>Картинка → картинка</value></data>
+  <data name="Enum_HfTask_TextToVideo" xml:space="preserve"><value>Текст → видео</value></data>
+  <data name="Enum_HfTask_ImageToVideo" xml:space="preserve"><value>Картинка → видео</value></data>
+  <data name="Enum_HfTask_TextToSpeech" xml:space="preserve"><value>Текст → речь</value></data>
+  <data name="Enum_HfTask_SpeechToText" xml:space="preserve"><value>Речь → текст</value></data>
+  <data name="Enum_HfTask_Embeddings" xml:space="preserve"><value>Эмбеддинги</value></data>
+  <data name="Enum_HfTask_All" xml:space="preserve"><value>Любая задача</value></data>
+  <data name="Models_TaskHint_Chat" xml:space="preserve"><value>Модели для беседы; работают на llama.cpp</value></data>
+  <data name="Models_TaskHint_Vision" xml:space="preserve"><value>Модели, которые понимают картинки в чате; скачиваются вместе с файлом mmproj</value></data>
+  <data name="Models_TaskHint_TextToText" xml:space="preserve"><value>Перевод, пересказ и переписывание (T5 и похожие); работают на llama.cpp, если есть GGUF</value></data>
+  <data name="Models_TaskHint_AnyToAny" xml:space="preserve"><value>Омни-модели: текст, картинки и звук; в чате работают как модели текста и картинок</value></data>
+  <data name="Models_TaskHint_TextToImage" xml:space="preserve"><value>Генераторы изображений; работают на stable-diffusion.cpp. Многим нужны дополнительные файлы (VAE, кодировщики) — готовые наборы выше их содержат.</value></data>
+  <data name="Models_TaskHint_ImageToImage" xml:space="preserve"><value>Редактирование и перерисовка картинок; работают на stable-diffusion.cpp</value></data>
+  <data name="Models_TaskHint_TextToVideo" xml:space="preserve"><value>Генераторы видео; встроенного движка для них пока нет</value></data>
+  <data name="Models_TaskHint_ImageToVideo" xml:space="preserve"><value>Видео из картинки; встроенного движка для них пока нет</value></data>
+  <data name="Models_TaskHint_TextToSpeech" xml:space="preserve"><value>Синтез речи; встроенного движка для него пока нет</value></data>
+  <data name="Models_TaskHint_SpeechToText" xml:space="preserve"><value>Распознавание речи; встроенного движка для него пока нет</value></data>
+  <data name="Models_TaskHint_Embeddings" xml:space="preserve"><value>Векторы для поиска; встроенного движка для них пока нет</value></data>
+  <data name="Models_TaskHint_All" xml:space="preserve"><value>Все модели, без отбора по задаче</value></data>
+  <data name="Models_ImageMine" xml:space="preserve"><value>Модели изображений</value></data>
+  <data name="Models_ImageMineHint" xml:space="preserve"><value>Генератор обычно состоит из нескольких файлов: основной модели, VAE и текстовых кодировщиков. Программа хранит пути, файлы не копируются.</value></data>
+  <data name="Models_ImageNoneYet" xml:space="preserve"><value>Моделей изображений пока нет. Скачайте готовый набор или добавьте свои файлы</value></data>
+  <data name="Models_AddImageFiles" xml:space="preserve"><value>Добавить файлы</value></data>
+  <data name="Models_PickImageFiles" xml:space="preserve"><value>Файлы модели (выберите все: модель, VAE, кодировщики)</value></data>
+  <data name="Models_ImageWeightsFilter" xml:space="preserve"><value>Веса моделей</value></data>
+  <data name="Models_PickComponent" xml:space="preserve"><value>Файл для роли: {0}</value></data>
+  <data name="Models_ImageEdit" xml:space="preserve"><value>Редактирование</value></data>
+  <data name="Models_ImageFiles" xml:space="preserve"><value>Файлы и семейство</value></data>
+  <data name="Models_ImageFilesHint" xml:space="preserve"><value>Семейство задаёт, какие файлы нужны, и шаги и CFG по умолчанию. Файл может лежать на любом диске.</value></data>
+  <data name="Models_ImagePickFiles" xml:space="preserve"><value>Отметьте файлы для скачивания и проверьте их роли. Обычно достаточно одного файла основной модели (одного кванта).</value></data>
+  <data name="Models_ImageSelected" xml:space="preserve"><value>Выбрано:</value></data>
+  <data name="Models_ImageMissing" xml:space="preserve"><value>В этом репозитории нет: {0}. Возьмите их из готового набора или добавьте к модели позже</value></data>
+  <data name="Models_DownloadImage" xml:space="preserve"><value>Скачать и добавить</value></data>
+  <data name="Models_Kits" xml:space="preserve"><value>Готовые наборы для изображений</value></data>
+  <data name="Models_KitsHint" xml:space="preserve"><value>Набор скачивает модель и все нужные ей файлы; уже скачанные пропускаются. Размеры сверяются с файлами автора.</value></data>
+  <data name="Models_KitDownload" xml:space="preserve"><value>Скачать набор</value></data>
+  <data name="Models_KitInstalled" xml:space="preserve"><value>Установлен</value></data>
+  <data name="ImgKit_FitsGpu" xml:space="preserve"><value>Помещается в видеопамять (нужно около {0})</value></data>
+  <data name="ImgKit_Offload" xml:space="preserve"><value>Нужно около {0} видеопамяти: будет работать с выгрузкой в ОЗУ, медленнее</value></data>
+  <data name="ImgKit_CpuOnly" xml:space="preserve"><value>Нет отдельной видеокарты: на процессоре одна картинка считается минутами</value></data>
+  <data name="ImgKit_z_image_turbo_q4" xml:space="preserve"><value>Быстро и качественно: 8 шагов, хорошо пишет текст на картинках. Лучший старт для большинства видеокарт.</value></data>
+  <data name="ImgKit_sd15_q8" xml:space="preserve"><value>Самая лёгкая классика: 512 × 512, работает даже на слабом железе и процессоре</value></data>
+  <data name="ImgKit_sdxl_q4" xml:space="preserve"><value>Классическая SDXL 1024 × 1024 с исправленным VAE; понимает негативный промпт</value></data>
+  <data name="ImgKit_flux1_schnell_q4" xml:space="preserve"><value>FLUX.1 schnell: 4 шага, детальные картинки; текстовые кодировщики большие</value></data>
+  <data name="ImgKit_qwen_image_2512_q3" xml:space="preserve"><value>Qwen-Image 2512: силён в тексте на картинках и сложных сценах; тяжёлый, работает с выгрузкой</value></data>
+  <data name="ImgKit_qwen_image_edit_2509_q3" xml:space="preserve"><value>Правит картинки по описанию: меняет, добавляет или убирает объекты по референсам</value></data>
+  <data name="Enum_ImageComponent_Checkpoint" xml:space="preserve"><value>Чекпойнт (всё в одном)</value></data>
+  <data name="Enum_ImageComponent_DiffusionModel" xml:space="preserve"><value>Диффузионная модель</value></data>
+  <data name="Enum_ImageComponent_Vae" xml:space="preserve"><value>VAE</value></data>
+  <data name="Enum_ImageComponent_ClipL" xml:space="preserve"><value>Кодировщик CLIP-L</value></data>
+  <data name="Enum_ImageComponent_ClipG" xml:space="preserve"><value>Кодировщик CLIP-G</value></data>
+  <data name="Enum_ImageComponent_T5xxl" xml:space="preserve"><value>Кодировщик T5-XXL</value></data>
+  <data name="Enum_ImageComponent_Llm" xml:space="preserve"><value>Языковая модель (кодировщик)</value></data>
+  <data name="Enum_ImageComponent_LlmVision" xml:space="preserve"><value>Зрение LLM (mmproj)</value></data>
+  <data name="Enum_ImageComponent_ClipVision" xml:space="preserve"><value>CLIP Vision</value></data>
+  <data name="ImgComp_Hint_Checkpoint" xml:space="preserve"><value>Один файл со всей моделью (SD 1.5, SDXL, SD3)</value></data>
+  <data name="ImgComp_Hint_DiffusionModel" xml:space="preserve"><value>Основная часть, которая рисует картинку</value></data>
+  <data name="ImgComp_Hint_Vae" xml:space="preserve"><value>Превращает результат в пиксели; неподходящий VAE даёт серые или шумные картинки</value></data>
+  <data name="ImgComp_Hint_ClipL" xml:space="preserve"><value>Читает промпт (FLUX, SD3)</value></data>
+  <data name="ImgComp_Hint_ClipG" xml:space="preserve"><value>Читает промпт (SD3)</value></data>
+  <data name="ImgComp_Hint_T5xxl" xml:space="preserve"><value>Читает длинные промпты (FLUX, SD3, Chroma)</value></data>
+  <data name="ImgComp_Hint_Llm" xml:space="preserve"><value>Языковая модель, которая читает промпт (Qwen-Image, Z-Image, FLUX.2)</value></data>
+  <data name="ImgComp_Hint_LlmVision" xml:space="preserve"><value>Позволяет языковой модели видеть референсы (Qwen-Image-Edit)</value></data>
+  <data name="ImgComp_Hint_ClipVision" xml:space="preserve"><value>Кодировщик картинок для видеомоделей</value></data>
+  <data name="Img_FileNotSet" xml:space="preserve"><value>не указан — обязателен</value></data>
+  <data name="Img_FileOptional" xml:space="preserve"><value>не указан — по желанию</value></data>
+  <data name="Enum_ImageFamily_Sd15" xml:space="preserve"><value>Stable Diffusion 1.5</value></data>
+  <data name="Enum_ImageFamily_Sd2" xml:space="preserve"><value>Stable Diffusion 2.x</value></data>
+  <data name="Enum_ImageFamily_Sdxl" xml:space="preserve"><value>SDXL</value></data>
+  <data name="Enum_ImageFamily_SdxlTurbo" xml:space="preserve"><value>SDXL Turbo / Lightning</value></data>
+  <data name="Enum_ImageFamily_Sd3" xml:space="preserve"><value>Stable Diffusion 3 / 3.5</value></data>
+  <data name="Enum_ImageFamily_Flux1Dev" xml:space="preserve"><value>FLUX.1 dev</value></data>
+  <data name="Enum_ImageFamily_Flux1Schnell" xml:space="preserve"><value>FLUX.1 schnell</value></data>
+  <data name="Enum_ImageFamily_FluxKontext" xml:space="preserve"><value>FLUX.1 Kontext (редактирование)</value></data>
+  <data name="Enum_ImageFamily_Flux2" xml:space="preserve"><value>FLUX.2 dev</value></data>
+  <data name="Enum_ImageFamily_Flux2Klein" xml:space="preserve"><value>FLUX.2 klein</value></data>
+  <data name="Enum_ImageFamily_Chroma" xml:space="preserve"><value>Chroma</value></data>
+  <data name="Enum_ImageFamily_QwenImage" xml:space="preserve"><value>Qwen-Image</value></data>
+  <data name="Enum_ImageFamily_QwenImageEdit" xml:space="preserve"><value>Qwen-Image-Edit (2509)</value></data>
+  <data name="Enum_ImageFamily_QwenImageEdit2511" xml:space="preserve"><value>Qwen-Image-Edit 2511</value></data>
+  <data name="Enum_ImageFamily_ZImage" xml:space="preserve"><value>Z-Image</value></data>
+  <data name="Enum_ImageFamily_ZImageTurbo" xml:space="preserve"><value>Z-Image Turbo</value></data>
+  <data name="Enum_ImageFamily_Custom" xml:space="preserve"><value>Другое (файлы вручную)</value></data>
+  <data name="ImgFamily_Hint_Sd15" xml:space="preserve"><value>512 × 512, 20–30 шагов, CFG 6–8. Понимает негативный промпт; много моделей сообщества.</value></data>
+  <data name="ImgFamily_Hint_Sd2" xml:space="preserve"><value>768 × 768, 20–30 шагов, CFG 6–8.</value></data>
+  <data name="ImgFamily_Hint_Sdxl" xml:space="preserve"><value>1024 × 1024, 20–30 шагов, CFG 4–7. Меньшие размеры дают картинки хуже.</value></data>
+  <data name="ImgFamily_Hint_SdxlTurbo" xml:space="preserve"><value>Дистиллированная: 1–8 шагов, CFG 1, негативный промпт не действует.</value></data>
+  <data name="ImgFamily_Hint_Sd3" xml:space="preserve"><value>1024 × 1024, около 20–28 шагов, CFG 4–5. Нужны кодировщики CLIP-L, CLIP-G и T5.</value></data>
+  <data name="ImgFamily_Hint_Flux1Dev" xml:space="preserve"><value>20–30 шагов, CFG 1 (подсказка встроена в модель). Нужны VAE, CLIP-L и T5.</value></data>
+  <data name="ImgFamily_Hint_Flux1Schnell" xml:space="preserve"><value>4 шага, CFG 1. Быстро; нужны VAE, CLIP-L и T5.</value></data>
+  <data name="ImgFamily_Hint_FluxKontext" xml:space="preserve"><value>Правит референс по описанию: 20 шагов, CFG 1.</value></data>
+  <data name="ImgFamily_Hint_Flux2" xml:space="preserve"><value>20 шагов, CFG 1; кодировщик — большая языковая модель Mistral. Понимает референсы.</value></data>
+  <data name="ImgFamily_Hint_Flux2Klein" xml:space="preserve"><value>Дистиллированная: 4 шага, CFG 1 (базовые версии: 20 шагов, CFG 4).</value></data>
+  <data name="ImgFamily_Hint_Chroma" xml:space="preserve"><value>20 шагов, CFG 3–4; понимает негативный промпт.</value></data>
+  <data name="ImgFamily_Hint_QwenImage" xml:space="preserve"><value>20 шагов, CFG 2,5–4, flow shift 3. Силён в тексте на картинках; тяжёлый, выгрузка включена.</value></data>
+  <data name="ImgFamily_Hint_QwenImageEdit" xml:space="preserve"><value>Правит референсы: 20 шагов, CFG 2,5, flow shift 3. С файлом mmproj лучше понимает референсы.</value></data>
+  <data name="ImgFamily_Hint_QwenImageEdit2511" xml:space="preserve"><value>Как Edit 2509 плюс обязательный флаг модели; без него качество заметно падает.</value></data>
+  <data name="ImgFamily_Hint_ZImage" xml:space="preserve"><value>20 шагов, CFG 4; понимает негативный промпт.</value></data>
+  <data name="ImgFamily_Hint_ZImageTurbo" xml:space="preserve"><value>8–9 шагов, CFG 1. Быстро и хорошо пишет текст на картинках.</value></data>
+  <data name="ImgFamily_Hint_Custom" xml:space="preserve"><value>Семейство неизвестно программе: задайте файлы и параметры сами.</value></data>
+  <data name="Nav_Images" xml:space="preserve"><value>Изображения</value></data>
+  <data name="Img_PageIntro" xml:space="preserve"><value>Создавайте картинки по описанию или правьте свои — локально, без интернета</value></data>
+  <data name="Img_SetupTitle" xml:space="preserve"><value>Два шага до первой картинки</value></data>
+  <data name="Img_SetupIntro" xml:space="preserve"><value>Генерация работает на stable-diffusion.cpp с моделью на вашем диске. И то и другое ставится одной кнопкой.</value></data>
+  <data name="Img_Step1" xml:space="preserve"><value>1</value></data>
+  <data name="Img_Step2" xml:space="preserve"><value>2</value></data>
+  <data name="Img_StepEngine" xml:space="preserve"><value>Установите движок (stable-diffusion.cpp)</value></data>
+  <data name="Img_StepEngineHint" xml:space="preserve"><value>Программа предложит сборку под вашу видеокарту</value></data>
+  <data name="Img_StepModel" xml:space="preserve"><value>Скачайте модель</value></data>
+  <data name="Img_StepModelHint" xml:space="preserve"><value>Готовый набор содержит все нужные модели файлы</value></data>
+  <data name="Img_InstallEngine" xml:space="preserve"><value>Установить движок</value></data>
+  <data name="Img_GetModel" xml:space="preserve"><value>Выбрать модель</value></data>
+  <data name="Img_Model" xml:space="preserve"><value>Модель</value></data>
+  <data name="Img_Generator" xml:space="preserve"><value>Генератор</value></data>
+  <data name="Img_StopServer" xml:space="preserve"><value>Остановить генератор</value></data>
+  <data name="Img_StopServerHint" xml:space="preserve"><value>Освобождает видеопамять; генератор запустится снова со следующей картинкой</value></data>
+  <data name="Img_Mode" xml:space="preserve"><value>Режим</value></data>
+  <data name="Enum_ImageMode_TextToImage" xml:space="preserve"><value>Из текста</value></data>
+  <data name="Enum_ImageMode_Edit" xml:space="preserve"><value>Редактирование по референсам</value></data>
+  <data name="Enum_ImageMode_ImageToImage" xml:space="preserve"><value>Перерисовка картинки</value></data>
+  <data name="Img_ModeHint_TextToImage" xml:space="preserve"><value>Картинка рисуется только по описанию</value></data>
+  <data name="Img_ModeHint_Edit" xml:space="preserve"><value>Модель видит референсы и меняет их по описанию: «сделай зиму», «посади кота на диван»</value></data>
+  <data name="Img_ModeHint_ImageToImage" xml:space="preserve"><value>Исходная картинка частично зашумляется и перерисовывается; сила задаёт, насколько изменится</value></data>
+  <data name="Img_Prompt" xml:space="preserve"><value>Описание (промпт)</value></data>
+  <data name="Img_PromptHint" xml:space="preserve"><value>Опишите предмет, место, стиль и свет. Обычно лучше по-английски, но Qwen-Image и Z-Image понимают и русский.</value></data>
+  <data name="Img_Negative" xml:space="preserve"><value>Чего избегать (негативный промпт)</value></data>
+  <data name="Img_NegativeHint" xml:space="preserve"><value>Например: blurry, extra fingers, text, watermark</value></data>
+  <data name="Img_Refs" xml:space="preserve"><value>Референсы</value></data>
+  <data name="Img_RefsHint" xml:space="preserve"><value>Перетащите картинки сюда, вставьте Ctrl+V или выберите файлы. Большинство моделей берут 1–3 референса.</value></data>
+  <data name="Img_AddRefs" xml:space="preserve"><value>Добавить картинки</value></data>
+  <data name="Img_Paste" xml:space="preserve"><value>Вставить</value></data>
+  <data name="Img_PickRefs" xml:space="preserve"><value>Референсы</value></data>
+  <data name="Img_PickInit" xml:space="preserve"><value>Исходная картинка</value></data>
+  <data name="Img_PickInitButton" xml:space="preserve"><value>Выбрать картинку</value></data>
+  <data name="Img_ImageFilter" xml:space="preserve"><value>Картинки</value></data>
+  <data name="Img_CannotOpen" xml:space="preserve"><value>Не удалось открыть {0}: {1}</value></data>
+  <data name="Img_Init" xml:space="preserve"><value>Исходная картинка</value></data>
+  <data name="Img_Strength" xml:space="preserve"><value>Сила изменения</value></data>
+  <data name="Img_StrengthHint" xml:space="preserve"><value>0,3 сохраняет композицию и цвета, 0,8 — только общее расположение</value></data>
+  <data name="Img_Size" xml:space="preserve"><value>Размер</value></data>
+  <data name="Img_SizeHint" xml:space="preserve"><value>Генераторы лучше всего работают около родного размера; кнопки пропорций сохраняют число пикселей</value></data>
+  <data name="Img_Width" xml:space="preserve"><value>Ширина</value></data>
+  <data name="Img_Height" xml:space="preserve"><value>Высота</value></data>
+  <data name="Img_Swap" xml:space="preserve"><value>Поменять ширину и высоту</value></data>
+  <data name="Img_Steps" xml:space="preserve"><value>Шаги</value></data>
+  <data name="Img_StepsHint" xml:space="preserve"><value>Больше шагов — больше деталей и дольше ждать. Turbo-моделям нужно 4–9.</value></data>
+  <data name="Img_Cfg" xml:space="preserve"><value>CFG</value></data>
+  <data name="Img_CfgHint" xml:space="preserve"><value>Насколько строго следовать описанию. Дистиллированным моделям (Turbo, FLUX, Z-Image Turbo) нужно 1.</value></data>
+  <data name="Img_Advanced" xml:space="preserve"><value>Дополнительно</value></data>
+  <data name="Img_Sampler" xml:space="preserve"><value>Сэмплер</value></data>
+  <data name="Img_Scheduler" xml:space="preserve"><value>Расписание шума</value></data>
+  <data name="Img_Seed" xml:space="preserve"><value>Зерно (seed)</value></data>
+  <data name="Img_SeedHint" xml:space="preserve"><value>Пусто — каждый раз новое случайное. То же зерно и параметры повторяют картинку.</value></data>
+  <data name="Img_RandomSeed" xml:space="preserve"><value>Случайное зерно</value></data>
+  <data name="Img_Batch" xml:space="preserve"><value>Картинок за раз</value></data>
+  <data name="Img_FlowShift" xml:space="preserve"><value>Flow shift</value></data>
+  <data name="Img_FlowShiftHint" xml:space="preserve"><value>Пусто — по умолчанию модели. Для Qwen-Image обычно 3</value></data>
+  <data name="Img_ClipSkip" xml:space="preserve"><value>CLIP skip</value></data>
+  <data name="Img_ClipSkipHint" xml:space="preserve"><value>Пусто — по умолчанию. Многим аниме-моделям SD 1.5 нужно 2</value></data>
+  <data name="Img_ResetPreset" xml:space="preserve"><value>Рекомендуемые значения</value></data>
+  <data name="Img_ResetPresetHint" xml:space="preserve"><value>Вернуть размер, шаги, CFG и сэмплер, рекомендованные для семейства модели</value></data>
+  <data name="Img_Generate" xml:space="preserve"><value>Сгенерировать</value></data>
+  <data name="Img_CancelHint" xml:space="preserve"><value>Перестаёт ждать; генератор досчитает текущую картинку в фоне</value></data>
+  <data name="Img_EmptyPrompt" xml:space="preserve"><value>Опишите, что нарисовать</value></data>
+  <data name="Img_LoadingModel" xml:space="preserve"><value>Загрузка {0} — первый запуск занимает время</value></data>
+  <data name="Img_Generating" xml:space="preserve"><value>Генерация</value></data>
+  <data name="Img_Progress" xml:space="preserve"><value>Шаг {0} из {1} · {2} с на шаг · осталось около {3} с</value></data>
+  <data name="Img_Elapsed" xml:space="preserve"><value>{0} с</value></data>
+  <data name="Img_Canceled" xml:space="preserve"><value>Отменено</value></data>
+  <data name="Img_Failed" xml:space="preserve"><value>Не удалось сгенерировать: {0}</value></data>
+  <data name="Img_ServerFailed" xml:space="preserve"><value>Генератор не запустился: {0}</value></data>
+  <data name="Img_Stats" xml:space="preserve"><value>{0} шт. · {1} с · зерно {2} · {3}</value></data>
+  <data name="Img_NoEngine" xml:space="preserve"><value>stable-diffusion.cpp не установлен. Установите его в разделе «Движок → Изображения»</value></data>
+  <data name="Img_NoModel" xml:space="preserve"><value>Нет модели изображений. Скачайте её в разделе «Модели»</value></data>
+  <data name="Img_ModelIncomplete" xml:space="preserve"><value>У модели не хватает файлов: {0}. Добавьте их в «Модели → Модели изображений»</value></data>
+  <data name="Img_Missing" xml:space="preserve"><value>Не хватает: {0}</value></data>
+  <data name="Img_Results" xml:space="preserve"><value>Результаты</value></data>
+  <data name="Img_NoResults" xml:space="preserve"><value>Картинки появятся здесь и сохранятся в папку images</value></data>
+  <data name="Img_OpenFolder" xml:space="preserve"><value>Папка</value></data>
+  <data name="Img_Open" xml:space="preserve"><value>Открыть</value></data>
+  <data name="Img_Copy" xml:space="preserve"><value>Копировать картинку</value></data>
+  <data name="Img_SaveAs" xml:space="preserve"><value>Сохранить как</value></data>
+  <data name="Img_ShowInFolder" xml:space="preserve"><value>Показать в папке</value></data>
+  <data name="Img_UseAsRef" xml:space="preserve"><value>Продолжить правку</value></data>
+  <data name="Img_UseAsRefHint" xml:space="preserve"><value>Добавить картинку в референсы (или исходником для перерисовки)</value></data>
+  <data name="Img_Reuse" xml:space="preserve"><value>Повторить параметры</value></data>
+  <data name="Img_ReuseHint" xml:space="preserve"><value>Подставить промпт, размер, шаги и зерно этой картинки</value></data>
+  <data name="ImgEngine_GuideTitle" xml:space="preserve"><value>Как устроена генерация изображений</value></data>
+  <data name="ImgEngine_Guide" xml:space="preserve"><value>1. Установите сборку stable-diffusion.cpp ниже — программа подберёт её под вашу видеокарту.
+2. Скачайте модель в «Модели → Готовые наборы».
+3. Откройте «Изображения» и опишите картинку. Генератор запустится сам и держит модель в памяти, пока его не остановят.</value></data>
+  <data name="ImgEngine_Start" xml:space="preserve"><value>Запустить</value></data>
+  <data name="ImgEngine_StartHint" xml:space="preserve"><value>Запустить или перезапустить генератор с моделью по умолчанию и текущими параметрами</value></data>
+  <data name="ImgEngine_Restart" xml:space="preserve"><value>Перезапустить с этими параметрами</value></data>
+  <data name="ImgEngine_RestartHint" xml:space="preserve"><value>Изменения вступят в силу после перезапуска генератора</value></data>
+  <data name="ImgEngine_LoadedIn" xml:space="preserve"><value>загружен за {0} с</value></data>
+  <data name="ImgEngine_Builds" xml:space="preserve"><value>Сборки stable-diffusion.cpp</value></data>
+  <data name="ImgEngine_NoneInstalled" xml:space="preserve"><value>Сборок пока нет</value></data>
+  <data name="ImgEngine_HealthOk" xml:space="preserve"><value>запускается</value></data>
+  <data name="ImgEngine_PickServerExe" xml:space="preserve"><value>Выберите sd-server.exe</value></data>
+  <data name="ImgEngine_NotAnEngine" xml:space="preserve"><value>В этой папке нет sd-server.exe</value></data>
+  <data name="ImgEngine_Download" xml:space="preserve"><value>Установка stable-diffusion.cpp</value></data>
+  <data name="ImgEngine_DownloadHint" xml:space="preserve"><value>Официальные сборки с github.com/leejet/stable-diffusion.cpp. CUDA быстрее всего на NVIDIA, Vulkan работает на любой современной видеокарте, CPU — медленно.</value></data>
+  <data name="ImgEngine_RecommendedText" xml:space="preserve"><value>Для этого компьютера: {1} ({0})</value></data>
+  <data name="ImgEngine_InstallRecommended" xml:space="preserve"><value>Установить рекомендованную</value></data>
+  <data name="ImgEngine_PickManually" xml:space="preserve"><value>Выбрать версию и сборку</value></data>
+  <data name="ImgEngine_Launch" xml:space="preserve"><value>Параметры генератора</value></data>
+  <data name="ImgEngine_Family" xml:space="preserve"><value>Семейство модели</value></data>
+  <data name="ImgEngine_PresetValues" xml:space="preserve"><value>Пресет семейства: применяется, если поле ниже оставлено на «авто»</value></data>
+  <data name="ImgEngine_Fact_Files" xml:space="preserve"><value>Нужные файлы</value></data>
+  <data name="ImgEngine_Fact_Edit" xml:space="preserve"><value>Референсы</value></data>
+  <data name="ImgEngine_TriStateHint" xml:space="preserve"><value>Закрашенный квадрат во флажке — «авто»: значение берётся из пресета семейства модели</value></data>
+  <data name="ImgEngine_Memory" xml:space="preserve"><value>Память</value></data>
+  <data name="ImgEngine_MemoryHint" xml:space="preserve"><value>Если модель не помещается в видеопамять, включите выгрузку или перенесите кодировщики на процессор</value></data>
+  <data name="ImgEngine_OffloadToCpu" xml:space="preserve"><value>Выгружать веса в ОЗУ</value></data>
+  <data name="ImgEngine_OffloadToCpuHint" xml:space="preserve"><value>Веса лежат в ОЗУ и по частям переносятся в видеопамять: влезают модели больше, генерация медленнее</value></data>
+  <data name="ImgEngine_ClipOnCpu" xml:space="preserve"><value>Текстовые кодировщики на процессоре</value></data>
+  <data name="ImgEngine_ClipOnCpuHint" xml:space="preserve"><value>Экономит видеопамять; разбор промпта на несколько секунд дольше</value></data>
+  <data name="ImgEngine_VaeOnCpu" xml:space="preserve"><value>VAE на процессоре</value></data>
+  <data name="ImgEngine_VaeOnCpuHint" xml:space="preserve"><value>Экономит видеопамять; превращение результата в пиксели заметно медленнее</value></data>
+  <data name="ImgEngine_VaeTiling" xml:space="preserve"><value>Декодировать плитками</value></data>
+  <data name="ImgEngine_VaeTilingHint" xml:space="preserve"><value>Меньше пик видеопамяти на больших размерах; швы видны редко</value></data>
+  <data name="ImgEngine_ShareVram" xml:space="preserve"><value>Делить видеопамять с чатом</value></data>
+  <data name="ImgEngine_ShareVramHint" xml:space="preserve"><value>Останавливает llama-server перед генерацией и генератор перед чатом. Серверы с публичным API не останавливаются.</value></data>
+  <data name="ImgEngine_Speed" xml:space="preserve"><value>Скорость</value></data>
+  <data name="ImgEngine_FlashAttn" xml:space="preserve"><value>Flash attention</value></data>
+  <data name="ImgEngine_FlashAttnHint" xml:space="preserve"><value>Быстрее и экономнее на большинстве видеокарт; «auto» — решает движок</value></data>
+  <data name="ImgEngine_Threads" xml:space="preserve"><value>Потоки процессора</value></data>
+  <data name="ImgEngine_ThreadsHint" xml:space="preserve"><value>Пусто — по числу физических ядер. Важно для сборок CPU и выгрузки</value></data>
+  <data name="ImgEngine_WeightType" xml:space="preserve"><value>Пересчитать веса при загрузке</value></data>
+  <data name="ImgEngine_WeightTypeHint" xml:space="preserve"><value>Пусто — как в файле. Меньшие типы экономят память, но теряют детали; загрузка дольше</value></data>
+  <data name="ImgEngine_Advanced" xml:space="preserve"><value>Дополнительно</value></data>
+  <data name="ImgEngine_ServerDefaults" xml:space="preserve"><value>Передавать серверу рекомендуемые значения</value></data>
+  <data name="ImgEngine_ServerDefaultsHint" xml:space="preserve"><value>Шаги, CFG, сэмплер и размер семейства становятся умолчаниями сервера: внешние клиенты API, присылающие только промпт, получат хорошую картинку</value></data>
+  <data name="ImgEngine_Rng" xml:space="preserve"><value>Генератор случайных чисел</value></data>
+  <data name="ImgEngine_RngHint" xml:space="preserve"><value>cuda повторяет картинки, сделанные PyTorch на видеокарте; пусто — по умолчанию движка</value></data>
+  <data name="ImgEngine_LoraDir" xml:space="preserve"><value>Папка LoRA</value></data>
+  <data name="ImgEngine_ModelArgs" xml:space="preserve"><value>Аргументы модели (--model-args)</value></data>
+  <data name="ImgEngine_ModelArgsHint" xml:space="preserve"><value>ключ=значение через запятую; добавляются к аргументам пресета семейства</value></data>
+  <data name="ImgEngine_CommandLine" xml:space="preserve"><value>Командная строка</value></data>
+  <data name="ImgEngine_CopyCommand" xml:space="preserve"><value>Копировать команду</value></data>
+  <data name="ImgEngine_ResetLaunch" xml:space="preserve"><value>Всё на «авто»</value></data>
+  <data name="ImgEngine_ResetLaunchHint" xml:space="preserve"><value>Вернуть все поля к значениям пресета семейства</value></data>
+  <data name="ImgApi_Title" xml:space="preserve"><value>API изображений для других приложений</value></data>
+  <data name="ImgApi_Expose" xml:space="preserve"><value>Открыть OpenAI-совместимый API изображений</value></data>
+  <data name="ImgApi_ExposeHint" xml:space="preserve"><value>Другие программы смогут генерировать картинки загруженной моделью через /v1/images/generations и /v1/images/edits. Запросы принимаются только с ключом.</value></data>
+  <data name="ImgApi_Off" xml:space="preserve"><value>API изображений выключен: генератор слушает только эту программу</value></data>
+  <data name="ImgApi_ProxyError" xml:space="preserve"><value>Порт {0} недоступен: {1}</value></data>
+  <data name="ImgApi_Listening" xml:space="preserve"><value>API отвечает по адресу {0}</value></data>
+  <data name="ImgApi_WaitingServer" xml:space="preserve"><value>API начнёт отвечать, когда генератор запущен — нажмите «Запустить»</value></data>
+  <data name="ImgApi_ApplyHint" xml:space="preserve"><value>Нажмите «Запустить», чтобы генератор загрузил модель и API начал отвечать</value></data>
+  <data name="ImgApi_Endpoints" xml:space="preserve"><value>Также доступны /v1/models, /sdapi/v1/txt2img и /sdapi/v1/img2img (формат Automatic1111). Дополнительные параметры можно передать в промпте блоком &lt;sd_cpp_extra_args&gt;{...}&lt;/sd_cpp_extra_args&gt;.</value></data>
+  <data name="ImgApi_ExampleTitle" xml:space="preserve"><value>Примеры запросов</value></data>
+  <data name="ImgApi_Apply" xml:space="preserve"><value>Запустить</value></data>
 </root>

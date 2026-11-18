@@ -47,6 +47,9 @@
         <DataTemplate DataType="{x:Type vm:EngineViewModel}">
             <views:EngineView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ImagesViewModel}">
+            <views:ImagesView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:PlaceholderPageViewModel}">
             <views:PlaceholderView />
         </DataTemplate>

@@ -1046,4 +1046,308 @@ Install anyway?</value></data>
   <data name="Tok_Speed" xml:space="preserve"><value>Speed</value></data>
   <data name="Tok_Chat" xml:space="preserve"><value>Whole chat</value></data>
   <data name="Tok_ChatValue" xml:space="preserve"><value>in {0} · out {1} · answers {2}</value></data>
+  <data name="Ui_Detail" xml:space="preserve"><value>Interface detail</value></data>
+  <data name="Ui_DetailShort" xml:space="preserve"><value>Explanations</value></data>
+  <data name="Ui_DetailHint" xml:space="preserve"><value>How many explanations and settings the Engine, Models and Images pages show</value></data>
+  <data name="Enum_UiDetail_Guided" xml:space="preserve"><value>Step by step</value></data>
+  <data name="Enum_UiDetail_Standard" xml:space="preserve"><value>Standard</value></data>
+  <data name="Enum_UiDetail_Expert" xml:space="preserve"><value>Expert</value></data>
+  <data name="Enum_UiDetail_Guided_Hint" xml:space="preserve"><value>Hints under every field, next-step cards and only the main settings. Good for a first setup.</value></data>
+  <data name="Enum_UiDetail_Standard_Hint" xml:space="preserve"><value>Main settings with short explanations; extra settings are in collapsible blocks.</value></data>
+  <data name="Enum_UiDetail_Expert_Hint" xml:space="preserve"><value>All settings at once, no explanations, command line always visible.</value></data>
+  <data name="Enum_EngineTab_Text" xml:space="preserve"><value>Text · llama.cpp</value></data>
+  <data name="Enum_EngineTab_Images" xml:space="preserve"><value>Images · stable-diffusion.cpp</value></data>
+  <data name="Engine_TabTextHint" xml:space="preserve"><value>llama.cpp runs chat models; stable-diffusion.cpp runs image generators. Each has its own builds and settings.</value></data>
+  <data name="Tokens_ContextTitle" xml:space="preserve"><value>Conversation memory (context)</value></data>
+  <data name="Tokens_ContextSubtitle" xml:space="preserve"><value>How much text the model sees at once: system prompt, the whole conversation and its own answer</value></data>
+  <data name="Tokens_AnswerTitle" xml:space="preserve"><value>Answer length limit</value></data>
+  <data name="Tokens_AnswerSubtitle" xml:space="preserve"><value>How many tokens the model may write in one answer before it is cut off</value></data>
+  <data name="Tokens_Value" xml:space="preserve"><value>{0} tokens</value></data>
+  <data name="Tokens_Auto" xml:space="preserve"><value>Auto</value></data>
+  <data name="Tokens_AutoNow" xml:space="preserve"><value>Auto · now {0} tokens</value></data>
+  <data name="Tokens_AutoShort" xml:space="preserve"><value>Auto</value></data>
+  <data name="Tokens_AutoDetail" xml:space="preserve"><value>by memory</value></data>
+  <data name="Tokens_Unlimited" xml:space="preserve"><value>No limit</value></data>
+  <data name="Tokens_UnlimitedShort" xml:space="preserve"><value>No limit</value></data>
+  <data name="Tokens_UnlimitedDetail" xml:space="preserve"><value>until done</value></data>
+  <data name="Tokens_ContextAmount" xml:space="preserve"><value>About {0} English words · about {1} pages of conversation</value></data>
+  <data name="Tokens_AnswerAmount" xml:space="preserve"><value>Up to about {0} English words · about {1} pages per answer</value></data>
+  <data name="Tokens_ContextAutoHint" xml:space="preserve"><value>The program picks the size that fits in memory when the model starts</value></data>
+  <data name="Tokens_UnlimitedHint" xml:space="preserve"><value>The model writes until it finishes the thought or the context runs out</value></data>
+  <data name="Tokens_WordsDetail" xml:space="preserve"><value>≈{0} words</value></data>
+  <data name="Tokens_VramDetail" xml:space="preserve"><value>{0} VRAM</value></data>
+  <data name="Tokens_RamDetail" xml:space="preserve"><value>{0} RAM</value></data>
+  <data name="Tokens_AboveTrained" xml:space="preserve"><value>above training</value></data>
+  <data name="Tokens_Custom" xml:space="preserve"><value>Exact value</value></data>
+  <data name="Tokens_AnswerCustomHint" xml:space="preserve"><value>-1 means no limit</value></data>
+  <data name="Tokens_ContextHint" xml:space="preserve"><value>More context remembers longer conversations and documents but takes more video memory and slows the start of each answer. On Russian text a token is about half a word.</value></data>
+  <data name="Tokens_AnswerHint" xml:space="preserve"><value>A limit protects from endless answers and saves time; reasoning models spend part of it on thinking. The answer takes room from the context too.</value></data>
+  <data name="Tokens_Warn_AnswerFillsContext" xml:space="preserve"><value>The answer limit ({1}) is not smaller than the whole context ({0}): there is no room left for the question and the conversation</value></data>
+  <data name="Tokens_Warn_AnswerTakesMostOfContext" xml:space="preserve"><value>The answer can take more than half of the context ({1} of {0}): long conversations will hit the limit quickly</value></data>
+  <data name="Tokens_Warn_ContextAboveTrained" xml:space="preserve"><value>The context ({0}) is larger than the model was trained for ({2}): quality beyond that is usually worse</value></data>
+  <data name="Models_PageIntro" xml:space="preserve"><value>Chat models run on llama.cpp (GGUF files), image generators on stable-diffusion.cpp. Pick a task to search for the right kind of model.</value></data>
+  <data name="Models_Task" xml:space="preserve"><value>Task</value></data>
+  <data name="Models_GgufOnly" xml:space="preserve"><value>GGUF only</value></data>
+  <data name="Models_GgufOnlyHint" xml:space="preserve"><value>llama.cpp reads only GGUF; stable-diffusion.cpp also reads safetensors</value></data>
+  <data name="Models_TaskUnsupported" xml:space="preserve"><value>The program has no built-in engine for this task: models can be found and opened on Hugging Face, but not run here.</value></data>
+  <data name="Models_NoRuntime" xml:space="preserve"><value>The program cannot run models of this task. Open the page on Hugging Face to see how to use it.</value></data>
+  <data name="Enum_HfTask_Chat" xml:space="preserve"><value>Chat (text)</value></data>
+  <data name="Enum_HfTask_Vision" xml:space="preserve"><value>Image + text → text</value></data>
+  <data name="Enum_HfTask_TextToText" xml:space="preserve"><value>Text → text</value></data>
+  <data name="Enum_HfTask_AnyToAny" xml:space="preserve"><value>Any → any</value></data>
+  <data name="Enum_HfTask_TextToImage" xml:space="preserve"><value>Text → image</value></data>
+  <data name="Enum_HfTask_ImageToImage" xml:space="preserve"><value>Image → image</value></data>
+  <data name="Enum_HfTask_TextToVideo" xml:space="preserve"><value>Text → video</value></data>
+  <data name="Enum_HfTask_ImageToVideo" xml:space="preserve"><value>Image → video</value></data>
+  <data name="Enum_HfTask_TextToSpeech" xml:space="preserve"><value>Text → speech</value></data>
+  <data name="Enum_HfTask_SpeechToText" xml:space="preserve"><value>Speech → text</value></data>
+  <data name="Enum_HfTask_Embeddings" xml:space="preserve"><value>Embeddings</value></data>
+  <data name="Enum_HfTask_All" xml:space="preserve"><value>Any task</value></data>
+  <data name="Models_TaskHint_Chat" xml:space="preserve"><value>Models for conversation; run on llama.cpp</value></data>
+  <data name="Models_TaskHint_Vision" xml:space="preserve"><value>Models that understand pictures in the chat; download with the mmproj file</value></data>
+  <data name="Models_TaskHint_TextToText" xml:space="preserve"><value>Translation, summaries and rewriting (T5 and similar); run on llama.cpp if there is a GGUF</value></data>
+  <data name="Models_TaskHint_AnyToAny" xml:space="preserve"><value>Omni models: text, pictures and sound; in the chat they work as text and image models</value></data>
+  <data name="Models_TaskHint_TextToImage" xml:space="preserve"><value>Image generators; run on stable-diffusion.cpp. Many need extra files (VAE, text encoders) — the ready kits above include them.</value></data>
+  <data name="Models_TaskHint_ImageToImage" xml:space="preserve"><value>Editing and redrawing pictures; run on stable-diffusion.cpp</value></data>
+  <data name="Models_TaskHint_TextToVideo" xml:space="preserve"><value>Video generators; there is no built-in engine for them yet</value></data>
+  <data name="Models_TaskHint_ImageToVideo" xml:space="preserve"><value>Video from a picture; there is no built-in engine for them yet</value></data>
+  <data name="Models_TaskHint_TextToSpeech" xml:space="preserve"><value>Speech synthesis; there is no built-in engine for it yet</value></data>
+  <data name="Models_TaskHint_SpeechToText" xml:space="preserve"><value>Speech recognition; there is no built-in engine for it yet</value></data>
+  <data name="Models_TaskHint_Embeddings" xml:space="preserve"><value>Vectors for search; there is no built-in engine for them yet</value></data>
+  <data name="Models_TaskHint_All" xml:space="preserve"><value>All models, without filtering by task</value></data>
+  <data name="Models_ImageMine" xml:space="preserve"><value>Image models</value></data>
+  <data name="Models_ImageMineHint" xml:space="preserve"><value>A generator usually consists of several files: the main model, a VAE and text encoders. The program keeps paths, files are not copied.</value></data>
+  <data name="Models_ImageNoneYet" xml:space="preserve"><value>No image models yet. Download a ready kit or add your own files</value></data>
+  <data name="Models_AddImageFiles" xml:space="preserve"><value>Add files</value></data>
+  <data name="Models_PickImageFiles" xml:space="preserve"><value>Model files (select all: model, VAE, encoders)</value></data>
+  <data name="Models_ImageWeightsFilter" xml:space="preserve"><value>Model weights</value></data>
+  <data name="Models_PickComponent" xml:space="preserve"><value>File for: {0}</value></data>
+  <data name="Models_ImageEdit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Models_ImageFiles" xml:space="preserve"><value>Files and family</value></data>
+  <data name="Models_ImageFilesHint" xml:space="preserve"><value>The family sets which files are required and the default steps and CFG. A file can be on any disk.</value></data>
+  <data name="Models_ImagePickFiles" xml:space="preserve"><value>Tick the files to download and check their roles. Usually one main model file (one quantization) is enough.</value></data>
+  <data name="Models_ImageSelected" xml:space="preserve"><value>Selected:</value></data>
+  <data name="Models_ImageMissing" xml:space="preserve"><value>Not in this repository: {0}. Take them from a ready kit or add them to the model later</value></data>
+  <data name="Models_DownloadImage" xml:space="preserve"><value>Download and add</value></data>
+  <data name="Models_Kits" xml:space="preserve"><value>Ready kits for images</value></data>
+  <data name="Models_KitsHint" xml:space="preserve"><value>A kit downloads the model and every file it needs; files already on disk are skipped. Sizes are checked against the publisher&apos;s files.</value></data>
+  <data name="Models_KitDownload" xml:space="preserve"><value>Download kit</value></data>
+  <data name="Models_KitInstalled" xml:space="preserve"><value>Installed</value></data>
+  <data name="ImgKit_FitsGpu" xml:space="preserve"><value>Fits in video memory (needs about {0})</value></data>
+  <data name="ImgKit_Offload" xml:space="preserve"><value>Needs about {0} of video memory: will run with offloading to RAM, slower</value></data>
+  <data name="ImgKit_CpuOnly" xml:space="preserve"><value>No dedicated graphics card: generation on the CPU takes minutes per image</value></data>
+  <data name="ImgKit_z_image_turbo_q4" xml:space="preserve"><value>Fast and high quality: 8 steps, good with text in pictures. The best start for most graphics cards.</value></data>
+  <data name="ImgKit_sd15_q8" xml:space="preserve"><value>The lightest classic: 512 × 512, runs even on weak hardware and the CPU</value></data>
+  <data name="ImgKit_sdxl_q4" xml:space="preserve"><value>Classic SDXL 1024 × 1024 with the fixed VAE; supports negative prompts</value></data>
+  <data name="ImgKit_flux1_schnell_q4" xml:space="preserve"><value>FLUX.1 schnell: 4 steps, detailed images; text encoders are large</value></data>
+  <data name="ImgKit_qwen_image_2512_q3" xml:space="preserve"><value>Qwen-Image 2512: strong at text in pictures and complex scenes; heavy, uses offloading</value></data>
+  <data name="ImgKit_qwen_image_edit_2509_q3" xml:space="preserve"><value>Edits pictures by description: change, add or remove objects using reference images</value></data>
+  <data name="Enum_ImageComponent_Checkpoint" xml:space="preserve"><value>Checkpoint (all-in-one)</value></data>
+  <data name="Enum_ImageComponent_DiffusionModel" xml:space="preserve"><value>Diffusion model</value></data>
+  <data name="Enum_ImageComponent_Vae" xml:space="preserve"><value>VAE</value></data>
+  <data name="Enum_ImageComponent_ClipL" xml:space="preserve"><value>CLIP-L encoder</value></data>
+  <data name="Enum_ImageComponent_ClipG" xml:space="preserve"><value>CLIP-G encoder</value></data>
+  <data name="Enum_ImageComponent_T5xxl" xml:space="preserve"><value>T5-XXL encoder</value></data>
+  <data name="Enum_ImageComponent_Llm" xml:space="preserve"><value>Language model (encoder)</value></data>
+  <data name="Enum_ImageComponent_LlmVision" xml:space="preserve"><value>LLM vision (mmproj)</value></data>
+  <data name="Enum_ImageComponent_ClipVision" xml:space="preserve"><value>CLIP Vision</value></data>
+  <data name="ImgComp_Hint_Checkpoint" xml:space="preserve"><value>One file with the whole model (SD 1.5, SDXL, SD3)</value></data>
+  <data name="ImgComp_Hint_DiffusionModel" xml:space="preserve"><value>The main part that draws the picture</value></data>
+  <data name="ImgComp_Hint_Vae" xml:space="preserve"><value>Turns the result into pixels; the wrong VAE gives grey or noisy images</value></data>
+  <data name="ImgComp_Hint_ClipL" xml:space="preserve"><value>Reads the prompt (FLUX, SD3)</value></data>
+  <data name="ImgComp_Hint_ClipG" xml:space="preserve"><value>Reads the prompt (SD3)</value></data>
+  <data name="ImgComp_Hint_T5xxl" xml:space="preserve"><value>Reads long prompts (FLUX, SD3, Chroma)</value></data>
+  <data name="ImgComp_Hint_Llm" xml:space="preserve"><value>Language model that reads the prompt (Qwen-Image, Z-Image, FLUX.2)</value></data>
+  <data name="ImgComp_Hint_LlmVision" xml:space="preserve"><value>Lets the language model see reference images (Qwen-Image-Edit)</value></data>
+  <data name="ImgComp_Hint_ClipVision" xml:space="preserve"><value>Image encoder for video models</value></data>
+  <data name="Img_FileNotSet" xml:space="preserve"><value>not set — required</value></data>
+  <data name="Img_FileOptional" xml:space="preserve"><value>not set — optional</value></data>
+  <data name="Enum_ImageFamily_Sd15" xml:space="preserve"><value>Stable Diffusion 1.5</value></data>
+  <data name="Enum_ImageFamily_Sd2" xml:space="preserve"><value>Stable Diffusion 2.x</value></data>
+  <data name="Enum_ImageFamily_Sdxl" xml:space="preserve"><value>SDXL</value></data>
+  <data name="Enum_ImageFamily_SdxlTurbo" xml:space="preserve"><value>SDXL Turbo / Lightning</value></data>
+  <data name="Enum_ImageFamily_Sd3" xml:space="preserve"><value>Stable Diffusion 3 / 3.5</value></data>
+  <data name="Enum_ImageFamily_Flux1Dev" xml:space="preserve"><value>FLUX.1 dev</value></data>
+  <data name="Enum_ImageFamily_Flux1Schnell" xml:space="preserve"><value>FLUX.1 schnell</value></data>
+  <data name="Enum_ImageFamily_FluxKontext" xml:space="preserve"><value>FLUX.1 Kontext (editing)</value></data>
+  <data name="Enum_ImageFamily_Flux2" xml:space="preserve"><value>FLUX.2 dev</value></data>
+  <data name="Enum_ImageFamily_Flux2Klein" xml:space="preserve"><value>FLUX.2 klein</value></data>
+  <data name="Enum_ImageFamily_Chroma" xml:space="preserve"><value>Chroma</value></data>
+  <data name="Enum_ImageFamily_QwenImage" xml:space="preserve"><value>Qwen-Image</value></data>
+  <data name="Enum_ImageFamily_QwenImageEdit" xml:space="preserve"><value>Qwen-Image-Edit (2509)</value></data>
+  <data name="Enum_ImageFamily_QwenImageEdit2511" xml:space="preserve"><value>Qwen-Image-Edit 2511</value></data>
+  <data name="Enum_ImageFamily_ZImage" xml:space="preserve"><value>Z-Image</value></data>
+  <data name="Enum_ImageFamily_ZImageTurbo" xml:space="preserve"><value>Z-Image Turbo</value></data>
+  <data name="Enum_ImageFamily_Custom" xml:space="preserve"><value>Other (set files manually)</value></data>
+  <data name="ImgFamily_Hint_Sd15" xml:space="preserve"><value>512 × 512, 20–30 steps, CFG 6–8. Understands negative prompts; a lot of community models exist.</value></data>
+  <data name="ImgFamily_Hint_Sd2" xml:space="preserve"><value>768 × 768, 20–30 steps, CFG 6–8.</value></data>
+  <data name="ImgFamily_Hint_Sdxl" xml:space="preserve"><value>1024 × 1024, 20–30 steps, CFG 4–7. Smaller sizes give worse pictures.</value></data>
+  <data name="ImgFamily_Hint_SdxlTurbo" xml:space="preserve"><value>Distilled: 1–8 steps, CFG 1, the negative prompt is ignored.</value></data>
+  <data name="ImgFamily_Hint_Sd3" xml:space="preserve"><value>1024 × 1024, about 20–28 steps, CFG 4–5. Needs CLIP-L, CLIP-G and T5 encoders.</value></data>
+  <data name="ImgFamily_Hint_Flux1Dev" xml:space="preserve"><value>20–30 steps, CFG 1 (guidance is built in). Needs VAE, CLIP-L and T5.</value></data>
+  <data name="ImgFamily_Hint_Flux1Schnell" xml:space="preserve"><value>4 steps, CFG 1. Fast; needs VAE, CLIP-L and T5.</value></data>
+  <data name="ImgFamily_Hint_FluxKontext" xml:space="preserve"><value>Edits a reference image by description: 20 steps, CFG 1.</value></data>
+  <data name="ImgFamily_Hint_Flux2" xml:space="preserve"><value>20 steps, CFG 1; uses a large Mistral language model as encoder. Supports reference images.</value></data>
+  <data name="ImgFamily_Hint_Flux2Klein" xml:space="preserve"><value>Distilled: 4 steps, CFG 1 (base versions: 20 steps, CFG 4).</value></data>
+  <data name="ImgFamily_Hint_Chroma" xml:space="preserve"><value>20 steps, CFG 3–4; understands negative prompts.</value></data>
+  <data name="ImgFamily_Hint_QwenImage" xml:space="preserve"><value>20 steps, CFG 2.5–4, flow shift 3. Strong at text in pictures; heavy, offloading is on.</value></data>
+  <data name="ImgFamily_Hint_QwenImageEdit" xml:space="preserve"><value>Edits reference images: 20 steps, CFG 2.5, flow shift 3. Add the mmproj file for better understanding of references.</value></data>
+  <data name="ImgFamily_Hint_QwenImageEdit2511" xml:space="preserve"><value>Same as Edit 2509 plus a required model flag; without it quality drops noticeably.</value></data>
+  <data name="ImgFamily_Hint_ZImage" xml:space="preserve"><value>20 steps, CFG 4; understands negative prompts.</value></data>
+  <data name="ImgFamily_Hint_ZImageTurbo" xml:space="preserve"><value>8–9 steps, CFG 1. Fast and good with text in pictures.</value></data>
+  <data name="ImgFamily_Hint_Custom" xml:space="preserve"><value>The program does not know this family: set the files and parameters yourself.</value></data>
+  <data name="Nav_Images" xml:space="preserve"><value>Images</value></data>
+  <data name="Img_PageIntro" xml:space="preserve"><value>Generate pictures from a description or edit your own pictures locally, without the internet</value></data>
+  <data name="Img_SetupTitle" xml:space="preserve"><value>Two steps before the first picture</value></data>
+  <data name="Img_SetupIntro" xml:space="preserve"><value>Generation runs on stable-diffusion.cpp with a model on your disk. Both are installed with one button.</value></data>
+  <data name="Img_Step1" xml:space="preserve"><value>1</value></data>
+  <data name="Img_Step2" xml:space="preserve"><value>2</value></data>
+  <data name="Img_StepEngine" xml:space="preserve"><value>Install the engine (stable-diffusion.cpp)</value></data>
+  <data name="Img_StepEngineHint" xml:space="preserve"><value>The program suggests the build for your graphics card</value></data>
+  <data name="Img_StepModel" xml:space="preserve"><value>Download a model</value></data>
+  <data name="Img_StepModelHint" xml:space="preserve"><value>A ready kit contains every file the model needs</value></data>
+  <data name="Img_InstallEngine" xml:space="preserve"><value>Install engine</value></data>
+  <data name="Img_GetModel" xml:space="preserve"><value>Choose model</value></data>
+  <data name="Img_Model" xml:space="preserve"><value>Model</value></data>
+  <data name="Img_Generator" xml:space="preserve"><value>Generator</value></data>
+  <data name="Img_StopServer" xml:space="preserve"><value>Stop generator</value></data>
+  <data name="Img_StopServerHint" xml:space="preserve"><value>Frees the video memory; the generator starts again with the next picture</value></data>
+  <data name="Img_Mode" xml:space="preserve"><value>Mode</value></data>
+  <data name="Enum_ImageMode_TextToImage" xml:space="preserve"><value>From text</value></data>
+  <data name="Enum_ImageMode_Edit" xml:space="preserve"><value>Edit by references</value></data>
+  <data name="Enum_ImageMode_ImageToImage" xml:space="preserve"><value>Redraw a picture</value></data>
+  <data name="Img_ModeHint_TextToImage" xml:space="preserve"><value>The picture is drawn from the description only</value></data>
+  <data name="Img_ModeHint_Edit" xml:space="preserve"><value>The model sees the reference pictures and changes them as described: “make it winter”, “put the cat on the sofa”</value></data>
+  <data name="Img_ModeHint_ImageToImage" xml:space="preserve"><value>The source picture is partly noised and redrawn; strength sets how much changes</value></data>
+  <data name="Img_Prompt" xml:space="preserve"><value>Description (prompt)</value></data>
+  <data name="Img_PromptHint" xml:space="preserve"><value>Describe the subject, setting, style and light. English usually works better, but Qwen-Image and Z-Image understand Russian too.</value></data>
+  <data name="Img_Negative" xml:space="preserve"><value>What to avoid (negative prompt)</value></data>
+  <data name="Img_NegativeHint" xml:space="preserve"><value>For example: blurry, extra fingers, text, watermark</value></data>
+  <data name="Img_Refs" xml:space="preserve"><value>Reference pictures</value></data>
+  <data name="Img_RefsHint" xml:space="preserve"><value>Drag pictures here, paste with Ctrl+V or pick files. Most models use 1–3 references.</value></data>
+  <data name="Img_AddRefs" xml:space="preserve"><value>Add pictures</value></data>
+  <data name="Img_Paste" xml:space="preserve"><value>Paste</value></data>
+  <data name="Img_PickRefs" xml:space="preserve"><value>Reference pictures</value></data>
+  <data name="Img_PickInit" xml:space="preserve"><value>Source picture</value></data>
+  <data name="Img_PickInitButton" xml:space="preserve"><value>Choose picture</value></data>
+  <data name="Img_ImageFilter" xml:space="preserve"><value>Pictures</value></data>
+  <data name="Img_CannotOpen" xml:space="preserve"><value>Cannot open {0}: {1}</value></data>
+  <data name="Img_Init" xml:space="preserve"><value>Source picture</value></data>
+  <data name="Img_Strength" xml:space="preserve"><value>Change strength</value></data>
+  <data name="Img_StrengthHint" xml:space="preserve"><value>0.3 keeps the composition and colors, 0.8 keeps only the general layout</value></data>
+  <data name="Img_Size" xml:space="preserve"><value>Size</value></data>
+  <data name="Img_SizeHint" xml:space="preserve"><value>Generators work best near their native size; aspect buttons keep the same number of pixels</value></data>
+  <data name="Img_Width" xml:space="preserve"><value>Width</value></data>
+  <data name="Img_Height" xml:space="preserve"><value>Height</value></data>
+  <data name="Img_Swap" xml:space="preserve"><value>Swap width and height</value></data>
+  <data name="Img_Steps" xml:space="preserve"><value>Steps</value></data>
+  <data name="Img_StepsHint" xml:space="preserve"><value>More steps — more detail and longer wait. Turbo models need 4–9.</value></data>
+  <data name="Img_Cfg" xml:space="preserve"><value>CFG</value></data>
+  <data name="Img_CfgHint" xml:space="preserve"><value>How strictly to follow the prompt. Distilled models (Turbo, FLUX, Z-Image Turbo) need 1.</value></data>
+  <data name="Img_Advanced" xml:space="preserve"><value>More settings</value></data>
+  <data name="Img_Sampler" xml:space="preserve"><value>Sampler</value></data>
+  <data name="Img_Scheduler" xml:space="preserve"><value>Noise schedule</value></data>
+  <data name="Img_Seed" xml:space="preserve"><value>Seed</value></data>
+  <data name="Img_SeedHint" xml:space="preserve"><value>Empty — a new random seed each time. The same seed and settings repeat the picture.</value></data>
+  <data name="Img_RandomSeed" xml:space="preserve"><value>Random seed</value></data>
+  <data name="Img_Batch" xml:space="preserve"><value>Pictures at once</value></data>
+  <data name="Img_FlowShift" xml:space="preserve"><value>Flow shift</value></data>
+  <data name="Img_FlowShiftHint" xml:space="preserve"><value>Empty — model default. Qwen-Image usually uses 3</value></data>
+  <data name="Img_ClipSkip" xml:space="preserve"><value>CLIP skip</value></data>
+  <data name="Img_ClipSkipHint" xml:space="preserve"><value>Empty — default. Many anime SD 1.5 models want 2</value></data>
+  <data name="Img_ResetPreset" xml:space="preserve"><value>Recommended values</value></data>
+  <data name="Img_ResetPresetHint" xml:space="preserve"><value>Return size, steps, CFG and sampler recommended for this model family</value></data>
+  <data name="Img_Generate" xml:space="preserve"><value>Generate</value></data>
+  <data name="Img_CancelHint" xml:space="preserve"><value>Stops waiting; the generator finishes the current picture in the background</value></data>
+  <data name="Img_EmptyPrompt" xml:space="preserve"><value>Describe what to draw</value></data>
+  <data name="Img_LoadingModel" xml:space="preserve"><value>Loading {0} — the first start takes a while</value></data>
+  <data name="Img_Generating" xml:space="preserve"><value>Generating</value></data>
+  <data name="Img_Progress" xml:space="preserve"><value>Step {0} of {1} · {2} s per step · about {3} s left</value></data>
+  <data name="Img_Elapsed" xml:space="preserve"><value>{0} s</value></data>
+  <data name="Img_Canceled" xml:space="preserve"><value>Canceled</value></data>
+  <data name="Img_Failed" xml:space="preserve"><value>Generation failed: {0}</value></data>
+  <data name="Img_ServerFailed" xml:space="preserve"><value>The generator did not start: {0}</value></data>
+  <data name="Img_Stats" xml:space="preserve"><value>{0} pcs · {1} s · seed {2} · {3}</value></data>
+  <data name="Img_NoEngine" xml:space="preserve"><value>stable-diffusion.cpp is not installed. Install it in Engine → Images</value></data>
+  <data name="Img_NoModel" xml:space="preserve"><value>No image model. Download one in Models</value></data>
+  <data name="Img_ModelIncomplete" xml:space="preserve"><value>The model is missing files: {0}. Add them in Models → Image models</value></data>
+  <data name="Img_Missing" xml:space="preserve"><value>Missing: {0}</value></data>
+  <data name="Img_Results" xml:space="preserve"><value>Results</value></data>
+  <data name="Img_NoResults" xml:space="preserve"><value>Pictures will appear here and are saved to the images folder</value></data>
+  <data name="Img_OpenFolder" xml:space="preserve"><value>Folder</value></data>
+  <data name="Img_Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Img_Copy" xml:space="preserve"><value>Copy picture</value></data>
+  <data name="Img_SaveAs" xml:space="preserve"><value>Save as</value></data>
+  <data name="Img_ShowInFolder" xml:space="preserve"><value>Show in folder</value></data>
+  <data name="Img_UseAsRef" xml:space="preserve"><value>Continue editing</value></data>
+  <data name="Img_UseAsRefHint" xml:space="preserve"><value>Add this picture to the references (or as the source for redrawing)</value></data>
+  <data name="Img_Reuse" xml:space="preserve"><value>Repeat settings</value></data>
+  <data name="Img_ReuseHint" xml:space="preserve"><value>Fill in the prompt, size, steps and seed of this picture</value></data>
+  <data name="ImgEngine_GuideTitle" xml:space="preserve"><value>How image generation works</value></data>
+  <data name="ImgEngine_Guide" xml:space="preserve"><value>1. Install a stable-diffusion.cpp build below — the program picks the one for your graphics card.
+2. Download a model in Models → Ready kits.
+3. Open Images and describe the picture. The generator starts by itself and keeps the model in memory until you stop it.</value></data>
+  <data name="ImgEngine_Start" xml:space="preserve"><value>Start</value></data>
+  <data name="ImgEngine_StartHint" xml:space="preserve"><value>Start or restart the generator with the default model and current settings</value></data>
+  <data name="ImgEngine_Restart" xml:space="preserve"><value>Restart with these settings</value></data>
+  <data name="ImgEngine_RestartHint" xml:space="preserve"><value>Changes take effect after the generator restarts</value></data>
+  <data name="ImgEngine_LoadedIn" xml:space="preserve"><value>loaded in {0} s</value></data>
+  <data name="ImgEngine_Builds" xml:space="preserve"><value>stable-diffusion.cpp builds</value></data>
+  <data name="ImgEngine_NoneInstalled" xml:space="preserve"><value>No builds yet</value></data>
+  <data name="ImgEngine_HealthOk" xml:space="preserve"><value>starts normally</value></data>
+  <data name="ImgEngine_PickServerExe" xml:space="preserve"><value>Choose sd-server.exe</value></data>
+  <data name="ImgEngine_NotAnEngine" xml:space="preserve"><value>sd-server.exe was not found in this folder</value></data>
+  <data name="ImgEngine_Download" xml:space="preserve"><value>Install stable-diffusion.cpp</value></data>
+  <data name="ImgEngine_DownloadHint" xml:space="preserve"><value>Official builds from github.com/leejet/stable-diffusion.cpp. CUDA is fastest on NVIDIA, Vulkan works on any modern graphics card, CPU is slow.</value></data>
+  <data name="ImgEngine_RecommendedText" xml:space="preserve"><value>For this computer: {1} ({0})</value></data>
+  <data name="ImgEngine_InstallRecommended" xml:space="preserve"><value>Install recommended</value></data>
+  <data name="ImgEngine_PickManually" xml:space="preserve"><value>Choose version and build</value></data>
+  <data name="ImgEngine_Launch" xml:space="preserve"><value>Generator settings</value></data>
+  <data name="ImgEngine_Family" xml:space="preserve"><value>Model family</value></data>
+  <data name="ImgEngine_PresetValues" xml:space="preserve"><value>Family preset: used when a field below is left on auto</value></data>
+  <data name="ImgEngine_Fact_Files" xml:space="preserve"><value>Required files</value></data>
+  <data name="ImgEngine_Fact_Edit" xml:space="preserve"><value>Reference images</value></data>
+  <data name="ImgEngine_TriStateHint" xml:space="preserve"><value>A filled square in a check box means auto: the value comes from the model family preset</value></data>
+  <data name="ImgEngine_Memory" xml:space="preserve"><value>Memory</value></data>
+  <data name="ImgEngine_MemoryHint" xml:space="preserve"><value>If the model does not fit in video memory, turn on offloading or move encoders to the CPU</value></data>
+  <data name="ImgEngine_OffloadToCpu" xml:space="preserve"><value>Offload weights to RAM</value></data>
+  <data name="ImgEngine_OffloadToCpuHint" xml:space="preserve"><value>Weights stay in RAM and move to video memory piece by piece: bigger models fit, generation is slower</value></data>
+  <data name="ImgEngine_ClipOnCpu" xml:space="preserve"><value>Text encoders on the CPU</value></data>
+  <data name="ImgEngine_ClipOnCpuHint" xml:space="preserve"><value>Saves video memory; reading the prompt takes a few seconds longer</value></data>
+  <data name="ImgEngine_VaeOnCpu" xml:space="preserve"><value>VAE on the CPU</value></data>
+  <data name="ImgEngine_VaeOnCpuHint" xml:space="preserve"><value>Saves video memory; turning the result into pixels becomes much slower</value></data>
+  <data name="ImgEngine_VaeTiling" xml:space="preserve"><value>Decode in tiles</value></data>
+  <data name="ImgEngine_VaeTilingHint" xml:space="preserve"><value>Lower peak video memory at large sizes; seams are rarely visible</value></data>
+  <data name="ImgEngine_ShareVram" xml:space="preserve"><value>Share video memory with the chat</value></data>
+  <data name="ImgEngine_ShareVramHint" xml:space="preserve"><value>Stops llama-server before generating and the generator before chatting. Servers with a public API are not stopped.</value></data>
+  <data name="ImgEngine_Speed" xml:space="preserve"><value>Speed</value></data>
+  <data name="ImgEngine_FlashAttn" xml:space="preserve"><value>Flash attention</value></data>
+  <data name="ImgEngine_FlashAttnHint" xml:space="preserve"><value>Faster and uses less memory on most GPUs; auto lets the engine decide</value></data>
+  <data name="ImgEngine_Threads" xml:space="preserve"><value>CPU threads</value></data>
+  <data name="ImgEngine_ThreadsHint" xml:space="preserve"><value>Empty — physical cores. Matters for CPU builds and offloading</value></data>
+  <data name="ImgEngine_WeightType" xml:space="preserve"><value>Convert weights on load</value></data>
+  <data name="ImgEngine_WeightTypeHint" xml:space="preserve"><value>Empty — as in the file. Lower types save memory but lose detail; loading takes longer</value></data>
+  <data name="ImgEngine_Advanced" xml:space="preserve"><value>More settings</value></data>
+  <data name="ImgEngine_ServerDefaults" xml:space="preserve"><value>Pass recommended values to the server</value></data>
+  <data name="ImgEngine_ServerDefaultsHint" xml:space="preserve"><value>Steps, CFG, sampler and size of the family become server defaults: external API clients that send only a prompt get a good picture</value></data>
+  <data name="ImgEngine_Rng" xml:space="preserve"><value>Random number generator</value></data>
+  <data name="ImgEngine_RngHint" xml:space="preserve"><value>cuda repeats pictures made with PyTorch on a GPU; empty — engine default</value></data>
+  <data name="ImgEngine_LoraDir" xml:space="preserve"><value>LoRA folder</value></data>
+  <data name="ImgEngine_ModelArgs" xml:space="preserve"><value>Model arguments (--model-args)</value></data>
+  <data name="ImgEngine_ModelArgsHint" xml:space="preserve"><value>key=value separated by commas; added to the family preset arguments</value></data>
+  <data name="ImgEngine_CommandLine" xml:space="preserve"><value>Command line</value></data>
+  <data name="ImgEngine_CopyCommand" xml:space="preserve"><value>Copy command</value></data>
+  <data name="ImgEngine_ResetLaunch" xml:space="preserve"><value>All on auto</value></data>
+  <data name="ImgEngine_ResetLaunchHint" xml:space="preserve"><value>Reset every field to the family preset values</value></data>
+  <data name="ImgApi_Title" xml:space="preserve"><value>Image API for other apps</value></data>
+  <data name="ImgApi_Expose" xml:space="preserve"><value>Open the OpenAI-compatible image API</value></data>
+  <data name="ImgApi_ExposeHint" xml:space="preserve"><value>Other programs can generate pictures with the loaded model through /v1/images/generations and /v1/images/edits. Requests are accepted only with the key.</value></data>
+  <data name="ImgApi_Off" xml:space="preserve"><value>The image API is off: the generator listens only to this program</value></data>
+  <data name="ImgApi_ProxyError" xml:space="preserve"><value>Port {0} is not available: {1}</value></data>
+  <data name="ImgApi_Listening" xml:space="preserve"><value>The API answers at {0}</value></data>
+  <data name="ImgApi_WaitingServer" xml:space="preserve"><value>The API starts listening when the generator is running — press Start</value></data>
+  <data name="ImgApi_ApplyHint" xml:space="preserve"><value>Press Start so that the generator loads the model and the API answers</value></data>
+  <data name="ImgApi_Endpoints" xml:space="preserve"><value>Also available: /v1/models, /sdapi/v1/txt2img and /sdapi/v1/img2img (Automatic1111 format). Extra parameters can be passed in the prompt as &lt;sd_cpp_extra_args&gt;{...}&lt;/sd_cpp_extra_args&gt;.</value></data>
+  <data name="ImgApi_ExampleTitle" xml:space="preserve"><value>Request examples</value></data>
+  <data name="ImgApi_Apply" xml:space="preserve"><value>Start</value></data>
 </root>

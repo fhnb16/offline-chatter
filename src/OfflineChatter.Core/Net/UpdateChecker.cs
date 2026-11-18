@@ -80,7 +80,10 @@ public static class UpdateChecker
         return new UpdateInfo(best.ver! > current, best.tag, (string?)best.r["html_url"] ?? page, (string?)best.r["body"], exe, cfg, package);
     }
 
-    /// <summary>Архив программы: OfflineChatter-0.1.42.zip (не установщик и не исходники).</summary>
+    /// <summary>
+    /// Архив программы (не установщик и не исходники): OfflineChatter.zip — с релизов без версии в имени,
+    /// чтобы постоянные ссылки на latest не ломались; старые релизы — OfflineChatter-0.1.42.zip.
+    /// </summary>
     public static bool IsPackage(ReleaseAsset a) =>
         a.Name.StartsWith("OfflineChatter", StringComparison.OrdinalIgnoreCase)
         && a.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)

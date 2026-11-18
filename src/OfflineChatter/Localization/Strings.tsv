@@ -1035,3 +1035,325 @@ Tok_Reasoning	{0} thinking	размышления {0}
 Tok_Speed	Speed	Скорость
 Tok_Chat	Whole chat	За весь чат
 Tok_ChatValue	in {0} · out {1} · answers {2}	вход {0} · выход {1} · ответов {2}
+
+# ---------- Вариант интерфейса ----------
+Ui_Detail	Interface detail	Подробность интерфейса
+Ui_DetailShort	Explanations	Пояснения
+Ui_DetailHint	How many explanations and settings the Engine, Models and Images pages show	Сколько пояснений и параметров показывают страницы «Движок», «Модели» и «Изображения»
+Enum_UiDetail_Guided	Step by step	Пошагово
+Enum_UiDetail_Standard	Standard	Обычный
+Enum_UiDetail_Expert	Expert	Эксперт
+Enum_UiDetail_Guided_Hint	Hints under every field, next-step cards and only the main settings. Good for a first setup.	Подсказки под каждым полем, карточки «что дальше» и только основные параметры. Подходит для первой настройки.
+Enum_UiDetail_Standard_Hint	Main settings with short explanations; extra settings are in collapsible blocks.	Основные параметры с краткими пояснениями; дополнительные — в раскрывающихся блоках.
+Enum_UiDetail_Expert_Hint	All settings at once, no explanations, command line always visible.	Все параметры сразу, без пояснений, командная строка всегда на виду.
+
+# ---------- Движок: вкладки ----------
+Enum_EngineTab_Text	Text · llama.cpp	Текст · llama.cpp
+Enum_EngineTab_Images	Images · stable-diffusion.cpp	Изображения · stable-diffusion.cpp
+Engine_TabTextHint	llama.cpp runs chat models; stable-diffusion.cpp runs image generators. Each has its own builds and settings.	llama.cpp запускает модели для чата, stable-diffusion.cpp — генераторы изображений. У каждого свои сборки и настройки.
+
+# ---------- Контекст и лимит ответа ----------
+Tokens_ContextTitle	Conversation memory (context)	Память беседы (контекст)
+Tokens_ContextSubtitle	How much text the model sees at once: system prompt, the whole conversation and its own answer	Сколько текста модель видит сразу: системный промпт, всю беседу и собственный ответ
+Tokens_AnswerTitle	Answer length limit	Лимит длины ответа
+Tokens_AnswerSubtitle	How many tokens the model may write in one answer before it is cut off	Сколько токенов модель может написать в одном ответе, прежде чем её остановят
+Tokens_Value	{0} tokens	{0} токенов
+Tokens_Auto	Auto	Авто
+Tokens_AutoNow	Auto · now {0} tokens	Авто · сейчас {0} токенов
+Tokens_AutoShort	Auto	Авто
+Tokens_AutoDetail	by memory	по памяти
+Tokens_Unlimited	No limit	Без лимита
+Tokens_UnlimitedShort	No limit	Без лимита
+Tokens_UnlimitedDetail	until done	до конца
+Tokens_ContextAmount	About {0} English words · about {1} pages of conversation	Примерно {0} английских слов · около {1} стр. беседы
+Tokens_AnswerAmount	Up to about {0} English words · about {1} pages per answer	До ~{0} английских слов · около {1} стр. на ответ
+Tokens_ContextAutoHint	The program picks the size that fits in memory when the model starts	Размер подбирается под свободную память при запуске модели
+Tokens_UnlimitedHint	The model writes until it finishes the thought or the context runs out	Модель пишет, пока не закончит мысль или не кончится контекст
+Tokens_WordsDetail	≈{0} words	≈{0} слов
+Tokens_VramDetail	{0} VRAM	{0} видеопам.
+Tokens_RamDetail	{0} RAM	{0} ОЗУ
+Tokens_AboveTrained	above training	больше обучения
+Tokens_Custom	Exact value	Точное значение
+Tokens_AnswerCustomHint	-1 means no limit	-1 — без лимита
+Tokens_ContextHint	More context remembers longer conversations and documents but takes more video memory and slows the start of each answer. On Russian text a token is about half a word.	Больший контекст помнит длинные беседы и документы, но занимает больше видеопамяти и замедляет начало каждого ответа. В русском тексте токен — примерно половина слова.
+Tokens_AnswerHint	A limit protects from endless answers and saves time; reasoning models spend part of it on thinking. The answer takes room from the context too.	Лимит защищает от бесконечных ответов и экономит время; размышляющие модели тратят часть лимита на размышления. Ответ тоже занимает место в контексте.
+Tokens_Warn_AnswerFillsContext	The answer limit ({1}) is not smaller than the whole context ({0}): there is no room left for the question and the conversation	Лимит ответа ({1}) не меньше всего контекста ({0}): для вопроса и беседы места не останется
+Tokens_Warn_AnswerTakesMostOfContext	The answer can take more than half of the context ({1} of {0}): long conversations will hit the limit quickly	Ответ может занять больше половины контекста ({1} из {0}): длинная беседа быстро упрётся в предел
+Tokens_Warn_ContextAboveTrained	The context ({0}) is larger than the model was trained for ({2}): quality beyond that is usually worse	Контекст ({0}) больше, чем модель видела при обучении ({2}): дальше качество обычно хуже
+
+# ---------- Модели: задачи ----------
+Models_PageIntro	Chat models run on llama.cpp (GGUF files), image generators on stable-diffusion.cpp. Pick a task to search for the right kind of model.	Модели для чата работают на llama.cpp (файлы GGUF), генераторы изображений — на stable-diffusion.cpp. Выберите задачу, чтобы искать подходящие модели.
+Models_Task	Task	Задача
+Models_GgufOnly	GGUF only	Только GGUF
+Models_GgufOnlyHint	llama.cpp reads only GGUF; stable-diffusion.cpp also reads safetensors	llama.cpp читает только GGUF; stable-diffusion.cpp читает и safetensors
+Models_TaskUnsupported	The program has no built-in engine for this task: models can be found and opened on Hugging Face, but not run here.	Для этой задачи в программе нет встроенного движка: модели можно найти и открыть на Hugging Face, но не запустить здесь.
+Models_NoRuntime	The program cannot run models of this task. Open the page on Hugging Face to see how to use it.	Программа не умеет запускать модели этой задачи. Откройте страницу на Hugging Face, чтобы узнать, как ей пользоваться.
+Enum_HfTask_Chat	Chat (text)	Чат (текст)
+Enum_HfTask_Vision	Image + text → text	Картинка + текст → текст
+Enum_HfTask_TextToText	Text → text	Текст → текст
+Enum_HfTask_AnyToAny	Any → any	Любое → любое
+Enum_HfTask_TextToImage	Text → image	Текст → картинка
+Enum_HfTask_ImageToImage	Image → image	Картинка → картинка
+Enum_HfTask_TextToVideo	Text → video	Текст → видео
+Enum_HfTask_ImageToVideo	Image → video	Картинка → видео
+Enum_HfTask_TextToSpeech	Text → speech	Текст → речь
+Enum_HfTask_SpeechToText	Speech → text	Речь → текст
+Enum_HfTask_Embeddings	Embeddings	Эмбеддинги
+Enum_HfTask_All	Any task	Любая задача
+Models_TaskHint_Chat	Models for conversation; run on llama.cpp	Модели для беседы; работают на llama.cpp
+Models_TaskHint_Vision	Models that understand pictures in the chat; download with the mmproj file	Модели, которые понимают картинки в чате; скачиваются вместе с файлом mmproj
+Models_TaskHint_TextToText	Translation, summaries and rewriting (T5 and similar); run on llama.cpp if there is a GGUF	Перевод, пересказ и переписывание (T5 и похожие); работают на llama.cpp, если есть GGUF
+Models_TaskHint_AnyToAny	Omni models: text, pictures and sound; in the chat they work as text and image models	Омни-модели: текст, картинки и звук; в чате работают как модели текста и картинок
+Models_TaskHint_TextToImage	Image generators; run on stable-diffusion.cpp. Many need extra files (VAE, text encoders) — the ready kits above include them.	Генераторы изображений; работают на stable-diffusion.cpp. Многим нужны дополнительные файлы (VAE, кодировщики) — готовые наборы выше их содержат.
+Models_TaskHint_ImageToImage	Editing and redrawing pictures; run on stable-diffusion.cpp	Редактирование и перерисовка картинок; работают на stable-diffusion.cpp
+Models_TaskHint_TextToVideo	Video generators; there is no built-in engine for them yet	Генераторы видео; встроенного движка для них пока нет
+Models_TaskHint_ImageToVideo	Video from a picture; there is no built-in engine for them yet	Видео из картинки; встроенного движка для них пока нет
+Models_TaskHint_TextToSpeech	Speech synthesis; there is no built-in engine for it yet	Синтез речи; встроенного движка для него пока нет
+Models_TaskHint_SpeechToText	Speech recognition; there is no built-in engine for it yet	Распознавание речи; встроенного движка для него пока нет
+Models_TaskHint_Embeddings	Vectors for search; there is no built-in engine for them yet	Векторы для поиска; встроенного движка для них пока нет
+Models_TaskHint_All	All models, without filtering by task	Все модели, без отбора по задаче
+
+# ---------- Модели: изображения ----------
+Models_ImageMine	Image models	Модели изображений
+Models_ImageMineHint	A generator usually consists of several files: the main model, a VAE and text encoders. The program keeps paths, files are not copied.	Генератор обычно состоит из нескольких файлов: основной модели, VAE и текстовых кодировщиков. Программа хранит пути, файлы не копируются.
+Models_ImageNoneYet	No image models yet. Download a ready kit or add your own files	Моделей изображений пока нет. Скачайте готовый набор или добавьте свои файлы
+Models_AddImageFiles	Add files	Добавить файлы
+Models_PickImageFiles	Model files (select all: model, VAE, encoders)	Файлы модели (выберите все: модель, VAE, кодировщики)
+Models_ImageWeightsFilter	Model weights	Веса моделей
+Models_PickComponent	File for: {0}	Файл для роли: {0}
+Models_ImageEdit	Edit	Редактирование
+Models_ImageFiles	Files and family	Файлы и семейство
+Models_ImageFilesHint	The family sets which files are required and the default steps and CFG. A file can be on any disk.	Семейство задаёт, какие файлы нужны, и шаги и CFG по умолчанию. Файл может лежать на любом диске.
+Models_ImagePickFiles	Tick the files to download and check their roles. Usually one main model file (one quantization) is enough.	Отметьте файлы для скачивания и проверьте их роли. Обычно достаточно одного файла основной модели (одного кванта).
+Models_ImageSelected	Selected:	Выбрано:
+Models_ImageMissing	Not in this repository: {0}. Take them from a ready kit or add them to the model later	В этом репозитории нет: {0}. Возьмите их из готового набора или добавьте к модели позже
+Models_DownloadImage	Download and add	Скачать и добавить
+Models_Kits	Ready kits for images	Готовые наборы для изображений
+Models_KitsHint	A kit downloads the model and every file it needs; files already on disk are skipped. Sizes are checked against the publisher's files.	Набор скачивает модель и все нужные ей файлы; уже скачанные пропускаются. Размеры сверяются с файлами автора.
+Models_KitDownload	Download kit	Скачать набор
+Models_KitInstalled	Installed	Установлен
+ImgKit_FitsGpu	Fits in video memory (needs about {0})	Помещается в видеопамять (нужно около {0})
+ImgKit_Offload	Needs about {0} of video memory: will run with offloading to RAM, slower	Нужно около {0} видеопамяти: будет работать с выгрузкой в ОЗУ, медленнее
+ImgKit_CpuOnly	No dedicated graphics card: generation on the CPU takes minutes per image	Нет отдельной видеокарты: на процессоре одна картинка считается минутами
+ImgKit_z_image_turbo_q4	Fast and high quality: 8 steps, good with text in pictures. The best start for most graphics cards.	Быстро и качественно: 8 шагов, хорошо пишет текст на картинках. Лучший старт для большинства видеокарт.
+ImgKit_sd15_q8	The lightest classic: 512 × 512, runs even on weak hardware and the CPU	Самая лёгкая классика: 512 × 512, работает даже на слабом железе и процессоре
+ImgKit_sdxl_q4	Classic SDXL 1024 × 1024 with the fixed VAE; supports negative prompts	Классическая SDXL 1024 × 1024 с исправленным VAE; понимает негативный промпт
+ImgKit_flux1_schnell_q4	FLUX.1 schnell: 4 steps, detailed images; text encoders are large	FLUX.1 schnell: 4 шага, детальные картинки; текстовые кодировщики большие
+ImgKit_qwen_image_2512_q3	Qwen-Image 2512: strong at text in pictures and complex scenes; heavy, uses offloading	Qwen-Image 2512: силён в тексте на картинках и сложных сценах; тяжёлый, работает с выгрузкой
+ImgKit_qwen_image_edit_2509_q3	Edits pictures by description: change, add or remove objects using reference images	Правит картинки по описанию: меняет, добавляет или убирает объекты по референсам
+
+# ---------- Изображения: роли файлов ----------
+Enum_ImageComponent_Checkpoint	Checkpoint (all-in-one)	Чекпойнт (всё в одном)
+Enum_ImageComponent_DiffusionModel	Diffusion model	Диффузионная модель
+Enum_ImageComponent_Vae	VAE	VAE
+Enum_ImageComponent_ClipL	CLIP-L encoder	Кодировщик CLIP-L
+Enum_ImageComponent_ClipG	CLIP-G encoder	Кодировщик CLIP-G
+Enum_ImageComponent_T5xxl	T5-XXL encoder	Кодировщик T5-XXL
+Enum_ImageComponent_Llm	Language model (encoder)	Языковая модель (кодировщик)
+Enum_ImageComponent_LlmVision	LLM vision (mmproj)	Зрение LLM (mmproj)
+Enum_ImageComponent_ClipVision	CLIP Vision	CLIP Vision
+ImgComp_Hint_Checkpoint	One file with the whole model (SD 1.5, SDXL, SD3)	Один файл со всей моделью (SD 1.5, SDXL, SD3)
+ImgComp_Hint_DiffusionModel	The main part that draws the picture	Основная часть, которая рисует картинку
+ImgComp_Hint_Vae	Turns the result into pixels; the wrong VAE gives grey or noisy images	Превращает результат в пиксели; неподходящий VAE даёт серые или шумные картинки
+ImgComp_Hint_ClipL	Reads the prompt (FLUX, SD3)	Читает промпт (FLUX, SD3)
+ImgComp_Hint_ClipG	Reads the prompt (SD3)	Читает промпт (SD3)
+ImgComp_Hint_T5xxl	Reads long prompts (FLUX, SD3, Chroma)	Читает длинные промпты (FLUX, SD3, Chroma)
+ImgComp_Hint_Llm	Language model that reads the prompt (Qwen-Image, Z-Image, FLUX.2)	Языковая модель, которая читает промпт (Qwen-Image, Z-Image, FLUX.2)
+ImgComp_Hint_LlmVision	Lets the language model see reference images (Qwen-Image-Edit)	Позволяет языковой модели видеть референсы (Qwen-Image-Edit)
+ImgComp_Hint_ClipVision	Image encoder for video models	Кодировщик картинок для видеомоделей
+Img_FileNotSet	not set — required	не указан — обязателен
+Img_FileOptional	not set — optional	не указан — по желанию
+
+# ---------- Изображения: семейства ----------
+Enum_ImageFamily_Sd15	Stable Diffusion 1.5	Stable Diffusion 1.5
+Enum_ImageFamily_Sd2	Stable Diffusion 2.x	Stable Diffusion 2.x
+Enum_ImageFamily_Sdxl	SDXL	SDXL
+Enum_ImageFamily_SdxlTurbo	SDXL Turbo / Lightning	SDXL Turbo / Lightning
+Enum_ImageFamily_Sd3	Stable Diffusion 3 / 3.5	Stable Diffusion 3 / 3.5
+Enum_ImageFamily_Flux1Dev	FLUX.1 dev	FLUX.1 dev
+Enum_ImageFamily_Flux1Schnell	FLUX.1 schnell	FLUX.1 schnell
+Enum_ImageFamily_FluxKontext	FLUX.1 Kontext (editing)	FLUX.1 Kontext (редактирование)
+Enum_ImageFamily_Flux2	FLUX.2 dev	FLUX.2 dev
+Enum_ImageFamily_Flux2Klein	FLUX.2 klein	FLUX.2 klein
+Enum_ImageFamily_Chroma	Chroma	Chroma
+Enum_ImageFamily_QwenImage	Qwen-Image	Qwen-Image
+Enum_ImageFamily_QwenImageEdit	Qwen-Image-Edit (2509)	Qwen-Image-Edit (2509)
+Enum_ImageFamily_QwenImageEdit2511	Qwen-Image-Edit 2511	Qwen-Image-Edit 2511
+Enum_ImageFamily_ZImage	Z-Image	Z-Image
+Enum_ImageFamily_ZImageTurbo	Z-Image Turbo	Z-Image Turbo
+Enum_ImageFamily_Custom	Other (set files manually)	Другое (файлы вручную)
+ImgFamily_Hint_Sd15	512 × 512, 20–30 steps, CFG 6–8. Understands negative prompts; a lot of community models exist.	512 × 512, 20–30 шагов, CFG 6–8. Понимает негативный промпт; много моделей сообщества.
+ImgFamily_Hint_Sd2	768 × 768, 20–30 steps, CFG 6–8.	768 × 768, 20–30 шагов, CFG 6–8.
+ImgFamily_Hint_Sdxl	1024 × 1024, 20–30 steps, CFG 4–7. Smaller sizes give worse pictures.	1024 × 1024, 20–30 шагов, CFG 4–7. Меньшие размеры дают картинки хуже.
+ImgFamily_Hint_SdxlTurbo	Distilled: 1–8 steps, CFG 1, the negative prompt is ignored.	Дистиллированная: 1–8 шагов, CFG 1, негативный промпт не действует.
+ImgFamily_Hint_Sd3	1024 × 1024, about 20–28 steps, CFG 4–5. Needs CLIP-L, CLIP-G and T5 encoders.	1024 × 1024, около 20–28 шагов, CFG 4–5. Нужны кодировщики CLIP-L, CLIP-G и T5.
+ImgFamily_Hint_Flux1Dev	20–30 steps, CFG 1 (guidance is built in). Needs VAE, CLIP-L and T5.	20–30 шагов, CFG 1 (подсказка встроена в модель). Нужны VAE, CLIP-L и T5.
+ImgFamily_Hint_Flux1Schnell	4 steps, CFG 1. Fast; needs VAE, CLIP-L and T5.	4 шага, CFG 1. Быстро; нужны VAE, CLIP-L и T5.
+ImgFamily_Hint_FluxKontext	Edits a reference image by description: 20 steps, CFG 1.	Правит референс по описанию: 20 шагов, CFG 1.
+ImgFamily_Hint_Flux2	20 steps, CFG 1; uses a large Mistral language model as encoder. Supports reference images.	20 шагов, CFG 1; кодировщик — большая языковая модель Mistral. Понимает референсы.
+ImgFamily_Hint_Flux2Klein	Distilled: 4 steps, CFG 1 (base versions: 20 steps, CFG 4).	Дистиллированная: 4 шага, CFG 1 (базовые версии: 20 шагов, CFG 4).
+ImgFamily_Hint_Chroma	20 steps, CFG 3–4; understands negative prompts.	20 шагов, CFG 3–4; понимает негативный промпт.
+ImgFamily_Hint_QwenImage	20 steps, CFG 2.5–4, flow shift 3. Strong at text in pictures; heavy, offloading is on.	20 шагов, CFG 2,5–4, flow shift 3. Силён в тексте на картинках; тяжёлый, выгрузка включена.
+ImgFamily_Hint_QwenImageEdit	Edits reference images: 20 steps, CFG 2.5, flow shift 3. Add the mmproj file for better understanding of references.	Правит референсы: 20 шагов, CFG 2,5, flow shift 3. С файлом mmproj лучше понимает референсы.
+ImgFamily_Hint_QwenImageEdit2511	Same as Edit 2509 plus a required model flag; without it quality drops noticeably.	Как Edit 2509 плюс обязательный флаг модели; без него качество заметно падает.
+ImgFamily_Hint_ZImage	20 steps, CFG 4; understands negative prompts.	20 шагов, CFG 4; понимает негативный промпт.
+ImgFamily_Hint_ZImageTurbo	8–9 steps, CFG 1. Fast and good with text in pictures.	8–9 шагов, CFG 1. Быстро и хорошо пишет текст на картинках.
+ImgFamily_Hint_Custom	The program does not know this family: set the files and parameters yourself.	Семейство неизвестно программе: задайте файлы и параметры сами.
+
+# ---------- Изображения: страница ----------
+Nav_Images	Images	Изображения
+Img_PageIntro	Generate pictures from a description or edit your own pictures locally, without the internet	Создавайте картинки по описанию или правьте свои — локально, без интернета
+Img_SetupTitle	Two steps before the first picture	Два шага до первой картинки
+Img_SetupIntro	Generation runs on stable-diffusion.cpp with a model on your disk. Both are installed with one button.	Генерация работает на stable-diffusion.cpp с моделью на вашем диске. И то и другое ставится одной кнопкой.
+Img_Step1	1	1
+Img_Step2	2	2
+Img_StepEngine	Install the engine (stable-diffusion.cpp)	Установите движок (stable-diffusion.cpp)
+Img_StepEngineHint	The program suggests the build for your graphics card	Программа предложит сборку под вашу видеокарту
+Img_StepModel	Download a model	Скачайте модель
+Img_StepModelHint	A ready kit contains every file the model needs	Готовый набор содержит все нужные модели файлы
+Img_InstallEngine	Install engine	Установить движок
+Img_GetModel	Choose model	Выбрать модель
+Img_Model	Model	Модель
+Img_Generator	Generator	Генератор
+Img_StopServer	Stop generator	Остановить генератор
+Img_StopServerHint	Frees the video memory; the generator starts again with the next picture	Освобождает видеопамять; генератор запустится снова со следующей картинкой
+Img_Mode	Mode	Режим
+Enum_ImageMode_TextToImage	From text	Из текста
+Enum_ImageMode_Edit	Edit by references	Редактирование по референсам
+Enum_ImageMode_ImageToImage	Redraw a picture	Перерисовка картинки
+Img_ModeHint_TextToImage	The picture is drawn from the description only	Картинка рисуется только по описанию
+Img_ModeHint_Edit	The model sees the reference pictures and changes them as described: “make it winter”, “put the cat on the sofa”	Модель видит референсы и меняет их по описанию: «сделай зиму», «посади кота на диван»
+Img_ModeHint_ImageToImage	The source picture is partly noised and redrawn; strength sets how much changes	Исходная картинка частично зашумляется и перерисовывается; сила задаёт, насколько изменится
+Img_Prompt	Description (prompt)	Описание (промпт)
+Img_PromptHint	Describe the subject, setting, style and light. English usually works better, but Qwen-Image and Z-Image understand Russian too.	Опишите предмет, место, стиль и свет. Обычно лучше по-английски, но Qwen-Image и Z-Image понимают и русский.
+Img_Negative	What to avoid (negative prompt)	Чего избегать (негативный промпт)
+Img_NegativeHint	For example: blurry, extra fingers, text, watermark	Например: blurry, extra fingers, text, watermark
+Img_Refs	Reference pictures	Референсы
+Img_RefsHint	Drag pictures here, paste with Ctrl+V or pick files. Most models use 1–3 references.	Перетащите картинки сюда, вставьте Ctrl+V или выберите файлы. Большинство моделей берут 1–3 референса.
+Img_AddRefs	Add pictures	Добавить картинки
+Img_Paste	Paste	Вставить
+Img_PickRefs	Reference pictures	Референсы
+Img_PickInit	Source picture	Исходная картинка
+Img_PickInitButton	Choose picture	Выбрать картинку
+Img_ImageFilter	Pictures	Картинки
+Img_CannotOpen	Cannot open {0}: {1}	Не удалось открыть {0}: {1}
+Img_Init	Source picture	Исходная картинка
+Img_Strength	Change strength	Сила изменения
+Img_StrengthHint	0.3 keeps the composition and colors, 0.8 keeps only the general layout	0,3 сохраняет композицию и цвета, 0,8 — только общее расположение
+Img_Size	Size	Размер
+Img_SizeHint	Generators work best near their native size; aspect buttons keep the same number of pixels	Генераторы лучше всего работают около родного размера; кнопки пропорций сохраняют число пикселей
+Img_Width	Width	Ширина
+Img_Height	Height	Высота
+Img_Swap	Swap width and height	Поменять ширину и высоту
+Img_Steps	Steps	Шаги
+Img_StepsHint	More steps — more detail and longer wait. Turbo models need 4–9.	Больше шагов — больше деталей и дольше ждать. Turbo-моделям нужно 4–9.
+Img_Cfg	CFG	CFG
+Img_CfgHint	How strictly to follow the prompt. Distilled models (Turbo, FLUX, Z-Image Turbo) need 1.	Насколько строго следовать описанию. Дистиллированным моделям (Turbo, FLUX, Z-Image Turbo) нужно 1.
+Img_Advanced	More settings	Дополнительно
+Img_Sampler	Sampler	Сэмплер
+Img_Scheduler	Noise schedule	Расписание шума
+Img_Seed	Seed	Зерно (seed)
+Img_SeedHint	Empty — a new random seed each time. The same seed and settings repeat the picture.	Пусто — каждый раз новое случайное. То же зерно и параметры повторяют картинку.
+Img_RandomSeed	Random seed	Случайное зерно
+Img_Batch	Pictures at once	Картинок за раз
+Img_FlowShift	Flow shift	Flow shift
+Img_FlowShiftHint	Empty — model default. Qwen-Image usually uses 3	Пусто — по умолчанию модели. Для Qwen-Image обычно 3
+Img_ClipSkip	CLIP skip	CLIP skip
+Img_ClipSkipHint	Empty — default. Many anime SD 1.5 models want 2	Пусто — по умолчанию. Многим аниме-моделям SD 1.5 нужно 2
+Img_ResetPreset	Recommended values	Рекомендуемые значения
+Img_ResetPresetHint	Return size, steps, CFG and sampler recommended for this model family	Вернуть размер, шаги, CFG и сэмплер, рекомендованные для семейства модели
+Img_Generate	Generate	Сгенерировать
+Img_CancelHint	Stops waiting; the generator finishes the current picture in the background	Перестаёт ждать; генератор досчитает текущую картинку в фоне
+Img_EmptyPrompt	Describe what to draw	Опишите, что нарисовать
+Img_LoadingModel	Loading {0} — the first start takes a while	Загрузка {0} — первый запуск занимает время
+Img_Generating	Generating	Генерация
+Img_Progress	Step {0} of {1} · {2} s per step · about {3} s left	Шаг {0} из {1} · {2} с на шаг · осталось около {3} с
+Img_Elapsed	{0} s	{0} с
+Img_Canceled	Canceled	Отменено
+Img_Failed	Generation failed: {0}	Не удалось сгенерировать: {0}
+Img_ServerFailed	The generator did not start: {0}	Генератор не запустился: {0}
+Img_Stats	{0} pcs · {1} s · seed {2} · {3}	{0} шт. · {1} с · зерно {2} · {3}
+Img_NoEngine	stable-diffusion.cpp is not installed. Install it in Engine → Images	stable-diffusion.cpp не установлен. Установите его в разделе «Движок → Изображения»
+Img_NoModel	No image model. Download one in Models	Нет модели изображений. Скачайте её в разделе «Модели»
+Img_ModelIncomplete	The model is missing files: {0}. Add them in Models → Image models	У модели не хватает файлов: {0}. Добавьте их в «Модели → Модели изображений»
+Img_Missing	Missing: {0}	Не хватает: {0}
+Img_Results	Results	Результаты
+Img_NoResults	Pictures will appear here and are saved to the images folder	Картинки появятся здесь и сохранятся в папку images
+Img_OpenFolder	Folder	Папка
+Img_Open	Open	Открыть
+Img_Copy	Copy picture	Копировать картинку
+Img_SaveAs	Save as	Сохранить как
+Img_ShowInFolder	Show in folder	Показать в папке
+Img_UseAsRef	Continue editing	Продолжить правку
+Img_UseAsRefHint	Add this picture to the references (or as the source for redrawing)	Добавить картинку в референсы (или исходником для перерисовки)
+Img_Reuse	Repeat settings	Повторить параметры
+Img_ReuseHint	Fill in the prompt, size, steps and seed of this picture	Подставить промпт, размер, шаги и зерно этой картинки
+
+# ---------- Движок: stable-diffusion.cpp ----------
+ImgEngine_GuideTitle	How image generation works	Как устроена генерация изображений
+ImgEngine_Guide	1. Install a stable-diffusion.cpp build below — the program picks the one for your graphics card.\n2. Download a model in Models → Ready kits.\n3. Open Images and describe the picture. The generator starts by itself and keeps the model in memory until you stop it.	1. Установите сборку stable-diffusion.cpp ниже — программа подберёт её под вашу видеокарту.\n2. Скачайте модель в «Модели → Готовые наборы».\n3. Откройте «Изображения» и опишите картинку. Генератор запустится сам и держит модель в памяти, пока его не остановят.
+ImgEngine_Start	Start	Запустить
+ImgEngine_StartHint	Start or restart the generator with the default model and current settings	Запустить или перезапустить генератор с моделью по умолчанию и текущими параметрами
+ImgEngine_Restart	Restart with these settings	Перезапустить с этими параметрами
+ImgEngine_RestartHint	Changes take effect after the generator restarts	Изменения вступят в силу после перезапуска генератора
+ImgEngine_LoadedIn	loaded in {0} s	загружен за {0} с
+ImgEngine_Builds	stable-diffusion.cpp builds	Сборки stable-diffusion.cpp
+ImgEngine_NoneInstalled	No builds yet	Сборок пока нет
+ImgEngine_HealthOk	starts normally	запускается
+ImgEngine_PickServerExe	Choose sd-server.exe	Выберите sd-server.exe
+ImgEngine_NotAnEngine	sd-server.exe was not found in this folder	В этой папке нет sd-server.exe
+ImgEngine_Download	Install stable-diffusion.cpp	Установка stable-diffusion.cpp
+ImgEngine_DownloadHint	Official builds from github.com/leejet/stable-diffusion.cpp. CUDA is fastest on NVIDIA, Vulkan works on any modern graphics card, CPU is slow.	Официальные сборки с github.com/leejet/stable-diffusion.cpp. CUDA быстрее всего на NVIDIA, Vulkan работает на любой современной видеокарте, CPU — медленно.
+ImgEngine_RecommendedText	For this computer: {1} ({0})	Для этого компьютера: {1} ({0})
+ImgEngine_InstallRecommended	Install recommended	Установить рекомендованную
+ImgEngine_PickManually	Choose version and build	Выбрать версию и сборку
+ImgEngine_Launch	Generator settings	Параметры генератора
+ImgEngine_Family	Model family	Семейство модели
+ImgEngine_PresetValues	Family preset: used when a field below is left on auto	Пресет семейства: применяется, если поле ниже оставлено на «авто»
+ImgEngine_Fact_Files	Required files	Нужные файлы
+ImgEngine_Fact_Edit	Reference images	Референсы
+ImgEngine_TriStateHint	A filled square in a check box means auto: the value comes from the model family preset	Закрашенный квадрат во флажке — «авто»: значение берётся из пресета семейства модели
+ImgEngine_Memory	Memory	Память
+ImgEngine_MemoryHint	If the model does not fit in video memory, turn on offloading or move encoders to the CPU	Если модель не помещается в видеопамять, включите выгрузку или перенесите кодировщики на процессор
+ImgEngine_OffloadToCpu	Offload weights to RAM	Выгружать веса в ОЗУ
+ImgEngine_OffloadToCpuHint	Weights stay in RAM and move to video memory piece by piece: bigger models fit, generation is slower	Веса лежат в ОЗУ и по частям переносятся в видеопамять: влезают модели больше, генерация медленнее
+ImgEngine_ClipOnCpu	Text encoders on the CPU	Текстовые кодировщики на процессоре
+ImgEngine_ClipOnCpuHint	Saves video memory; reading the prompt takes a few seconds longer	Экономит видеопамять; разбор промпта на несколько секунд дольше
+ImgEngine_VaeOnCpu	VAE on the CPU	VAE на процессоре
+ImgEngine_VaeOnCpuHint	Saves video memory; turning the result into pixels becomes much slower	Экономит видеопамять; превращение результата в пиксели заметно медленнее
+ImgEngine_VaeTiling	Decode in tiles	Декодировать плитками
+ImgEngine_VaeTilingHint	Lower peak video memory at large sizes; seams are rarely visible	Меньше пик видеопамяти на больших размерах; швы видны редко
+ImgEngine_ShareVram	Share video memory with the chat	Делить видеопамять с чатом
+ImgEngine_ShareVramHint	Stops llama-server before generating and the generator before chatting. Servers with a public API are not stopped.	Останавливает llama-server перед генерацией и генератор перед чатом. Серверы с публичным API не останавливаются.
+ImgEngine_Speed	Speed	Скорость
+ImgEngine_FlashAttn	Flash attention	Flash attention
+ImgEngine_FlashAttnHint	Faster and uses less memory on most GPUs; auto lets the engine decide	Быстрее и экономнее на большинстве видеокарт; «auto» — решает движок
+ImgEngine_Threads	CPU threads	Потоки процессора
+ImgEngine_ThreadsHint	Empty — physical cores. Matters for CPU builds and offloading	Пусто — по числу физических ядер. Важно для сборок CPU и выгрузки
+ImgEngine_WeightType	Convert weights on load	Пересчитать веса при загрузке
+ImgEngine_WeightTypeHint	Empty — as in the file. Lower types save memory but lose detail; loading takes longer	Пусто — как в файле. Меньшие типы экономят память, но теряют детали; загрузка дольше
+ImgEngine_Advanced	More settings	Дополнительно
+ImgEngine_ServerDefaults	Pass recommended values to the server	Передавать серверу рекомендуемые значения
+ImgEngine_ServerDefaultsHint	Steps, CFG, sampler and size of the family become server defaults: external API clients that send only a prompt get a good picture	Шаги, CFG, сэмплер и размер семейства становятся умолчаниями сервера: внешние клиенты API, присылающие только промпт, получат хорошую картинку
+ImgEngine_Rng	Random number generator	Генератор случайных чисел
+ImgEngine_RngHint	cuda repeats pictures made with PyTorch on a GPU; empty — engine default	cuda повторяет картинки, сделанные PyTorch на видеокарте; пусто — по умолчанию движка
+ImgEngine_LoraDir	LoRA folder	Папка LoRA
+ImgEngine_ModelArgs	Model arguments (--model-args)	Аргументы модели (--model-args)
+ImgEngine_ModelArgsHint	key=value separated by commas; added to the family preset arguments	ключ=значение через запятую; добавляются к аргументам пресета семейства
+ImgEngine_CommandLine	Command line	Командная строка
+ImgEngine_CopyCommand	Copy command	Копировать команду
+ImgEngine_ResetLaunch	All on auto	Всё на «авто»
+ImgEngine_ResetLaunchHint	Reset every field to the family preset values	Вернуть все поля к значениям пресета семейства
+
+# ---------- API изображений ----------
+ImgApi_Title	Image API for other apps	API изображений для других приложений
+ImgApi_Expose	Open the OpenAI-compatible image API	Открыть OpenAI-совместимый API изображений
+ImgApi_ExposeHint	Other programs can generate pictures with the loaded model through /v1/images/generations and /v1/images/edits. Requests are accepted only with the key.	Другие программы смогут генерировать картинки загруженной моделью через /v1/images/generations и /v1/images/edits. Запросы принимаются только с ключом.
+ImgApi_Off	The image API is off: the generator listens only to this program	API изображений выключен: генератор слушает только эту программу
+ImgApi_ProxyError	Port {0} is not available: {1}	Порт {0} недоступен: {1}
+ImgApi_Listening	The API answers at {0}	API отвечает по адресу {0}
+ImgApi_WaitingServer	The API starts listening when the generator is running — press Start	API начнёт отвечать, когда генератор запущен — нажмите «Запустить»
+ImgApi_ApplyHint	Press Start so that the generator loads the model and the API answers	Нажмите «Запустить», чтобы генератор загрузил модель и API начал отвечать
+ImgApi_Endpoints	Also available: /v1/models, /sdapi/v1/txt2img and /sdapi/v1/img2img (Automatic1111 format). Extra parameters can be passed in the prompt as <sd_cpp_extra_args>{...}</sd_cpp_extra_args>.	Также доступны /v1/models, /sdapi/v1/txt2img и /sdapi/v1/img2img (формат Automatic1111). Дополнительные параметры можно передать в промпте блоком <sd_cpp_extra_args>{...}</sd_cpp_extra_args>.
+ImgApi_ExampleTitle	Request examples	Примеры запросов
+ImgApi_Apply	Start	Запустить

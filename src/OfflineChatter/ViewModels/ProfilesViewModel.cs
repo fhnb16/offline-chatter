@@ -35,7 +35,8 @@ public sealed record GpuRatioOption(int Percent)
     public string Title => Percent.ToString(CultureInfo.CurrentCulture) + " %";
 }
 
-public sealed record ContextSizeOption(int ContextSize, string Label);
+/// <summary>Кнопка быстрого значения: «16K» и под ней пояснение (видеопамять или примерный объём текста).</summary>
+public sealed record TokenPresetOption(int Value, string Label, string? Detail, bool IsCurrent);
 
 /// <summary>Редактор профилей запуска: параметры, превью командной строки, оценка памяти, сравнение, запуск.</summary>
 public sealed partial class ProfilesViewModel : ObservableObject
@@ -54,6 +55,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
             await UpdatePreviewAsync();
         };
         Reload();
+        RebuildTokenOptions();
         _s.Engine.Server.StateChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(new Action(() => StartCommand.NotifyCanExecuteChanged()));
     }
 
@@ -63,7 +65,77 @@ public sealed partial class ProfilesViewModel : ObservableObject
     public IReadOnlyList<string> FlashAttentionOptions { get; } = new[] { "auto", "on", "off" };
     public IReadOnlyList<string> CacheTypes { get; } = new[] { "", "f16", "q8_0", "q5_1", "q5_0", "q4_1", "q4_0", "f32" };
     public IReadOnlyList<string> ReasoningFormats { get; } = new[] { "deepseek", "none", "auto" };
-    public IReadOnlyList<ContextSizeOption> ContextOptions { get; private set; } = Array.Empty<ContextSizeOption>();
+    /// <summary>Быстрые значения контекста; пояснение — видеопамять при этом размере (если модель и движок известны).</summary>
+    public IReadOnlyList<TokenPresetOption> ContextOptions { get; private set; } = Array.Empty<TokenPresetOption>();
+
+    /// <summary>Быстрые значения лимита ответа; пояснение — примерный объём текста.</summary>
+    public IReadOnlyList<TokenPresetOption> MaxTokensOptions { get; private set; } = Array.Empty<TokenPresetOption>();
+
+    private Dictionary<int, string> _contextVram = new();
+    private int? _resolvedContext;
+    private int? _trainedContext;
+
+    private int? ParsedContext => int.TryParse(ContextSize.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var v) && v > 0 ? v : null;
+
+    /// <summary>Крупная строка карточки контекста: «16K токенов» или «Авто · сейчас 16K».</summary>
+    public string ContextValueText => ParsedContext is { } c
+        ? L.F("Tokens_Value", TokenBudget.Short(c))
+        : _resolvedContext is { } r ? L.F("Tokens_AutoNow", TokenBudget.Short(r)) : L.Get("Tokens_Auto");
+
+    /// <summary>«≈ 12 000 слов · ≈ 25 страниц истории беседы».</summary>
+    public string ContextAmountText
+    {
+        get
+        {
+            var c = ParsedContext ?? _resolvedContext;
+            return c is { } v ? L.F("Tokens_ContextAmount", TokenBudget.ApproxWords(v).ToString("N0", CultureInfo.CurrentCulture), Pages(v)) : L.Get("Tokens_ContextAutoHint");
+        }
+    }
+
+    public string MaxTokensValueText => MaxTokens > 0 ? L.F("Tokens_Value", TokenBudget.Short(MaxTokens)) : L.Get("Tokens_Unlimited");
+
+    public string MaxTokensAmountText => MaxTokens > 0
+        ? L.F("Tokens_AnswerAmount", TokenBudget.ApproxWords(MaxTokens).ToString("N0", CultureInfo.CurrentCulture), Pages(MaxTokens))
+        : L.Get("Tokens_UnlimitedHint");
+
+    private static string Pages(int tokens) => TokenBudget.ApproxPages(tokens).ToString("0.#", CultureInfo.CurrentCulture);
+
+    /// <summary>Предупреждение о сочетании контекста и лимита ответа; null — всё в порядке.</summary>
+    public string? BudgetWarning
+    {
+        get
+        {
+            var w = TokenBudget.Check(ParsedContext ?? _resolvedContext ?? 0, MaxTokens, _trainedContext);
+            return w == TokenBudgetWarning.None ? null : L.F("Tokens_Warn_" + w,
+                TokenBudget.Short(ParsedContext ?? _resolvedContext ?? 0), TokenBudget.Short(Math.Max(0, MaxTokens)), _trainedContext is { } t ? TokenBudget.Short(t) : "?");
+        }
+    }
+
+    private void RebuildTokenOptions()
+    {
+        var ctx = ParsedContext;
+        ContextOptions = TokenBudget.ContextPresets.Select(v => new TokenPresetOption(v,
+            v == 0 ? L.Get("Tokens_AutoShort") : TokenBudget.Short(v),
+            v == 0 ? L.Get("Tokens_AutoDetail") : _contextVram.TryGetValue(v, out var vram) ? vram : L.F("Tokens_WordsDetail", TokenBudget.ApproxWords(v).ToString("N0", CultureInfo.CurrentCulture)),
+            v == 0 ? ctx == null : ctx == v)).ToList();
+        MaxTokensOptions = TokenBudget.MaxTokensPresets.Select(v => new TokenPresetOption(v,
+            v < 0 ? L.Get("Tokens_UnlimitedShort") : TokenBudget.Short(v),
+            v < 0 ? L.Get("Tokens_UnlimitedDetail") : L.F("Tokens_WordsDetail", TokenBudget.ApproxWords(v).ToString("N0", CultureInfo.CurrentCulture)),
+            v < 0 ? MaxTokens <= 0 : MaxTokens == v)).ToList();
+        OnPropertyChanged(nameof(ContextOptions));
+        OnPropertyChanged(nameof(MaxTokensOptions));
+        OnPropertyChanged(nameof(ContextValueText));
+        OnPropertyChanged(nameof(ContextAmountText));
+        OnPropertyChanged(nameof(MaxTokensValueText));
+        OnPropertyChanged(nameof(MaxTokensAmountText));
+        OnPropertyChanged(nameof(BudgetWarning));
+    }
+
+    partial void OnContextSizeChanged(string value) => RebuildTokenOptions();
+    partial void OnMaxTokensChanged(int value) => RebuildTokenOptions();
+
+    [RelayCommand]
+    private void SetMaxTokens(int value) => MaxTokens = value <= 0 ? -1 : value;
 
     [ObservableProperty] private LaunchProfile? _selected;
     [ObservableProperty] private LaunchProfile? _compareWith;
@@ -247,6 +319,8 @@ public sealed partial class ProfilesViewModel : ObservableObject
         nameof(IsPartialMode), nameof(LayerCount), nameof(HasLayerCount), nameof(GpuLayersSlider), nameof(GpuLayersText),
         nameof(GpuModeHint), nameof(ShowStrictHint), nameof(MaxThreads), nameof(PhysicalCores), nameof(ThreadsSlider),
         nameof(ThreadsText), nameof(ThreadsWarning), nameof(GpuMode), nameof(SysmemText), nameof(SysmemWarn),
+        nameof(MaxTokensOptions), nameof(ContextValueText), nameof(ContextAmountText), nameof(MaxTokensValueText),
+        nameof(MaxTokensAmountText), nameof(BudgetWarning),
     };
 
     private void Reload(string? selectId = null)
@@ -374,8 +448,10 @@ public sealed partial class ProfilesViewModel : ObservableObject
             Preview = L.Get(model == null ? "Profiles_NoModel" : "Profiles_NoEngine");
             EstimateText = null;
             ContextInfoText = null;
-            ContextOptions = Array.Empty<ContextSizeOption>();
-            OnPropertyChanged(nameof(ContextOptions));
+            _contextVram = new Dictionary<int, string>();
+            _resolvedContext = null;
+            _trainedContext = model?.ContextLength;
+            RebuildTokenOptions();
             SkippedText = null;
             return;
         }
@@ -384,8 +460,9 @@ public sealed partial class ProfilesViewModel : ObservableObject
         {
             Preview = L.Get("Profiles_NoModel");
             ContextInfoText = null;
-            ContextOptions = Array.Empty<ContextSizeOption>();
-            OnPropertyChanged(nameof(ContextOptions));
+            _contextVram = new Dictionary<int, string>();
+            _resolvedContext = null;
+            RebuildTokenOptions();
             return;
         }
         if (_blockCount != resolved.Info?.BlockCount || _modelSize != model.SizeBytes)
@@ -407,15 +484,19 @@ public sealed partial class ProfilesViewModel : ObservableObject
         var gpuLayers = resolved.Options.GpuLayers ?? -1;
         var maxContext = resolved.Info?.ContextLength is > 0 and var trainedContext ? trainedContext : (int?)null;
         var vram = _hw?.BestGpu?.DedicatedMemory ?? 0;
-        ContextOptions = new[] { 2048, 8192, 32768 }.Select(context =>
+        // Под каждой кнопкой контекста — сколько видеопамяти займут слои и KV-кэш при этом размере
+        _contextVram = new Dictionary<int, string>();
+        foreach (var context in TokenBudget.ContextPresets.Where(c => c > 0))
         {
             var estimate = MemoryEstimator.Estimate(resolved.Info, model.SizeBytes, context, CacheTypeK, CacheTypeV,
                 gpuLayers, e.Mmproj, resolved.Options.Parallel ?? 1);
-            var amount = estimate.Vram > 0 ? Units.FormatBytes(estimate.Vram) : L.Get("Profiles_ContextVramUnknown");
-            var size = context / 1024 + "k";
-            return new ContextSizeOption(context, L.F("Profiles_ContextOption", size, amount));
-        }).ToArray();
-        OnPropertyChanged(nameof(ContextOptions));
+            var amount = estimate.Vram > 0 ? L.F("Tokens_VramDetail", Units.FormatBytes(estimate.Vram)) : L.F("Tokens_RamDetail", Units.FormatBytes(estimate.Total));
+            if (maxContext is { } mc && context > mc) amount += " · " + L.Get("Tokens_AboveTrained");
+            _contextVram[context] = amount;
+        }
+        _resolvedContext = resolved.Options.ContextSize;
+        _trainedContext = maxContext;
+        RebuildTokenOptions();
         var currentContext = resolved.Options.ContextSize ?? 0;
         var extraCacheTokens = EstimateAdditionalCacheTokens(resolved.Info, model.SizeBytes, currentContext, maxContext,
             vram, e.Vram, gpuLayers, CacheTypeK, CacheTypeV, e.Mmproj, resolved.Options.Parallel ?? 1);
@@ -444,7 +525,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
 
     [RelayCommand]
     private void SetContextPreset(int contextSize) =>
-        ContextSize = contextSize.ToString(CultureInfo.InvariantCulture);
+        ContextSize = contextSize <= 0 ? string.Empty : contextSize.ToString(CultureInfo.InvariantCulture);
 
     [RelayCommand]
     private void CopyAsBat()
