@@ -502,9 +502,11 @@
   <data name="Mcp_ConfirmRemove" xml:space="preserve"><value>Удалить MCP-сервер «{0}»?</value></data>
   <data name="Mcp_AddTitle" xml:space="preserve"><value>Добавить сервер</value></data>
   <data name="Mcp_Name" xml:space="preserve"><value>Имя</value></data>
-  <data name="Mcp_Command" xml:space="preserve"><value>Команда (stdio), например npx -y @modelcontextprotocol/server-filesystem C:\Docs</value></data>
+  <data name="Mcp_Command" xml:space="preserve"><value>Локальная команда (stdio)</value></data>
+  <data name="Mcp_CommandExample" xml:space="preserve"><value>uv run --script &quot;C:\MCP servers\blender.py&quot;</value></data>
+  <data name="Mcp_WorkingDirectory" xml:space="preserve"><value>Рабочая папка локальной команды (необязательно)</value></data>
   <data name="Mcp_Url" xml:space="preserve"><value>…или URL (Streamable HTTP; адрес на /sse — старый протокол SSE)</value></data>
-  <data name="Mcp_AddHint" xml:space="preserve"><value>Укажите имя и команду или URL</value></data>
+  <data name="Mcp_AddHint" xml:space="preserve"><value>Укажите имя и заполните одно поле: команда или URL</value></data>
   <data name="Mcp_Exists" xml:space="preserve"><value>Сервер «{0}» уже есть</value></data>
   <data name="Nav_Welcome" xml:space="preserve"><value>Начало работы</value></data>
   <data name="Nav_Compare" xml:space="preserve"><value>Сравнение моделей</value></data>

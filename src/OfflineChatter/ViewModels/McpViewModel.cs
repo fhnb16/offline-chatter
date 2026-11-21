@@ -50,8 +50,17 @@ public sealed partial class McpServerItem : ObservableObject
     public string Transport => Config.Transport;
 
     [ObservableProperty] private string? _status;
+    [NotifyPropertyChangedFor(nameof(CanConnect))]
+    [NotifyPropertyChangedFor(nameof(CanDisconnect))]
     [ObservableProperty] private bool _isConnected;
+    [NotifyPropertyChangedFor(nameof(CanConnect))]
+    [NotifyPropertyChangedFor(nameof(CanDisconnect))]
+    [ObservableProperty] private bool _isConnecting;
+    [NotifyPropertyChangedFor(nameof(CanConnect))]
     [ObservableProperty] private bool _enabled;
+
+    public bool CanConnect => Enabled && !CanDisconnect;
+    public bool CanDisconnect => IsConnected || IsConnecting;
 
     public ObservableCollection<ToolItem> Tools { get; } = new();
 }
@@ -95,6 +104,7 @@ public sealed partial class McpViewModel : PageViewModel
 
     [ObservableProperty] private string _newName = string.Empty;
     [ObservableProperty] private string _newCommand = string.Empty;
+    [ObservableProperty] private string _newWorkingDirectory = string.Empty;
     [ObservableProperty] private string _newUrl = string.Empty;
 
     /// <summary>Убирать из схем служебные поля перед отправкой модели.</summary>
@@ -138,7 +148,8 @@ public sealed partial class McpViewModel : PageViewModel
         foreach (var cfg in _s.Mcp.Servers)
         {
             var item = new McpServerItem(cfg) { Enabled = !cfg.Disabled };
-            if (_s.Tools.Clients.TryGetValue(cfg.Name, out var client) && client.IsConnected)
+            _s.Tools.Clients.TryGetValue(cfg.Name, out var client);
+            if (client?.IsConnected == true)
             {
                 item.IsConnected = true;
                 item.Status = L.F("Mcp_Connected", client.ServerName ?? cfg.Name, client.Tools.Count, client.Resources.Count, client.Prompts.Count);
@@ -146,11 +157,15 @@ public sealed partial class McpViewModel : PageViewModel
             }
             else
             {
-                item.Status = cfg.Disabled ? L.Get("Mcp_Disabled") : _s.McpErrors.TryGetValue(cfg.Name, out var err) ? L.F("Mcp_Error", err) : L.Get("Mcp_NotConnected");
+                item.IsConnecting = client != null && client.LastError == null;
+                var error = _s.McpErrors.TryGetValue(cfg.Name, out var err) ? err : client?.LastError;
+                item.Status = cfg.Disabled ? L.Get("Mcp_Disabled")
+                    : item.IsConnecting ? L.Get("Mcp_Connecting")
+                    : error != null ? L.F("Mcp_Error", error) : L.Get("Mcp_NotConnected");
             }
             item.PropertyChanged += (_, e) =>
             {
-                if (e.PropertyName == nameof(McpServerItem.Enabled) && !_loading) ToggleServer(item);
+                if (e.PropertyName == nameof(McpServerItem.Enabled) && !_loading) _ = ToggleServerAsync(item);
             };
             Servers.Add(item);
         }
@@ -188,24 +203,25 @@ public sealed partial class McpViewModel : PageViewModel
         if (dir != null) FileSandbox = dir;
     }
 
-    private void ToggleServer(McpServerItem item)
+    private async Task ToggleServerAsync(McpServerItem item)
     {
         item.Config.Disabled = !item.Enabled;
         _s.Mcp.Save();
-        if (item.Config.Disabled) _s.Tools.Disconnect(item.Name);
-        else _ = ConnectAsync(item);
+        if (item.Config.Disabled) await DisconnectAsync(item);
+        else await ConnectAsync(item);
     }
 
     [RelayCommand]
     private async Task ConnectAsync(McpServerItem item)
     {
         item.Status = L.Get("Mcp_Connecting");
+        using var cts = new CancellationTokenSource(item.Config.RequestTimeout);
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
             await _s.Tools.ConnectAsync(item.Config, cts.Token);
             _s.McpErrors.TryRemove(item.Name, out _);
         }
+        catch (OperationCanceledException) when (!cts.IsCancellationRequested) { }
         catch (Exception ex)
         {
             _s.McpErrors[item.Name] = ex.GetBaseException().Message;
@@ -215,20 +231,20 @@ public sealed partial class McpViewModel : PageViewModel
     }
 
     [RelayCommand]
-    private void Disconnect(McpServerItem item)
+    private async Task DisconnectAsync(McpServerItem item)
     {
-        _s.Tools.Disconnect(item.Name);
+        await Task.Run(() => _s.Tools.Disconnect(item.Name));
+        _s.McpErrors.TryRemove(item.Name, out _);
         Refresh();
     }
 
     [RelayCommand]
-    private void Remove(McpServerItem item)
+    private async Task RemoveAsync(McpServerItem item)
     {
         if (MessageBox.Show(L.F("Mcp_ConfirmRemove", item.Name), "Offline Chatter", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
-        _s.Tools.Disconnect(item.Name);
         _s.Mcp.Servers.Remove(item.Config);
         _s.Mcp.Save();
-        Refresh();
+        await DisconnectAsync(item);
     }
 
     /// <summary>Добавить сервер: команда (stdio) или URL (HTTP; адрес на /sse — старый протокол SSE).</summary>
@@ -236,7 +252,9 @@ public sealed partial class McpViewModel : PageViewModel
     private async Task AddAsync()
     {
         var name = NewName.Trim();
-        if (name.Length == 0 || (NewCommand.Trim().Length == 0 && NewUrl.Trim().Length == 0))
+        var parts = ServerLaunchOptions.SplitCommandLine(NewCommand.Trim());
+        var url = NewUrl.Trim();
+        if (name.Length == 0 || (parts.Count > 0) == (url.Length > 0) || (parts.Count > 0 && string.IsNullOrWhiteSpace(parts[0])))
         {
             Status = L.Get("Mcp_AddHint");
             return;
@@ -247,23 +265,32 @@ public sealed partial class McpViewModel : PageViewModel
             return;
         }
         var cfg = new McpServerConfig { Name = name };
-        if (NewUrl.Trim().Length > 0)
+        if (url.Length > 0)
         {
-            cfg.Url = NewUrl.Trim();
-            cfg.Type = cfg.Url.TrimEnd('/').EndsWith("/sse", StringComparison.OrdinalIgnoreCase) ? "sse" : "http";
+            cfg.Url = url;
+            cfg.Type = url.TrimEnd('/').EndsWith("/sse", StringComparison.OrdinalIgnoreCase) ? "sse" : "http";
         }
         else
         {
-            var parts = ServerLaunchOptions.SplitCommandLine(NewCommand.Trim());
+            cfg.Type = "stdio";
             cfg.Command = parts[0];
             cfg.Args = parts.Skip(1).ToList();
+            cfg.Cwd = string.IsNullOrWhiteSpace(NewWorkingDirectory) ? null : NewWorkingDirectory.Trim();
         }
         _s.Mcp.Servers.Add(cfg);
         _s.Mcp.Save();
-        NewName = NewCommand = NewUrl = string.Empty;
+        NewName = NewCommand = NewWorkingDirectory = NewUrl = string.Empty;
+        Status = null;
         Refresh();
         var item = Servers.FirstOrDefault(s => s.Name == name);
         if (item != null) await ConnectAsync(item);
+    }
+
+    [RelayCommand]
+    private void PickWorkingDirectory()
+    {
+        var path = Dialogs.PickFolder(L.Get("Mcp_WorkingDirectory"), NewWorkingDirectory);
+        if (path != null) NewWorkingDirectory = path;
     }
 
     [RelayCommand]
@@ -297,9 +324,10 @@ public sealed partial class McpViewModel : PageViewModel
     }
 
     [RelayCommand]
-    private void Reload()
+    private async Task ReloadAsync()
     {
-        foreach (var name in _s.Tools.Clients.Keys.ToList()) _s.Tools.Disconnect(name);
+        var names = _s.Tools.Clients.Keys.ToList();
+        await Task.WhenAll(names.Select(name => Task.Run(() => _s.Tools.Disconnect(name))));
         _s.Mcp.Load();
         _s.ConnectMcpServers();
         Status = L.Get("Mcp_Connecting");

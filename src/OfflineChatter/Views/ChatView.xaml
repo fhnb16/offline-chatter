@@ -76,21 +76,49 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:ToolCallView}">
                                     <Border Margin="0,2" CornerRadius="{DynamicResource ControlCornerRadius}" BorderThickness="1" BorderBrush="{DynamicResource CardBorderBrush}" Background="{DynamicResource CodeBackgroundBrush}" Padding="8,4">
-                                        <Expander>
-                                            <Expander.Header>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Path Data="{StaticResource IconTool}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource TextSecondaryBrush}" />
-                                                    <TextBlock Text="{Binding Header}" Margin="8,0,0,0" VerticalAlignment="Center" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" />
+                                        <StackPanel>
+                                            <Expander>
+                                                <Expander.Header>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Path Data="{StaticResource IconTool}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource TextSecondaryBrush}" />
+                                                        <TextBlock Text="{Binding Header}" Margin="8,0,0,0" VerticalAlignment="Center" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" />
+                                                    </StackPanel>
+                                                </Expander.Header>
+                                                <StackPanel>
+                                                    <TextBlock Text="{l:Loc Tools_Arguments}" Style="{StaticResource CaptionText}" />
+                                                    <TextBox Text="{Binding Arguments, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" />
+                                                    <TextBlock Text="{l:Loc Tools_Result}" Style="{StaticResource CaptionText}" Margin="0,6,0,0" />
+                                                    <TextBox x:Name="Res" Text="{Binding Result, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="240"
+                                                             VerticalScrollBarVisibility="Auto" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" VerticalContentAlignment="Top" />
                                                 </StackPanel>
-                                            </Expander.Header>
-                                            <StackPanel>
-                                                <TextBlock Text="{l:Loc Tools_Arguments}" Style="{StaticResource CaptionText}" />
-                                                <TextBox Text="{Binding Arguments, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" />
-                                                <TextBlock Text="{l:Loc Tools_Result}" Style="{StaticResource CaptionText}" Margin="0,6,0,0" />
-                                                <TextBox x:Name="Res" Text="{Binding Result, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="240"
-                                                         VerticalScrollBarVisibility="Auto" FontFamily="{DynamicResource MonoFontFamily}" FontSize="{DynamicResource CaptionFontSize}" VerticalContentAlignment="Top" />
-                                            </StackPanel>
-                                        </Expander>
+                                            </Expander>
+                                            <ItemsControl ItemsSource="{Binding Images}" Margin="0,4,0,0"
+                                                          Visibility="{Binding HasImages, Converter={StaticResource BoolToVisibility}}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate DataType="{x:Type vm:AttachmentView}">
+                                                        <Button Command="{Binding DataContext.PreviewAttachmentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}" Margin="0,0,4,4" Padding="4"
+                                                                AutomationProperties.Name="{Binding Name}" ToolTip="{Binding Name}">
+                                                            <Grid>
+                                                                <Image x:Name="Thumbnail" Source="{Binding Thumbnail}" MaxHeight="160" MaxWidth="240" Stretch="Uniform" />
+                                                                <TextBlock x:Name="ImageName" Text="{Binding Name}" Style="{StaticResource CaptionText}" Visibility="Collapsed" />
+                                                            </Grid>
+                                                        </Button>
+                                                        <DataTemplate.Triggers>
+                                                            <DataTrigger Binding="{Binding Thumbnail}" Value="{x:Null}">
+                                                                <Setter TargetName="Thumbnail" Property="Visibility" Value="Collapsed" />
+                                                                <Setter TargetName="ImageName" Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </DataTemplate.Triggers>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
                                     </Border>
                                     <DataTemplate.Triggers>
                                         <DataTrigger Binding="{Binding IsError}" Value="True">

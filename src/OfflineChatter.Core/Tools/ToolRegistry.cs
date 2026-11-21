@@ -96,6 +96,8 @@ public sealed class ToolRegistry : IDisposable
     private readonly ToolsSettings _settings;
     private readonly HttpService _http;
     private readonly ConcurrentDictionary<string, McpClient> _clients = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _connections = new();
+    private bool _disposed;
 
     private readonly WebTools _web;
 
@@ -119,7 +121,6 @@ public sealed class ToolRegistry : IDisposable
 
     public async Task<McpClient> ConnectAsync(McpServerConfig cfg, CancellationToken ct)
     {
-        Disconnect(cfg.Name);
         IMcpTransport transport = cfg.Transport switch
         {
             "http" => new StreamableHttpTransport(cfg, _http),
@@ -131,27 +132,49 @@ public sealed class ToolRegistry : IDisposable
 
     internal async Task<McpClient> ConnectAsync(McpServerConfig cfg, IMcpTransport transport, CancellationToken ct)
     {
-        var client = new McpClient(cfg.Name, transport);
+        var client = new McpClient(cfg.Name, transport) { RequestTimeout = cfg.RequestTimeout };
         client.StateChanged += (_, _) => Changed?.Invoke(this, EventArgs.Empty);
+        McpClient? previous = null;
         try
         {
+            lock (_connections)
+            {
+                if (_disposed) throw new ObjectDisposedException(nameof(ToolRegistry));
+                _clients.TryGetValue(cfg.Name, out previous);
+                _clients[cfg.Name] = client;
+            }
+            Changed?.Invoke(this, EventArgs.Empty);
+            if (previous != null) await Task.Run(previous.Dispose).ConfigureAwait(false);
             await client.ConnectAsync(ct).ConfigureAwait(false);
+            lock (_connections)
+            {
+                if (!_clients.TryGetValue(cfg.Name, out var current) || !ReferenceEquals(current, client))
+                    throw new OperationCanceledException();
+                foreach (var t in cfg.AlwaysAllow ?? Enumerable.Empty<string>())
+                    if (!_settings.Consent.ContainsKey($"mcp:{cfg.Name}/{t}")) _settings.Consent[$"mcp:{cfg.Name}/{t}"] = ConsentMode.Always;
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            client.Dispose();
+            var removed = false;
+            lock (_connections)
+                if (_clients.TryGetValue(cfg.Name, out var current) && ReferenceEquals(current, client))
+                    removed = _clients.TryRemove(cfg.Name, out _);
+            await Task.Run(client.Dispose).ConfigureAwait(false);
+            Changed?.Invoke(this, EventArgs.Empty);
+            if (!removed && !ct.IsCancellationRequested)
+                throw new OperationCanceledException("MCP connection was stopped", ex);
             throw;
         }
-        _clients[cfg.Name] = client;
-        foreach (var t in cfg.AlwaysAllow ?? new List<string>())
-            if (!_settings.Consent.ContainsKey($"mcp:{cfg.Name}/{t}")) _settings.Consent[$"mcp:{cfg.Name}/{t}"] = ConsentMode.Always;
         Changed?.Invoke(this, EventArgs.Empty);
         return client;
     }
 
     public void Disconnect(string name)
     {
-        if (_clients.TryRemove(name, out var c)) c.Dispose();
+        McpClient? client;
+        lock (_connections) _clients.TryRemove(name, out client);
+        client?.Dispose();
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -237,28 +260,35 @@ public sealed class ToolRegistry : IDisposable
 
     public async Task<(string text, bool isError)> ExecuteAsync(ToolDefinition tool, string argumentsJson, CancellationToken ct)
     {
+        var result = await ExecuteWithImagesAsync(tool, argumentsJson, ct).ConfigureAwait(false);
+        return (result.Text, result.IsError);
+    }
+
+    public async Task<McpToolResult> ExecuteWithImagesAsync(ToolDefinition tool, string argumentsJson, CancellationToken ct)
+    {
         JObject args;
         try
         {
             argumentsJson = PrepareArguments(tool, argumentsJson);
             args = string.IsNullOrWhiteSpace(argumentsJson) ? new JObject() : JObject.Parse(argumentsJson);
         }
-        catch (Newtonsoft.Json.JsonException ex) { return ("Invalid JSON arguments: " + ex.Message, true); }
+        catch (Newtonsoft.Json.JsonException ex) { return new McpToolResult { Text = "Invalid JSON arguments: " + ex.Message, IsError = true }; }
 
         try
         {
             if (tool.Client != null)
             {
                 var r = await tool.Client.CallToolAsync(tool.McpToolName!, args, ct).ConfigureAwait(false);
-                return (Truncate(r.Text), r.IsError);
+                r.Text = Truncate(r.Text);
+                return r;
             }
             var text = await tool.Execute!(args, ct).ConfigureAwait(false);
-            return (tool.OwnLimit ? text : Truncate(text), false);
+            return new McpToolResult { Text = tool.OwnLimit ? text : Truncate(text) };
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             Log.Warn("Tools", "Tool failed: " + tool.Id, ex);
-            return ("Error: " + ex.Message, true);
+            return new McpToolResult { Text = "Error: " + ex.Message, IsError = true };
         }
     }
 
@@ -371,7 +401,13 @@ public sealed class ToolRegistry : IDisposable
 
     public void Dispose()
     {
-        foreach (var c in _clients.Values) c.Dispose();
-        _clients.Clear();
+        McpClient[] clients;
+        lock (_connections)
+        {
+            _disposed = true;
+            clients = _clients.Values.ToArray();
+            _clients.Clear();
+        }
+        foreach (var client in clients) client.Dispose();
     }
 }

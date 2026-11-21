@@ -502,9 +502,11 @@ No — only remove from the list</value></data>
   <data name="Mcp_ConfirmRemove" xml:space="preserve"><value>Remove MCP server «{0}»?</value></data>
   <data name="Mcp_AddTitle" xml:space="preserve"><value>Add a server</value></data>
   <data name="Mcp_Name" xml:space="preserve"><value>Name</value></data>
-  <data name="Mcp_Command" xml:space="preserve"><value>Command (stdio), e.g. npx -y @modelcontextprotocol/server-filesystem C:\Docs</value></data>
+  <data name="Mcp_Command" xml:space="preserve"><value>Local command (stdio)</value></data>
+  <data name="Mcp_CommandExample" xml:space="preserve"><value>uv run --script &quot;C:\MCP servers\blender.py&quot;</value></data>
+  <data name="Mcp_WorkingDirectory" xml:space="preserve"><value>Working directory for the local command (optional)</value></data>
   <data name="Mcp_Url" xml:space="preserve"><value>…or URL (Streamable HTTP; an address ending with /sse uses the legacy SSE protocol)</value></data>
-  <data name="Mcp_AddHint" xml:space="preserve"><value>Enter a name and a command or URL</value></data>
+  <data name="Mcp_AddHint" xml:space="preserve"><value>Enter a name and fill in either the command or the URL field</value></data>
   <data name="Mcp_Exists" xml:space="preserve"><value>A server named «{0}» already exists</value></data>
   <data name="Nav_Welcome" xml:space="preserve"><value>Getting started</value></data>
   <data name="Nav_Compare" xml:space="preserve"><value>Compare models</value></data>

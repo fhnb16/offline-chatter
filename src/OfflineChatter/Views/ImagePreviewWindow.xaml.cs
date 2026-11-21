@@ -139,7 +139,7 @@ public partial class ImagePreviewWindow : Window
                 bmp.Freeze();
                 Image = bmp;
             }
-            catch (Exception ex) when (ex is FormatException or NotSupportedException or IOException)
+            catch (Exception ex) when (ex is FormatException or NotSupportedException or IOException or ArgumentException or System.Runtime.InteropServices.COMException)
             {
                 Status = L.F("Data_Failed", ex.Message);
             }
@@ -175,11 +175,19 @@ public partial class ImagePreviewWindow : Window
         [RelayCommand]
         private void Save()
         {
-            var ext = _attachment.MimeType == "image/png" ? ".png" : ".jpg";
+            var (format, ext) = _attachment.MimeType.ToLowerInvariant() switch
+            {
+                "image/png" => ("PNG", ".png"),
+                "image/bmp" => ("BMP", ".bmp"),
+                "image/gif" => ("GIF", ".gif"),
+                "image/tiff" => ("TIFF", ".tif"),
+                "image/webp" => ("WebP", ".webp"),
+                _ => ("JPEG", ".jpg"),
+            };
             var dlg = new Microsoft.Win32.SaveFileDialog
             {
                 FileName = Path.GetFileNameWithoutExtension(_attachment.Name) + ext,
-                Filter = (ext == ".png" ? "PNG|*.png" : "JPEG|*.jpg") + "|*.*|*.*",
+                Filter = format + "|*" + ext + "|*.*|*.*",
             };
             if (dlg.ShowDialog() != true) return;
             try

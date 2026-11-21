@@ -87,8 +87,15 @@ public sealed class ToolCall
     public string Arguments { get; set; } = "{}";
     public string? Result { get; set; }
     public bool IsError { get; set; }
+    [Newtonsoft.Json.JsonProperty(NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+    public List<ChatAttachment>? Images { get; set; }
 
-    internal ToolCall Snapshot() => (ToolCall)MemberwiseClone();
+    internal ToolCall Snapshot()
+    {
+        var copy = (ToolCall)MemberwiseClone();
+        copy.Images = Images?.Select(a => a.Snapshot()).ToList();
+        return copy;
+    }
 }
 
 /// <summary>Узел дерева сообщений. Ветвление: у одного родителя несколько детей (варианты).</summary>

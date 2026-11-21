@@ -114,7 +114,8 @@ Release — один exe ≈ 6 МБ, 438 автотестов Core (+ живые
 - [x] `$$…$$` одной строкой → блочная формула; `\frac12` = ½
 ## Этап 9 — MCP и инструменты
 - [x] `McpClient`: JSON-RPC 2.0, initialize/initialized, tools/list с пагинацией, tools/call (текст, изображения, ресурсы), ping от сервера, ошибки
-- [x] Транспорты: stdio (npx/uvx через cmd /c, env, cwd, завершение дерева процессов), Streamable HTTP (Mcp-Session-Id, JSON и SSE-ответы), legacy SSE (endpoint)
+- [x] Транспорты: stdio (`uv run --script`, `uvx` и другие exe напрямую, пакетные файлы вроде `npx.cmd` через `cmd`, `env`, `cwd`, завершение дерева процессов), Streamable HTTP (Mcp-Session-Id, JSON и SSE-ответы), legacy SSE (endpoint)
+- [x] Предпросмотр изображений из MCP в чате, в том числе файлов рендера по локальному пути из ответа stdio
 - [x] tools / resources / prompts (списки), `notifications/tools/list_changed`
 - [ ] Чтение resources и подстановка prompts в чат — не сделано (списки показываются)
 - [x] `config/mcp.json` в формате `mcpServers` (Claude Desktop) + `disabled`, `alwaysAllow`; импорт из Claude Desktop, добавление из UI

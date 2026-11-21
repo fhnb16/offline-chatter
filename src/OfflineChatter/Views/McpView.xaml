@@ -246,9 +246,9 @@
                                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                                         <CheckBox Content="{l:Loc Providers_Enabled}" IsChecked="{Binding Enabled}" VerticalAlignment="Center" Margin="0,0,10,0" />
                                         <Button Content="{l:Loc Mcp_Connect}" Command="{Binding DataContext.ConnectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"
-                                                Visibility="{Binding IsConnected, Converter={StaticResource InverseBoolToVisibility}}" />
+                                                Visibility="{Binding CanConnect, Converter={StaticResource BoolToVisibility}}" />
                                         <Button Content="{l:Loc Mcp_Disconnect}" Command="{Binding DataContext.DisconnectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"
-                                                Visibility="{Binding IsConnected, Converter={StaticResource BoolToVisibility}}" />
+                                                Visibility="{Binding CanDisconnect, Converter={StaticResource BoolToVisibility}}" />
                                         <Button Style="{DynamicResource SubtleButtonStyle}" Margin="6,0,0,0" ToolTip="{l:Loc Common_Remove}"
                                                 Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
                                             <Path Data="{StaticResource IconTrash}" Style="{StaticResource IconPath}" />
@@ -282,13 +282,20 @@
             <Border Style="{StaticResource SettingCard}">
                 <StackPanel>
                     <TextBlock Text="{l:Loc Mcp_Name}" Style="{StaticResource CaptionText}" />
-                    <TextBox Text="{Binding NewName}" MinWidth="260" HorizontalAlignment="Stretch" />
+                    <TextBox Text="{Binding NewName}" />
                     <TextBlock Text="{l:Loc Mcp_Command}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />
-                    <TextBox Text="{Binding NewCommand}" FontFamily="{DynamicResource MonoFontFamily}" ToolTip="npx -y @modelcontextprotocol/server-filesystem C:\Docs" />
+                    <TextBox Text="{Binding NewCommand}" FontFamily="{DynamicResource MonoFontFamily}" />
+                    <TextBlock Text="{l:Loc Mcp_CommandExample}" Style="{StaticResource CaptionText}" FontFamily="{DynamicResource MonoFontFamily}"
+                               Margin="0,4,0,0" TextWrapping="Wrap" />
+                    <TextBlock Text="{l:Loc Mcp_WorkingDirectory}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="{l:Loc Common_Browse}" Command="{Binding PickWorkingDirectoryCommand}" Margin="4,0,0,0" />
+                        <TextBox Text="{Binding NewWorkingDirectory}" FontFamily="{DynamicResource MonoFontFamily}" />
+                    </DockPanel>
                     <TextBlock Text="{l:Loc Mcp_Url}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />
-                    <TextBox Text="{Binding NewUrl}" FontFamily="{DynamicResource MonoFontFamily}" ToolTip="https://example.com/mcp" />
+                    <TextBox Text="{Binding NewUrl}" FontFamily="{DynamicResource MonoFontFamily}" />
                     <TextBlock Text="{l:Loc Tools_ExternalWarning}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}" Margin="0,8,0,0" />
-                    <Button Style="{DynamicResource AccentButtonStyle}" Content="{l:Loc Providers_Add}" Command="{Binding AddCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" />
+                    <Button Style="{DynamicResource AccentButtonStyle}" Content="{l:Loc Providers_Add}" Command="{Binding AddCommand}" HorizontalAlignment="Left" Margin="0,12,0,0" />
                 </StackPanel>
             </Border>
             <TextBlock Text="{Binding ConfigPath, StringFormat='mcp.json: {0}'}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />

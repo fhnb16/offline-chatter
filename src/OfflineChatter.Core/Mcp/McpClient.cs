@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using OfflineChatter.Core.Chat;
 using OfflineChatter.Core.Diagnostics;
 
 namespace OfflineChatter.Core.Mcp;
@@ -18,8 +19,7 @@ public sealed class McpToolResult
 {
     public string Text { get; set; } = string.Empty;
     public bool IsError { get; set; }
-    /// <summary>Изображения из ответа (data URI) — могут быть показаны в чате.</summary>
-    public List<string> Images { get; } = new();
+    public List<ChatAttachment> Images { get; } = new();
 }
 
 /// <summary>
@@ -31,21 +31,18 @@ public sealed class McpClient : IDisposable
     public const string ProtocolVersion = "2025-06-18";
 
     private readonly IMcpTransport _transport;
+    private readonly object _state = new();
     private readonly ConcurrentDictionary<long, TaskCompletionSource<JObject>> _pending = new();
     private long _nextId;
+    private bool _closed;
+    private bool _disposed;
 
     public McpClient(string name, IMcpTransport transport)
     {
         Name = name;
         _transport = transport;
         _transport.MessageReceived += OnMessage;
-        _transport.Closed += (_, reason) =>
-        {
-            LastError = reason;
-            IsConnected = false;
-            foreach (var p in _pending.Values) p.TrySetException(new System.IO.IOException("MCP server closed: " + reason));
-            StateChanged?.Invoke(this, EventArgs.Empty);
-        };
+        _transport.Closed += (_, reason) => Close(reason);
     }
 
     public string Name { get; }
@@ -75,12 +72,16 @@ public sealed class McpClient : IDisposable
         ServerVersion = (string?)init["serverInfo"]?["version"];
         Instructions = (string?)init["instructions"];
         await NotifyAsync("notifications/initialized", ct).ConfigureAwait(false);
-        IsConnected = true;
-
         var caps = init["capabilities"] as JObject;
         if (caps?["tools"] != null) await RefreshToolsAsync(ct).ConfigureAwait(false);
         if (caps?["resources"] != null) Resources = await ListNamedAsync("resources/list", "resources", ct).ConfigureAwait(false);
         if (caps?["prompts"] != null) Prompts = await ListNamedAsync("prompts/list", "prompts", ct).ConfigureAwait(false);
+        lock (_state)
+        {
+            if (_closed) throw new IOException("MCP server closed: " + LastError);
+            ct.ThrowIfCancellationRequested();
+            IsConnected = true;
+        }
         Log.Info("MCP", $"Connected {Name}", new { ServerName, ServerVersion, tools = Tools.Count, resources = Resources.Count, prompts = Prompts.Count });
         StateChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -116,45 +117,27 @@ public sealed class McpClient : IDisposable
 
     public async Task<McpToolResult> CallToolAsync(string name, JObject arguments, CancellationToken ct)
     {
-        var r = await RequestAsync("tools/call", new JObject { ["name"] = name, ["arguments"] = arguments }, ct).ConfigureAwait(false);
-        var result = new McpToolResult { IsError = (bool?)r["isError"] ?? false };
-        var sb = new StringBuilder();
-        foreach (var c in r["content"] as JArray ?? new JArray())
-        {
-            switch ((string?)c["type"])
-            {
-                case "text":
-                    sb.AppendLine((string?)c["text"]);
-                    break;
-                case "image":
-                    result.Images.Add("data:" + ((string?)c["mimeType"] ?? "image/png") + ";base64," + (string?)c["data"]);
-                    sb.AppendLine("[image]");
-                    break;
-                case "resource":
-                    sb.AppendLine((string?)c["resource"]?["text"] ?? (string?)c["resource"]?["uri"]);
-                    break;
-                default:
-                    sb.AppendLine(c.ToString());
-                    break;
-            }
-        }
-        if (sb.Length == 0 && r["structuredContent"] != null) sb.Append(r["structuredContent"]!.ToString());
-        result.Text = sb.ToString().TrimEnd();
-        return result;
+        var response = await RequestAsync("tools/call", new JObject { ["name"] = name, ["arguments"] = arguments }, ct).ConfigureAwait(false);
+        var local = _transport as StdioTransport;
+        return await McpResultReader.ReadAsync(response, local != null, local?.WorkingDirectory, ct).ConfigureAwait(false);
     }
 
     public async Task<JObject> RequestAsync(string method, JObject @params, CancellationToken ct)
     {
         var id = Interlocked.Increment(ref _nextId);
         var tcs = new TaskCompletionSource<JObject>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pending[id] = tcs;
+        lock (_state)
+        {
+            if (_closed) throw new IOException("MCP server closed: " + LastError);
+            _pending[id] = tcs;
+        }
         try
         {
-            await _transport.SendAsync(new JObject { ["jsonrpc"] = "2.0", ["id"] = id, ["method"] = method, ["params"] = @params }, ct).ConfigureAwait(false);
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
             timeout.CancelAfter(RequestTimeout);
             using (timeout.Token.Register(() => tcs.TrySetCanceled()))
             {
+                await _transport.SendAsync(new JObject { ["jsonrpc"] = "2.0", ["id"] = id, ["method"] = method, ["params"] = @params }, timeout.Token).ConfigureAwait(false);
                 var msg = await tcs.Task.ConfigureAwait(false);
                 if (msg["error"] is JObject err)
                     throw new McpException((int?)err["code"] ?? 0, (string?)err["message"] ?? "MCP error");
@@ -188,7 +171,7 @@ public sealed class McpClient : IDisposable
             var reply = method == "ping"
                 ? new JObject { ["jsonrpc"] = "2.0", ["id"] = msg["id"], ["result"] = new JObject() }
                 : new JObject { ["jsonrpc"] = "2.0", ["id"] = msg["id"], ["error"] = new JObject { ["code"] = -32601, ["message"] = "Method not supported: " + method } };
-            _ = _transport.SendAsync(reply, CancellationToken.None);
+            _ = SendReplyAsync(reply);
             return;
         }
 
@@ -213,9 +196,40 @@ public sealed class McpClient : IDisposable
         }
     }
 
+    private async Task SendReplyAsync(JObject reply)
+    {
+        try
+        {
+            using var timeout = new CancellationTokenSource(RequestTimeout);
+            await _transport.SendAsync(reply, timeout.Token).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or IOException or System.Net.Http.HttpRequestException or OperationCanceledException)
+        {
+            Log.Debug("MCP", $"[{Name}] Could not reply to server");
+        }
+    }
+
+    private void Close(string reason)
+    {
+        lock (_state)
+        {
+            if (_closed) return;
+            _closed = true;
+            LastError = reason;
+            IsConnected = false;
+            foreach (var pending in _pending.Values) pending.TrySetException(new IOException("MCP server closed: " + reason));
+        }
+        StateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     public void Dispose()
     {
-        IsConnected = false;
+        lock (_state)
+        {
+            if (_disposed) return;
+            _disposed = true;
+        }
+        Close("disconnected");
         _transport.Dispose();
     }
 }

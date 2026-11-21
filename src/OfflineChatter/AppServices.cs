@@ -403,20 +403,23 @@ public sealed class AppServices : IDisposable
     /// <summary>Подключить включённые серверы MCP в фоне (при старте и по кнопке «Перечитать»).</summary>
     public void ConnectMcpServers()
     {
-        foreach (var cfg in Mcp.Servers.Where(s => !s.Disabled))
+        foreach (var cfg in Mcp.Servers.Where(s => !s.Disabled && (!Settings.Current.Network.OfflineMode || s.Transport == "stdio")))
         {
+            if (Tools.Clients.TryGetValue(cfg.Name, out var client) && client.LastError == null) continue;
             _ = System.Threading.Tasks.Task.Run(async () =>
             {
+                using var cts = new System.Threading.CancellationTokenSource(cfg.RequestTimeout);
                 try
                 {
-                    using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(60));
                     await Tools.ConnectAsync(cfg, cts.Token).ConfigureAwait(false);
                     McpErrors.TryRemove(cfg.Name, out _);
                 }
+                catch (OperationCanceledException) when (!cts.IsCancellationRequested) { }
                 catch (Exception ex)
                 {
                     McpErrors[cfg.Name] = ex.GetBaseException().Message;
                     Core.Diagnostics.Log.Warn("MCP", "Cannot connect " + cfg.Name, ex);
+                    Tools.NotifyChanged();
                 }
             });
         }

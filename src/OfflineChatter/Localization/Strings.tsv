@@ -518,9 +518,11 @@ Mcp_Tools	Tools and permissions	Инструменты и разрешения
 Mcp_ConfirmRemove	Remove MCP server «{0}»?	Удалить MCP-сервер «{0}»?
 Mcp_AddTitle	Add a server	Добавить сервер
 Mcp_Name	Name	Имя
-Mcp_Command	Command (stdio), e.g. npx -y @modelcontextprotocol/server-filesystem C:\Docs	Команда (stdio), например npx -y @modelcontextprotocol/server-filesystem C:\Docs
+Mcp_Command	Local command (stdio)	Локальная команда (stdio)
+Mcp_CommandExample	uv run --script "C:\MCP servers\blender.py"	uv run --script "C:\MCP servers\blender.py"
+Mcp_WorkingDirectory	Working directory for the local command (optional)	Рабочая папка локальной команды (необязательно)
 Mcp_Url	…or URL (Streamable HTTP; an address ending with /sse uses the legacy SSE protocol)	…или URL (Streamable HTTP; адрес на /sse — старый протокол SSE)
-Mcp_AddHint	Enter a name and a command or URL	Укажите имя и команду или URL
+Mcp_AddHint	Enter a name and fill in either the command or the URL field	Укажите имя и заполните одно поле: команда или URL
 Mcp_Exists	A server named «{0}» already exists	Сервер «{0}» уже есть
 
 # ---------- Этап 10 ----------

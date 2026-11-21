@@ -118,7 +118,7 @@ public partial class App : Application
 
         Services = new AppServices(Paths, Settings);
         Rendering.ImageAttachments.Settings = Settings.Current.Attachments;
-        if (!Settings.Current.Network.OfflineMode) Services.ConnectMcpServers();
+        Services.ConnectMcpServers();
         _ = Services.CheckUpdatesInBackgroundAsync();
         _ = Services.CheckEngineUpdateInBackgroundAsync();
         if (Settings.Current.Engine.ExposeApi)

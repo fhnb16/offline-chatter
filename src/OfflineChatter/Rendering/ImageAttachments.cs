@@ -203,7 +203,7 @@ public static class ImageAttachments
             bmp.Freeze();
             return bmp;
         }
-        catch (Exception ex) when (ex is FormatException or NotSupportedException or IOException)
+        catch (Exception ex) when (ex is FormatException or NotSupportedException or IOException or ArgumentException or COMException)
         {
             return null;
         }

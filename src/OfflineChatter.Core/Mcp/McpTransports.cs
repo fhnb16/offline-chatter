@@ -29,65 +29,117 @@ public interface IMcpTransport : IDisposable
 public sealed class StdioTransport : IMcpTransport
 {
     private readonly McpServerConfig _cfg;
+    private readonly object _lifetime = new();
     private Process? _p;
+    private bool _disposed;
     private readonly SemaphoreSlim _write = new(1, 1);
 
     public StdioTransport(McpServerConfig cfg) => _cfg = cfg;
+    internal string? WorkingDirectory => _cfg.Cwd;
 
     public event EventHandler<JObject>? MessageReceived;
     public event EventHandler<string>? Closed;
 
-    public Task StartAsync(CancellationToken ct)
+    public Task StartAsync(CancellationToken ct) => Task.Run(() =>
     {
-        var command = _cfg.Command ?? throw new InvalidOperationException("command is empty");
-        var args = _cfg.Args ?? new List<string>();
-        // npx/uvx и пр. на Windows — .cmd-скрипты: запускаем через cmd /c, иначе CreateProcess их не найдёт
-        var needsCmd = !command.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) && !File.Exists(command);
-        var psi = needsCmd
-            ? new ProcessStartInfo("cmd.exe", "/d /s /c \"" + Engine.ServerLaunchOptions.JoinCommandLine(new[] { command }.Concat(args)) + "\"")
-            : new ProcessStartInfo(command, Engine.ServerLaunchOptions.JoinCommandLine(args));
-        psi.UseShellExecute = false;
-        psi.CreateNoWindow = true;
-        psi.RedirectStandardInput = true;
-        psi.RedirectStandardOutput = true;
-        psi.RedirectStandardError = true;
-        psi.StandardOutputEncoding = new UTF8Encoding(false);
-        psi.StandardErrorEncoding = new UTF8Encoding(false);
-        if (!string.IsNullOrEmpty(_cfg.Cwd)) psi.WorkingDirectory = _cfg.Cwd;
-        if (_cfg.Env != null) foreach (var kv in _cfg.Env) psi.EnvironmentVariables[kv.Key] = kv.Value;
-
-        _p = new Process { StartInfo = psi, EnableRaisingEvents = true };
-        _p.OutputDataReceived += (_, e) =>
+        var psi = CreateStartInfo(_cfg);
+        lock (_lifetime)
         {
-            if (string.IsNullOrWhiteSpace(e.Data)) return;
-            try { MessageReceived?.Invoke(this, JObject.Parse(e.Data)); }
-            catch (JsonException) { Log.Debug("MCP", $"[{_cfg.Name}] non-JSON stdout: {e.Data}"); }
+            ct.ThrowIfCancellationRequested();
+            if (_disposed) throw new ObjectDisposedException(nameof(StdioTransport));
+
+            var process = new Process { StartInfo = psi };
+            _p = process;
+            process.OutputDataReceived += (_, e) =>
+            {
+                if (e.Data == null)
+                {
+                    var reason = "stdout closed";
+                    try { if (process.HasExited) reason = $"process exited with code {process.ExitCode}"; }
+                    catch (InvalidOperationException) { }
+                    Closed?.Invoke(this, reason);
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(e.Data)) return;
+                try { MessageReceived?.Invoke(this, JObject.Parse(e.Data)); }
+                catch (JsonException) { Log.Debug("MCP", $"[{_cfg.Name}] non-JSON stdout"); }
+            };
+            process.ErrorDataReceived += (_, e) => { if (e.Data != null) Log.Debug("MCP", $"[{_cfg.Name}] {e.Data}"); };
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+        }
+    }, ct);
+
+    internal static ProcessStartInfo CreateStartInfo(McpServerConfig cfg)
+    {
+        var command = cfg.Command?.Trim();
+        if (string.IsNullOrEmpty(command)) throw new InvalidOperationException("MCP command is empty");
+        var psi = new ProcessStartInfo
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            StandardOutputEncoding = new UTF8Encoding(false),
+            StandardErrorEncoding = new UTF8Encoding(false),
+            WorkingDirectory = string.IsNullOrWhiteSpace(cfg.Cwd) ? AppDomain.CurrentDomain.BaseDirectory : cfg.Cwd!,
         };
-        _p.ErrorDataReceived += (_, e) => { if (e.Data != null) Log.Debug("MCP", $"[{_cfg.Name}] {e.Data}"); };
-        _p.Exited += (_, _) => Closed?.Invoke(this, "process exited with code " + SafeExit());
-        _p.Start();
-        _p.BeginOutputReadLine();
-        _p.BeginErrorReadLine();
-        return Task.CompletedTask;
+        if (!Path.IsPathRooted(psi.WorkingDirectory) || !Directory.Exists(psi.WorkingDirectory))
+            throw new DirectoryNotFoundException("MCP working directory must be an existing absolute path: " + psi.WorkingDirectory);
+        if (cfg.Env != null)
+            foreach (var kv in cfg.Env) psi.EnvironmentVariables[kv.Key] = kv.Value;
+
+        var executable = FindCommand(command!, psi.WorkingDirectory, psi.EnvironmentVariables["PATH"]);
+        var args = cfg.Args ?? new List<string>();
+        if (Path.GetExtension(executable).ToLowerInvariant() is ".cmd" or ".bat")
+        {
+            var words = new[] { executable }.Concat(args);
+            if (words.Any(word => word.IndexOfAny(new[] { '"', '%', '\r', '\n', '\0' }) >= 0))
+                throw new ArgumentException("Batch commands do not support quotes, percent signs or line breaks inside arguments; use the executable directly");
+            // cmd /s removes the outer quotes. Quote each word to protect shell metacharacters.
+            psi.FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe");
+            psi.Arguments = "/d /v:off /s /c \"" + string.Join(" ", words.Select(word => "\"" + word + "\"")) + "\"";
+        }
+        else
+        {
+            psi.FileName = executable;
+            psi.Arguments = Engine.ServerLaunchOptions.JoinCommandLine(args);
+        }
+        return psi;
     }
 
-    private string SafeExit()
+    private static string FindCommand(string command, string cwd, string? path)
     {
-        try { return _p?.ExitCode.ToString() ?? "?"; }
-        catch (InvalidOperationException) { return "?"; }
+        var hasDirectory = command.IndexOfAny(new[] { '\\', '/', ':' }) >= 0;
+        var dirs = hasDirectory ? new[] { cwd } : (path ?? string.Empty).Split(';');
+        var extensions = Path.HasExtension(command) ? new[] { "" } : new[] { ".exe", ".com", ".cmd", ".bat", "" };
+        foreach (var dir in dirs)
+        {
+            var root = dir.Trim().Trim('"');
+            if (!Path.IsPathRooted(root)) continue;
+            foreach (var extension in extensions)
+            {
+                var file = Path.Combine(root, command + extension);
+                if (File.Exists(file)) return Path.GetFullPath(file);
+            }
+        }
+        throw new FileNotFoundException("MCP command not found. Add it to PATH or specify its full path: " + command);
     }
 
     public async Task SendAsync(JObject message, CancellationToken ct)
     {
-        if (_p == null || _p.HasExited) throw new IOException("MCP server process is not running");
         var line = message.ToString(Formatting.None);
         await _write.WaitAsync(ct).ConfigureAwait(false);
         try
         {
+            var process = _p ?? throw new IOException("MCP server process is not running");
             // UTF-8 без BOM: пишем байты напрямую (StandardInput по умолчанию в кодировке консоли)
             var bytes = Encoding.UTF8.GetBytes(line + "\n");
-            await _p.StandardInput.BaseStream.WriteAsync(bytes, 0, bytes.Length, ct).ConfigureAwait(false);
-            await _p.StandardInput.BaseStream.FlushAsync(ct).ConfigureAwait(false);
+            var pipe = process.StandardInput.BaseStream;
+            await pipe.WriteAsync(bytes, 0, bytes.Length, ct).ConfigureAwait(false);
+            await pipe.FlushAsync(ct).ConfigureAwait(false);
         }
         finally
         {
@@ -97,21 +149,35 @@ public sealed class StdioTransport : IMcpTransport
 
     public void Dispose()
     {
+        Process? process;
+        lock (_lifetime)
+        {
+            _disposed = true;
+            process = _p;
+            _p = null;
+        }
+        if (process == null) return;
+        using (process)
         try
         {
-            if (_p is { HasExited: false })
+            if (!process.HasExited)
             {
-                _p.StandardInput.Close();
-                if (!_p.WaitForExit(1500)) KillTree(_p.Id);
+                var pid = process.Id;
+                try { process.StandardInput.BaseStream.Close(); }
+                finally { if (!process.WaitForExit(1500)) KillTree(pid); }
             }
         }
         catch (Exception ex) when (ex is InvalidOperationException or IOException or System.ComponentModel.Win32Exception) { }
-        _p?.Dispose();
     }
 
     private static void KillTree(int pid)
     {
-        try { Process.Start(new ProcessStartInfo("taskkill", $"/T /F /PID {pid}") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(3000); }
+        try
+        {
+            using var kill = Process.Start(new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "taskkill.exe"), $"/T /F /PID {pid}")
+                { CreateNoWindow = true, UseShellExecute = false });
+            kill?.WaitForExit(3000);
+        }
         catch (System.ComponentModel.Win32Exception) { }
     }
 }

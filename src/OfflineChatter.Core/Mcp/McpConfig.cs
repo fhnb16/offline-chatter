@@ -27,6 +27,8 @@ public sealed class McpServerConfig
 
     [JsonProperty("headers", NullValueHandling = NullValueHandling.Ignore)] public Dictionary<string, string>? Headers { get; set; }
 
+    [JsonProperty("timeoutSeconds", NullValueHandling = NullValueHandling.Ignore)] public int? TimeoutSeconds { get; set; }
+
     [JsonProperty("disabled", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool Disabled { get; set; }
 
     /// <summary>Инструменты, которые можно вызывать без подтверждения.</summary>
@@ -39,6 +41,9 @@ public sealed class McpServerConfig
         "sse" => "sse",
         _ => "stdio",
     } : !string.IsNullOrEmpty(Url) ? "http" : "stdio";
+
+    [JsonIgnore]
+    public TimeSpan RequestTimeout => TimeSpan.FromSeconds(Math.Max(1, Math.Min(3600, TimeoutSeconds ?? (Transport == "stdio" ? 300 : 60))));
 }
 
 /// <summary>config/mcp.json. Совместим с claude_desktop_config.json — можно просто скопировать оттуда секцию mcpServers.</summary>

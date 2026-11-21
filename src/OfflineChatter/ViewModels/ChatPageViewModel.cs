@@ -190,12 +190,18 @@ public sealed record ModelOption(string Ref, string Title, string Group, bool Vi
 /// <summary>Карточка вызова инструмента.</summary>
 public sealed class ToolCallView
 {
-    public ToolCallView(ToolCall call) => Call = call;
+    public ToolCallView(ToolCall call)
+    {
+        Call = call;
+        Images = call.Images?.Select(a => new AttachmentView(a)).ToList() ?? new List<AttachmentView>();
+    }
     public ToolCall Call { get; }
     public string Header => Call.Name + (Call.Result == null ? " …" : Call.IsError ? " — " + L.Get("Download_Failed") : string.Empty);
     public string Arguments => Call.Arguments;
     public string Result => Call.Result == null ? string.Empty : Call.Result.Length > 3000 ? Call.Result.Substring(0, 3000) + "…" : Call.Result;
     public bool IsError => Call.IsError;
+    public IReadOnlyList<AttachmentView> Images { get; }
+    public bool HasImages => Images.Count > 0;
 }
 
 public sealed record ThinkingOption(ReasoningLevel Value, string Title);
@@ -755,15 +761,16 @@ public sealed partial class ChatPageViewModel : PageViewModel
                 foreach (var call in answer.ToolCalls)
                 {
                     cts.Token.ThrowIfCancellationRequested();
-                    var (text, isError) = await RunToolAsync(call, enabledTools, cts.Token);
-                    call.Result = text;
-                    call.IsError = isError;
-                    current = new ChatMessage { Role = ChatRole.Tool, ParentId = current.Id, ToolCallId = call.Id, Content = text };
+                    var result = await RunToolAsync(call, enabledTools, cts.Token);
+                    call.Result = result.Text;
+                    call.IsError = result.IsError;
+                    call.Images = result.Images.Count == 0 ? null : result.Images;
+                    current = new ChatMessage { Role = ChatRole.Tool, ParentId = current.Id, ToolCallId = call.Id, Content = result.Text };
                     chat.Messages.Add(current);
                     chat.ActiveLeafId = current.Id;
+                    Messages.LastOrDefault(m => m.Message.Id == answer.Id)?.RefreshTools();
                 }
                 if (!await PersistAsync(chat)) break;
-                Messages.LastOrDefault(m => m.Message.Id == answer.Id)?.RefreshTools();
                 if (step == maxSteps - 1) SetGenerationStatus(L.Get("Tools_MaxSteps"));
             }
             if (chat.TitlePending && !cts.IsCancellationRequested && !PreparingForShutdown)
@@ -1039,21 +1046,22 @@ public sealed partial class ChatPageViewModel : PageViewModel
     }
 
     /// <summary>Выполнить вызов инструмента с учётом согласия пользователя.</summary>
-    private async Task<(string text, bool isError)> RunToolAsync(ToolCall call, Func<Core.Tools.ToolDefinition, bool>? enabledTools, CancellationToken ct)
+    private async Task<Core.Mcp.McpToolResult> RunToolAsync(ToolCall call, Func<Core.Tools.ToolDefinition, bool>? enabledTools, CancellationToken ct)
     {
+        static Core.Mcp.McpToolResult Failure(string text) => new() { Text = text, IsError = true };
         var tool = _s.Tools.Find(call.Name);
-        if (tool == null) return ($"Unknown tool: {call.Name}", true);
+        if (tool == null) return Failure($"Unknown tool: {call.Name}");
         var mode = _s.Tools.ConsentFor(tool);
-        if (mode == Core.Tools.ConsentMode.Disabled) return ("Tool is disabled by the user", true);
+        if (mode == Core.Tools.ConsentMode.Disabled) return Failure("Tool is disabled by the user");
         // Модель может назвать инструмент, которого в этом чате нет (вспомнила из прошлых сообщений или выдумала)
-        if (enabledTools?.Invoke(tool) != true) return ("Tool is not enabled in this chat", true);
+        if (enabledTools?.Invoke(tool) != true) return Failure("Tool is not enabled in this chat");
         // Аргументы с учётом настроек (город по умолчанию): в запросе согласия видно то, что действительно уйдёт
         var arguments = _s.Tools.PrepareArguments(tool, call.Arguments);
         if (mode == Core.Tools.ConsentMode.Ask)
         {
             var answer = Views.ToolConsentDialog.Ask(tool.Name, tool.Source == "builtin" ? L.Get("Tools_Builtin") : "MCP: " + tool.Source,
                 arguments, tool.Source != "builtin");
-            if (answer == Views.ConsentAnswer.Deny) return ("The user denied this tool call", true);
+            if (answer == Views.ConsentAnswer.Deny) return Failure("The user denied this tool call");
             if (answer == Views.ConsentAnswer.Always)
             {
                 _s.Settings.Current.Tools.Consent[tool.Id] = Core.Tools.ConsentMode.Always;
@@ -1063,8 +1071,8 @@ public sealed partial class ChatPageViewModel : PageViewModel
         SetGenerationStatus(L.F("Tools_Running", tool.Name));
         try
         {
-            var r = await _s.Tools.ExecuteAsync(tool, arguments, ct);
-            Log.Info("Tools", "Called " + tool.Id, new { error = r.isError, length = r.text.Length });
+            var r = await _s.Tools.ExecuteWithImagesAsync(tool, arguments, ct);
+            Log.Info("Tools", "Called " + tool.Id, new { error = r.IsError, length = r.Text.Length });
             return r;
         }
         finally
