@@ -98,6 +98,44 @@ public static class ToolPresets
 /// </summary>
 public static class ToolHistory
 {
+    /// <summary>В историю запроса попадают только вызовы, для которых в этой ветке уже записаны результаты.</summary>
+    public static List<ChatMessage> ForRequest(IReadOnlyList<ChatMessage> path, string currentAnswerId)
+    {
+        var messages = new List<ChatMessage>();
+        var calls = new HashSet<string>(StringComparer.Ordinal);
+        for (var i = 0; i < path.Count; i++)
+        {
+            var message = path[i];
+            if (message.Role == ChatRole.Tool)
+            {
+                if (message.Error == null && message.ToolCallId is { } id && calls.Remove(id)) messages.Add(message);
+                continue;
+            }
+
+            calls.Clear();
+            if (message.Id == currentAnswerId || message.Error != null) continue;
+            if (message.Role != ChatRole.Assistant)
+            {
+                messages.Add(message);
+                continue;
+            }
+
+            var results = new HashSet<string>(StringComparer.Ordinal);
+            for (var j = i + 1; j < path.Count && path[j].Role == ChatRole.Tool; j++)
+                if (path[j].Error == null && path[j].ToolCallId is { } id) results.Add(id);
+            var completed = message.ToolCalls.Where(call => results.Contains(call.Id) && calls.Add(call.Id)).ToList();
+            if (message.Content.Length == 0 && completed.Count == 0) continue;
+            if (completed.Count == message.ToolCalls.Count) messages.Add(message);
+            else
+            {
+                var copy = message.Snapshot();
+                copy.ToolCalls = completed;
+                messages.Add(copy);
+            }
+        }
+        return messages;
+    }
+
     /// <summary>Сокращать имеет смысл только результаты заметно длиннее пометки.</summary>
     private const int MinSaving = 200;
 

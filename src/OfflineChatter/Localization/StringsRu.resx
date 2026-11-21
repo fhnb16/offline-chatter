@@ -322,6 +322,14 @@
   <data name="Stats_Draft" xml:space="preserve"><value>принято черновика {0}%</value></data>
   <data name="Stats_Truncated" xml:space="preserve"><value>обрезано лимитом токенов</value></data>
   <data name="Stats_Stopped" xml:space="preserve"><value>остановлено</value></data>
+  <data name="Chat_Interrupted" xml:space="preserve"><value>Ответ прерван</value></data>
+  <data name="Chat_Stopped" xml:space="preserve"><value>Ответ остановлен</value></data>
+  <data name="Chat_StreamInterrupted" xml:space="preserve"><value>Соединение прервалось до завершения ответа</value></data>
+  <data name="Chat_ResponseTimeout" xml:space="preserve"><value>Истекло время ожидания ответа</value></data>
+  <data name="Chat_GenerationFailed" xml:space="preserve"><value>Не удалось завершить ответ: {0}</value></data>
+  <data name="Chat_SaveFailed" xml:space="preserve"><value>Не удалось сохранить изменения в чатах</value></data>
+  <data name="Chat_RetrySave" xml:space="preserve"><value>Повторить сохранение</value></data>
+  <data name="Chat_ExitSaveFailed" xml:space="preserve"><value>Перед выходом сохраните изменения. Повторить сохранение можно в окне чата.</value></data>
   <data name="Providers_Hint" xml:space="preserve"><value>Облачные и локальные OpenAI-совместимые API. Ключи хранятся зашифрованными (DPAPI). Выбранные модели появляются в меню модели в чате.</value></data>
   <data name="Providers_Add" xml:space="preserve"><value>Добавить</value></data>
   <data name="Providers_None" xml:space="preserve"><value>Провайдеров пока нет — выберите пресет выше</value></data>
@@ -715,6 +723,11 @@
   <data name="Update_Downloading" xml:space="preserve"><value>Скачиваем {0}…</value></data>
   <data name="Update_VerifyingSignature" xml:space="preserve"><value>Проверяем подпись обновления</value></data>
   <data name="Update_Applying" xml:space="preserve"><value>Устанавливаем обновление</value></data>
+  <data name="Update_WaitingForChat" xml:space="preserve"><value>Ждём завершения ответа и сохранения чата</value></data>
+  <data name="Update_ChatSaveFailed" xml:space="preserve"><value>Сохраните изменения в чатах перед установкой обновления</value></data>
+  <data name="Update_RestartFailed" xml:space="preserve"><value>Не удалось запустить обновлённую программу</value></data>
+  <data name="Update_ExitTimedOut" xml:space="preserve"><value>Предыдущий экземпляр программы не закрылся вовремя</value></data>
+  <data name="Update_TrustChanged" xml:space="preserve"><value>Подпись обновления требует подтверждения. Запустите программу и повторите обновление.</value></data>
   <data name="Update_Failed" xml:space="preserve"><value>Не удалось установить обновление: {0}. Скачайте его со страницы релиза.</value></data>
   <data name="Update_Install" xml:space="preserve"><value>Установить и перезапустить</value></data>
   <data name="Update_AutoCheck" xml:space="preserve"><value>Проверять обновления при запуске</value></data>

@@ -322,6 +322,14 @@ No — only remove from the list</value></data>
   <data name="Stats_Draft" xml:space="preserve"><value>draft accepted {0}%</value></data>
   <data name="Stats_Truncated" xml:space="preserve"><value>cut off by the token limit</value></data>
   <data name="Stats_Stopped" xml:space="preserve"><value>stopped</value></data>
+  <data name="Chat_Interrupted" xml:space="preserve"><value>Response interrupted</value></data>
+  <data name="Chat_Stopped" xml:space="preserve"><value>Response stopped</value></data>
+  <data name="Chat_StreamInterrupted" xml:space="preserve"><value>The connection closed before the response finished</value></data>
+  <data name="Chat_ResponseTimeout" xml:space="preserve"><value>Timed out while waiting for the response</value></data>
+  <data name="Chat_GenerationFailed" xml:space="preserve"><value>Could not complete the response: {0}</value></data>
+  <data name="Chat_SaveFailed" xml:space="preserve"><value>Could not save chat changes</value></data>
+  <data name="Chat_RetrySave" xml:space="preserve"><value>Retry saving</value></data>
+  <data name="Chat_ExitSaveFailed" xml:space="preserve"><value>Save chat changes before exiting. You can retry in the chat window.</value></data>
   <data name="Providers_Hint" xml:space="preserve"><value>Cloud and local OpenAI-compatible APIs. Keys are stored encrypted (DPAPI). Selected models appear in the chat model picker.</value></data>
   <data name="Providers_Add" xml:space="preserve"><value>Add</value></data>
   <data name="Providers_None" xml:space="preserve"><value>No providers yet — choose a preset above</value></data>
@@ -715,6 +723,11 @@ The app will now restart.</value></data>
   <data name="Update_Downloading" xml:space="preserve"><value>Downloading {0}…</value></data>
   <data name="Update_VerifyingSignature" xml:space="preserve"><value>Verifying the update signature</value></data>
   <data name="Update_Applying" xml:space="preserve"><value>Installing the update</value></data>
+  <data name="Update_WaitingForChat" xml:space="preserve"><value>Waiting for the current response to finish and save</value></data>
+  <data name="Update_ChatSaveFailed" xml:space="preserve"><value>Save chat changes before installing the update</value></data>
+  <data name="Update_RestartFailed" xml:space="preserve"><value>Could not start the updated app</value></data>
+  <data name="Update_ExitTimedOut" xml:space="preserve"><value>The previous instance did not close in time</value></data>
+  <data name="Update_TrustChanged" xml:space="preserve"><value>The update signature needs confirmation. Start the app and retry the update.</value></data>
   <data name="Update_Failed" xml:space="preserve"><value>Could not install the update: {0}. Download it from the release page instead.</value></data>
   <data name="Update_Install" xml:space="preserve"><value>Install and restart</value></data>
   <data name="Update_AutoCheck" xml:space="preserve"><value>Check for updates at startup</value></data>

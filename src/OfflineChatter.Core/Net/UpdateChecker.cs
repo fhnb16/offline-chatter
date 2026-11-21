@@ -119,6 +119,8 @@ public static class UpdateChecker
         }
 
         // Старые релизы без архива: отдельные exe и exe.config
+        if (info.Config != null && string.IsNullOrWhiteSpace(info.Config.Sha256))
+            throw new InvalidDataException("The update configuration has no SHA-256 checksum");
         var exePath = Path.Combine(dir, ExeAssetName);
         var exeJob = downloads.Enqueue(new DownloadJob(mirror(info.Exe!.DownloadUrl), exePath, "Offline Chatter " + info.LatestTag)
         {
@@ -139,7 +141,8 @@ public static class UpdateChecker
             });
         }
         if (!await exeJob.WhenFinished.ConfigureAwait(false)) throw new IOException(exeJob.Error ?? "Download failed");
-        if (cfgJob != null && !await cfgJob.WhenFinished.ConfigureAwait(false)) cfgPath = null;
+        if (cfgJob != null && !await cfgJob.WhenFinished.ConfigureAwait(false))
+            throw new IOException(cfgJob.Error ?? "Update configuration download failed");
         return (exePath, cfgPath);
     }
 
@@ -173,35 +176,12 @@ public static class UpdateChecker
     /// Подменяет exe (и конфиг) новой версией. Работающий exe переименовывается в *.old.
     /// При ошибке всё возвращается как было.
     /// </summary>
-    public static void Swap(string currentExe, string newExe, string? newConfig)
+    public static UpdateInstallation Swap(string currentExe, string newExe, string? newConfig,
+        UpdateFileHashes? approved = null, CancellationToken ct = default)
     {
-        var old = currentExe + ".old";
-        if (File.Exists(old)) File.Delete(old);
-        File.Move(currentExe, old);
-        try
-        {
-            File.Copy(newExe, currentExe, overwrite: false);
-        }
-        catch
-        {
-            File.Move(old, currentExe);
-            throw;
-        }
-
-        if (newConfig != null && File.Exists(newConfig))
-        {
-            var cfg = currentExe + ".config";
-            try
-            {
-                if (File.Exists(cfg)) File.Copy(cfg, cfg + ".old", overwrite: true);
-                File.Copy(newConfig, cfg, overwrite: true);
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-                Log.Warn("Update", "Cannot replace exe.config", ex);
-            }
-        }
-        Log.Info("Update", "Executable replaced", new { exe = currentExe });
+        var installation = new UpdateInstallation(currentExe);
+        installation.Apply(newExe, newConfig, approved, ct);
+        return installation;
     }
 
     /// <summary>Удаляет *.old после успешного перезапуска.</summary>

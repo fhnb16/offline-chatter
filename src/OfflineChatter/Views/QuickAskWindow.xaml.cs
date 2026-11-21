@@ -97,8 +97,10 @@ public partial class QuickAskWindow : Window
     }
 
     /// <summary>Перенести вопрос и ответ в новый чат и открыть главное окно.</summary>
-    private void OnOpenInChat(object sender, RoutedEventArgs e)
+    private async void OnOpenInChat(object sender, RoutedEventArgs e)
     {
+        if (_main.Chat.PreparingForShutdown) return;
+        OpenInChat.IsEnabled = false;
         _main.NewChatCommand.Execute(null);
         var item = _main.Chat.SelectedChat;
         if (item != null)
@@ -109,7 +111,7 @@ public partial class QuickAskWindow : Window
             // Название — первые слова; от модели — после следующего ответа уже в чате
             item.Title = ChatTitles.FromText(_question) ?? item.Title;
             chat.TitlePending = _s.Settings.Current.Window.AutoTitle;
-            _s.Chats.Save(chat);
+            await _main.Chat.PersistAsync(chat);
             _main.Chat.SelectedChat = null;
             _main.Chat.SelectedChat = item;
         }

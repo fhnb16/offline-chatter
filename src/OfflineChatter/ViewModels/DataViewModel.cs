@@ -41,6 +41,11 @@ public sealed partial class DataViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task ExportChatsAsync()
     {
+        if (!await _chat().FlushChangesAsync())
+        {
+            Status = L.Get("Chat_SaveFailed");
+            return;
+        }
         var chats = _s.Chats.LoadAll().Where(c => c.Messages.Count > 0).ToList();
         if (chats.Count == 0)
         {
@@ -64,19 +69,25 @@ public sealed partial class DataViewModel : ObservableObject
         var chatPage = _chat();
         var existing = new HashSet<string>(chatPage.Chats.Select(c => c.Session.Id));
         var imported = new List<ChatSession>();
-        await Run(() =>
+        var saveFailed = false;
+        await Run(async () =>
         {
             foreach (var f in dlg.FileNames)
             {
                 foreach (var c in ChatTransfer.Import(f, existing))
                 {
-                    _s.Chats.Save(c);
                     imported.Add(c);
+                    if (!await _s.Chats.SaveAsync(c).ConfigureAwait(false)) saveFailed = true;
                 }
             }
         }, "Data_Importing");
         foreach (var c in imported) chatPage.AddImported(c);
-        if (imported.Count > 0 || Status == null) Status = L.F("Data_Imported", imported.Count);
+        if (saveFailed)
+        {
+            chatPage.HasSaveError = true;
+            Status = L.Get("Chat_SaveFailed");
+        }
+        else if (Status == null) Status = L.F("Data_Imported", imported.Count);
     }
 
     [RelayCommand(CanExecute = nameof(CanRun))]
@@ -88,6 +99,11 @@ public sealed partial class DataViewModel : ObservableObject
             Filter = "ZIP|*.zip",
         };
         if (dlg.ShowDialog() != true) return;
+        if (IncludeChats && !await _chat().FlushChangesAsync())
+        {
+            Status = L.Get("Chat_SaveFailed");
+            return;
+        }
         _s.Settings.Save();
         BackupInfo? info = null;
         await Run(() => info = Backup.Create(_s.Paths, dlg.FileName, IncludeChats, _s.Version), "Data_CreatingBackup");
@@ -114,14 +130,39 @@ public sealed partial class DataViewModel : ObservableObject
                    + (info.MasterPassword ? string.Empty : "\n\n" + L.Get("Data_RestoreDpapiNote"));
         if (MessageBox.Show(text, "Offline Chatter", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) return;
 
-        _s.Engine.Server.Stop();
-        string? safety = null;
-        await Run(() => safety = Backup.Restore(_s.Paths, dlg.FileName, restoreChats: info.ChatFiles > 0, _s.Version), "Data_RestoringBackup");
-        if (safety == null) return;
-        // Настройки в памяти больше не актуальны — без перезапуска старые значения перезаписали бы восстановленные
-        MessageBox.Show(L.F("Data_RestoreDone", safety), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Information);
-        _s.Settings.Frozen = true;
-        App.Restart();
+        var chat = _chat();
+        if (!await chat.PrepareForShutdownAsync(cancelGeneration: true))
+        {
+            Status = L.Get("Chat_SaveFailed");
+            return;
+        }
+        var restarting = false;
+        var window = Application.Current.MainWindow;
+        try
+        {
+            if (window != null) window.IsEnabled = false;
+            if (!await chat.FlushChangesAsync())
+            {
+                Status = L.Get("Chat_SaveFailed");
+                return;
+            }
+            _s.Engine.Server.Stop();
+            string? safety = null;
+            await Run(() => safety = Backup.Restore(_s.Paths, dlg.FileName, restoreChats: info.ChatFiles > 0, _s.Version), "Data_RestoringBackup");
+            if (safety == null) return;
+            // Настройки в памяти больше не актуальны — без перезапуска старые значения перезаписали бы восстановленные
+            MessageBox.Show(L.F("Data_RestoreDone", safety), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Information);
+            _s.Settings.Frozen = true;
+            restarting = App.Restart();
+        }
+        finally
+        {
+            if (!restarting)
+            {
+                if (window != null) window.IsEnabled = true;
+                chat.PreparingForShutdown = false;
+            }
+        }
     }
 
     /// <summary>Программа уже в %LOCALAPPDATA%\Programs\OfflineChatter.</summary>
@@ -150,7 +191,13 @@ public sealed partial class DataViewModel : ObservableObject
     [RelayCommand]
     private void OpenLogsFolder() => SettingsViewModel.OpenFolder(_s.Paths.Logs);
 
-    private async Task Run(Action action, string progressKey, string? success = null)
+    private Task Run(Action action, string progressKey, string? success = null) => Run(() =>
+    {
+        action();
+        return Task.CompletedTask;
+    }, progressKey, success);
+
+    private async Task Run(Func<Task> action, string progressKey, string? success = null)
     {
         Status = L.Get(progressKey);
         IsBusy = true;

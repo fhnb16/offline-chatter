@@ -152,7 +152,11 @@ public sealed partial class SettingsViewModel : PageViewModel
     }
 
     [RelayCommand]
-    private void RestartNow() => App.Restart("--page Settings");
+    private async Task RestartNowAsync()
+    {
+        if (!await _main.Chat.PrepareForShutdownAsync(cancelGeneration: true)) return;
+        if (!App.Restart("--page Settings")) _main.Chat.PreparingForShutdown = false;
+    }
 
     public IReadOnlyList<NavToggle> SidebarItems { get; }
 
@@ -366,19 +370,19 @@ public sealed partial class SettingsViewModel : PageViewModel
     [RelayCommand(CanExecute = nameof(CanInstall))]
     private async Task InstallUpdateAsync()
     {
-        if (Update == null) return;
+        if (Update is not { } update) return;
 
         // Программа стоит в Program Files (или другой защищённой папке): либо права администратора, либо вручную
         var exeDir = System.IO.Path.GetDirectoryName(App.ExePath)!;
         var elevate = false;
         if (!Core.Storage.InstallLocation.CanWriteTo(exeDir))
         {
-            var answer = System.Windows.MessageBox.Show(L.F("Update_NoWriteAccess", exeDir, Update.LatestTag), "Offline Chatter",
+            var answer = System.Windows.MessageBox.Show(L.F("Update_NoWriteAccess", exeDir, update.LatestTag), "Offline Chatter",
                 System.Windows.MessageBoxButton.YesNoCancel, System.Windows.MessageBoxImage.Question);
             if (answer == System.Windows.MessageBoxResult.Cancel) return;
             if (answer == System.Windows.MessageBoxResult.No)
             {
-                EngineViewModel.OpenUrl(Update.PageUrl);
+                EngineViewModel.OpenUrl(update.PageUrl);
                 UpdateStatus = L.Get("Update_ManualHint");
                 return;
             }
@@ -386,13 +390,21 @@ public sealed partial class SettingsViewModel : PageViewModel
         }
 
         IsUpdating = true;
-        UpdateStatus = L.F("Update_Downloading", Update.LatestTag);
+        UpdateStatus = L.F("Update_Downloading", update.LatestTag);
+        var prepared = false;
+        var restarting = false;
+        System.Windows.Window? disabledWindow = null;
         try
         {
-            var (exe, config) = await UpdateChecker.DownloadAsync(_services.Downloads, Update, _services.Paths.Cache, _services.Releases.MirrorUrl);
+            var (exe, config) = await UpdateChecker.DownloadAsync(_services.Downloads, update, _services.Paths.Cache, _services.Releases.MirrorUrl);
             UpdateStatus = L.Get("Update_VerifyingSignature");
             // Подпись Authenticode: повреждённая — отказ; нет подписи или ей не доверяет Windows — по согласию пользователя
-            var (verdict, reason, candidate) = await System.Threading.Tasks.Task.Run(() => Shell.Authenticode.CheckUpdate(App.ExePath, exe));
+            var (approved, (verdict, reason, candidate)) = await Task.Run(() =>
+            {
+                using var executable = System.IO.File.OpenRead(exe);
+                var hashes = UpdateFileHashes.Read(exe, config, CancellationToken.None);
+                return (hashes, Shell.Authenticode.CheckUpdate(App.ExePath, exe));
+            });
             if (verdict == Core.Net.UpdateSignatureVerdict.Reject)
             {
                 UpdateStatus = L.Get("Update_SignatureRejected_" + reason);
@@ -400,7 +412,7 @@ public sealed partial class SettingsViewModel : PageViewModel
             }
             if (verdict == Core.Net.UpdateSignatureVerdict.Ask)
             {
-                var answer = System.Windows.MessageBox.Show(Shell.Authenticode.ConsentText(reason, candidate, Update.LatestTag), "Offline Chatter",
+                var answer = System.Windows.MessageBox.Show(Shell.Authenticode.ConsentText(reason, candidate, update.LatestTag), "Offline Chatter",
                     System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning, System.Windows.MessageBoxResult.No);
                 if (answer != System.Windows.MessageBoxResult.Yes)
                 {
@@ -410,23 +422,50 @@ public sealed partial class SettingsViewModel : PageViewModel
                 }
                 Core.Diagnostics.Log.Info("Update", "Unsigned update accepted by user", new { reason });
             }
+            UpdateStatus = L.Get("Update_WaitingForChat");
+            prepared = await _main.Chat.PrepareForShutdownAsync(cancelGeneration: false);
+            if (!prepared)
+            {
+                UpdateStatus = L.Get("Update_ChatSaveFailed");
+                return;
+            }
+            await App.UpdateCleanup;
+            if (System.Windows.Application.Current.MainWindow is { IsEnabled: true } window)
+            {
+                disabledWindow = window;
+                window.IsEnabled = false;
+            }
+            if (!await _main.Chat.FlushChangesAsync())
+            {
+                UpdateStatus = L.Get("Update_ChatSaveFailed");
+                return;
+            }
             UpdateStatus = L.Get("Update_Applying");
             if (elevate)
             {
-                _services.Engine.Server.Stop();
                 _services.Settings.Save();
-                // Отпечаток файла, который проверили (и, возможно, одобрили): повышенный процесс сверит, что его не подменили
-                var approvedSha = await System.Threading.Tasks.Task.Run(() => Core.Net.DownloadManager.ComputeSha256(exe, System.Threading.CancellationToken.None));
-                if (Shell.ElevatedUpdate.TryStart(App.ExePath, exe, config, approvedSha))
+                if (Shell.ElevatedUpdate.TryStart(App.ExePath, exe, config, approved, consented: verdict == UpdateSignatureVerdict.Ask))
                 {
-                    System.Windows.Application.Current.Shutdown();
+                    restarting = true;
+                    App.ExitAfterPrepared();
                     return;
                 }
                 UpdateStatus = L.Get("Update_ElevationCancelled");
                 return;
             }
-            UpdateChecker.Swap(App.ExePath, exe, config);
-            App.Restart("--page Settings");
+            var installation = await Task.Run(() => UpdateChecker.Swap(App.ExePath, exe, config, approved));
+            if (!await _main.Chat.FlushChangesAsync())
+            {
+                await Task.Run(installation.Rollback);
+                UpdateStatus = L.Get("Update_ChatSaveFailed");
+                return;
+            }
+            restarting = App.Restart("--page Settings");
+            if (!restarting)
+            {
+                await Task.Run(installation.Rollback);
+                UpdateStatus = L.Get("Update_RestartFailed");
+            }
         }
         catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or InvalidOperationException or System.Net.Http.HttpRequestException or System.IO.InvalidDataException)
         {
@@ -436,6 +475,11 @@ public sealed partial class SettingsViewModel : PageViewModel
         }
         finally
         {
+            if (!restarting)
+            {
+                if (prepared) _main.Chat.PreparingForShutdown = false;
+                if (disabledWindow != null) disabledWindow.IsEnabled = true;
+            }
             IsUpdating = false;
         }
     }

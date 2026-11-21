@@ -89,6 +89,80 @@ public class ChatSessionTests
         Assert.Equal(8, loaded.Messages[2].Stats!.PromptEvalTokens);
     }
 
+    [Fact]
+    public async Task Store_Persists_Isolated_Snapshots_In_Order()
+    {
+        using var tmp = new TempDir();
+        var store = new ChatStore(tmp.Path);
+        var chat = new ChatSession();
+        var question = chat.Append(new ChatMessage { Role = ChatRole.User, Content = "question", Attachments = { new ChatAttachment { Data = "document" } } });
+        var answer = chat.Append(new ChatMessage
+        {
+            Role = ChatRole.Assistant,
+            Content = "partial",
+            Stats = new GenerationStats { FinishReason = ChatMessage.Interrupted },
+        });
+        var checkpoint = store.SaveAsync(chat);
+        question.Attachments[0].Data = "changed";
+        answer.Content = "finished";
+        answer.Stats!.FinishReason = "stop";
+
+        Assert.True(await checkpoint);
+        var reopened = Assert.Single(store.LoadAll());
+        Assert.Equal("document", reopened.Messages[0].Attachments[0].Data);
+        Assert.Equal("partial", reopened.ActivePath().Last().Content);
+        Assert.Equal(ChatMessage.Interrupted, reopened.ActivePath().Last().Stats!.FinishReason);
+
+        var final = store.SaveAsync(chat);
+        chat.Title = "new title";
+        var title = store.SaveAsync(chat);
+        Assert.All(await Task.WhenAll(final, title), saved => Assert.True(saved));
+        reopened = Assert.Single(store.LoadAll());
+        Assert.Equal("new title", reopened.Title);
+        Assert.Equal("finished", reopened.ActivePath().Last().Content);
+    }
+
+    [Fact]
+    public async Task Store_Retries_A_Failed_Write_And_Preserves_The_Previous_Chat()
+    {
+        using var tmp = new TempDir();
+        var store = new ChatStore(tmp.Path);
+        var chat = new ChatSession { Title = "original" };
+        Assert.True(await store.SaveAsync(chat));
+        using (new FileStream(tmp.Combine(chat.Id + ".json"), FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            chat.Title = "edited";
+            Assert.False(await store.SaveAsync(chat));
+            Assert.Equal("original", Assert.Single(store.LoadAll()).Title);
+            Assert.False(await store.FlushAsync());
+        }
+
+        Assert.True(await store.FlushAsync());
+        Assert.Equal("edited", Assert.Single(new ChatStore(tmp.Path).LoadAll()).Title);
+    }
+
+    [Fact]
+    public async Task Store_Delete_Wins_Against_Pending_And_Late_Saves()
+    {
+        using var tmp = new TempDir();
+        var store = new ChatStore(tmp.Path);
+        var chat = new ChatSession { Title = "chat" };
+        Assert.True(await store.SaveAsync(chat));
+        var queuedAnswer = store.SaveAsync(chat);
+        var deletion = store.DeleteAsync(chat);
+        chat.Title = "late title";
+        await store.SaveAsync(chat);
+        await queuedAnswer;
+        Assert.True(await deletion);
+        Assert.True(await store.FlushAsync());
+        Assert.Empty(new ChatStore(tmp.Path).LoadAll());
+
+        var imported = new ChatSession { Id = chat.Id, Title = "imported again" };
+        Assert.True(await store.SaveAsync(imported));
+        await store.SaveAsync(chat);
+        Assert.Equal("imported again", Assert.Single(store.LoadAll()).Title);
+    }
+
     [Theory]
     [InlineData("<think>plan</think>\n\nAnswer", "plan", "Answer", false)]
     [InlineData("<think>still thinking", "still thinking", "", true)]
@@ -396,6 +470,35 @@ public class ChatClientTests
         Assert.Equal(30, partial.Stats.PromptTokens);
         Assert.Equal(6, partial.Stats.CompletionTokens);
         Assert.True(partial.Stats.TotalMs > 0);
+    }
+
+    [Fact]
+    public async Task Stream_Closed_Without_A_Terminal_Event_Keeps_Partial_Text()
+    {
+        using var server = new FakeServer(Chunk(new { content = "Partial answer" }));
+        using var http = new HttpClient();
+        var client = ChatClient.ForLocal(http, server.Url, null, "local");
+        var partial = new ChatResult();
+
+        await Assert.ThrowsAsync<EndOfStreamException>(() => client.StreamAsync(
+            new ChatRequest(), _ => { }, CancellationToken.None, partial));
+        Assert.Equal("Partial answer", partial.Content);
+        Assert.True(partial.Stats.CompletionTokens > 0);
+    }
+
+    [Fact]
+    public async Task Cancelled_Before_The_First_Token_Leaves_Answer_Empty()
+    {
+        using var cts = new CancellationTokenSource();
+        using var http = new HttpClient();
+        var client = ChatClient.ForLocal(http, "http://127.0.0.1:1/v1", null, "local");
+        var partial = new ChatResult();
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => client.StreamAsync(
+            new ChatRequest(), _ => throw new InvalidOperationException("Unexpected token"), cts.Token, partial));
+        Assert.Empty(partial.Content);
+        Assert.Empty(partial.ToolCalls);
     }
 
     [Fact]

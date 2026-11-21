@@ -292,7 +292,12 @@ public sealed class ChatClient
         while (true)
         {
             var ev = await sse.ReadAsync(ct).ConfigureAwait(false);
-            if (ev == null) break;
+            if (ev == null)
+            {
+                if (string.IsNullOrEmpty(result.Stats.FinishReason))
+                    throw new EndOfStreamException("The response stream ended before generation completed");
+                break;
+            }
             var data = ev.Value.Data.Trim();
             if (data == "[DONE]") break;
             if (TryParseObject(data) is { } chunk) ApplyChunk(chunk, onDelta, result, timing, toolBuilders);

@@ -153,6 +153,12 @@ public sealed partial class MessageViewModel : ObservableObject
     public void UpdateStats()
     {
         var s = Message.Stats;
+        CompletionStatus = s?.FinishReason switch
+        {
+            "cancelled" => L.Get("Chat_Stopped"),
+            ChatMessage.Interrupted => L.Get("Chat_Interrupted"),
+            _ => null,
+        };
         if (s == null || !IsAssistant)
         {
             StatsText = null;
@@ -173,8 +179,10 @@ public sealed partial class MessageViewModel : ObservableObject
         if (!string.IsNullOrEmpty(s.Model)) parts.Add(s.Model!);
         if (s.FinishReason == "length") parts.Add(L.Get("Stats_Truncated"));
         if (s.FinishReason == "cancelled") parts.Add(L.Get("Stats_Stopped"));
-        StatsText = string.Join(" · ", parts);
+        StatsText = parts.Count == 0 ? null : string.Join(" · ", parts);
     }
+
+    [ObservableProperty] private string? _completionStatus;
 }
 
 public sealed record ModelOption(string Ref, string Title, string Group, bool Vision = false);
@@ -226,7 +234,6 @@ public sealed partial class ChatPageViewModel : PageViewModel
             if (e.PropertyName == nameof(ServerInsightViewModel.State)) RefreshTokens();
         };
         _isInspectorVisible = services.Settings.Current.Window.InspectorVisible;
-        if (System.Windows.Application.Current is { } app) app.Exit += (_, _) => FlushPromptSave();
         foreach (var c in services.Chats.LoadAll()) Chats.Add(new ChatListItem(c));
         _filtered = CollectionViewSource.GetDefaultView(Chats);
         _filtered.Filter = o => o is ChatListItem c && ChatStore.Matches(c.Session, SearchText);
@@ -418,6 +425,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
         if (value == null)
         {
             Messages.Clear();
+            RefreshSelectedGeneration();
             OnPropertyChanged(nameof(HasMessages));
             return;
         }
@@ -434,7 +442,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
         else if (SelectedModel != null) s.ModelRef = SelectedModel.Ref;
         RebuildMessages();
         // Строка под полем ввода — итог последнего ответа открытого чата, а не прочерки
-        if (!IsGenerating) LiveStats = Messages.LastOrDefault(m => m.StatsText != null)?.StatsText ?? L.Get("Chat_StatsEmpty");
+        RefreshSelectedGeneration();
         RefreshTokens();
     }
 
@@ -467,7 +475,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
     private void FlushPromptSave()
     {
         _promptSaveTimer?.Stop();
-        if (_promptSaveSession is { } s) _s.Chats.Save(s);
+        if (_promptSaveSession is { } s) _ = PersistAsync(s);
         _promptSaveSession = null;
     }
 
@@ -512,7 +520,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
 
     private void SaveChat()
     {
-        if (SelectedChat != null) _s.Chats.Save(SelectedChat.Session);
+        if (SelectedChat != null) _ = PersistAsync(SelectedChat.Session);
     }
 
     [RelayCommand]
@@ -570,20 +578,32 @@ public sealed partial class ChatPageViewModel : PageViewModel
     private void TogglePin(ChatListItem item)
     {
         item.Pinned = !item.Pinned;
-        _s.Chats.Save(item.Session);
+        _ = PersistAsync(item.Session);
         _filtered.Refresh();
     }
 
     [RelayCommand]
-    private void DeleteChat(ChatListItem item)
+    private async Task DeleteChatAsync(ChatListItem item)
     {
         if (MessageBox.Show(L.F("Chat_ConfirmDelete", item.Title), "Offline Chatter", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             return;
-        if (ReferenceEquals(item, SelectedChat)) Stop();
-        _s.Chats.Delete(item.Session);
+        await RemoveChatAsync(item);
+    }
+
+    internal async Task RemoveChatAsync(ChatListItem item)
+    {
+        if (ReferenceEquals(item.Session, _generatingChat)) Stop();
+        if (_titleRequests.TryGetValue(item.Session, out var title)) title.Cancel();
+        if (ReferenceEquals(item.Session, _promptSaveSession))
+        {
+            _promptSaveTimer?.Stop();
+            _promptSaveSession = null;
+        }
+        var deletion = _s.Chats.DeleteAsync(item.Session);
         Chats.Remove(item);
         if (ReferenceEquals(SelectedChat, item) || SelectedChat == null) SelectedChat = Chats.FirstOrDefault();
         if (Chats.Count == 0) NewChat();
+        if (!await deletion) HasSaveError = true;
     }
 
     [RelayCommand]
@@ -646,7 +666,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
 
     // ---------------- отправка и генерация ----------------
 
-    private bool CanSend() => !IsGenerating && (!string.IsNullOrWhiteSpace(InputText) || PendingAttachments.Count > 0);
+    private bool CanSend() => !PreparingForShutdown && !IsGenerating && (!string.IsNullOrWhiteSpace(InputText) || PendingAttachments.Count > 0);
 
     [RelayCommand(CanExecute = nameof(CanSend))]
     private async Task SendAsync()
@@ -678,8 +698,8 @@ public sealed partial class ChatPageViewModel : PageViewModel
         }
         InputText = string.Empty;
         PendingAttachments.Clear();
+        chat.UpdatedAt = DateTime.UtcNow;
         OnPropertyChanged(nameof(HasPending));
-        SaveChat();
         RebuildMessages();
         OnPropertyChanged(nameof(Title));
         await GenerateAsync(item, user);
@@ -697,58 +717,88 @@ public sealed partial class ChatPageViewModel : PageViewModel
     private async Task GenerateAsync(ChatListItem item, ChatMessage parent)
     {
         var chat = item.Session;
+        var modelRef = chat.ModelRef ?? SelectedModel?.Ref;
         var cts = _genCts = new CancellationTokenSource();
+        var done = _generationDone = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _generatingChat = chat;
+        _generationStats = null;
         IsGenerating = true;
         Endpoint.Busy = true;
-        Status = null;
+        SetGenerationStatus(null);
+        var savedQuestion = false;
         try
         {
-            var (client, model, error) = await _s.ResolveChatClientAsync(chat.ModelRef ?? SelectedModel?.Ref, s => Status = s, cts.Token);
+            savedQuestion = await PersistAsync(chat);
+            if (!savedQuestion || cts.IsCancellationRequested) return;
+            var (client, model, error) = await _s.ResolveChatClientAsync(modelRef, SetGenerationStatus, cts.Token);
+            cts.Token.ThrowIfCancellationRequested();
             if (client == null)
             {
                 var failed = new ChatMessage { Role = ChatRole.Assistant, ParentId = parent.Id, Error = error };
                 chat.Messages.Add(failed);
                 chat.ActiveLeafId = failed.Id;
-                RebuildMessages();
+                if (IsSelected(chat)) RebuildMessages();
                 return;
             }
-            Status = null;
+            SetGenerationStatus(null);
 
             var enabledTools = ChatToolSetViewModel.EnabledFilter(_s, chat);
             var maxSteps = Math.Max(1, _s.Settings.Current.Tools.MaxSteps);
             var current = parent;
             for (var step = 0; step < maxSteps && !cts.IsCancellationRequested; step++)
             {
-                var answer = await StreamStepAsync(chat, current, client, model, enabledTools, cts.Token);
+                var answer = await StreamStepAsync(chat, current, client, model, modelRef, enabledTools, cts.Token);
                 if (answer.ToolCalls.Count == 0 || answer.Error != null || cts.IsCancellationRequested) break;
 
                 // Выполнить вызовы инструментов и записать результаты сообщениями роли tool
                 current = answer;
                 foreach (var call in answer.ToolCalls)
                 {
+                    cts.Token.ThrowIfCancellationRequested();
                     var (text, isError) = await RunToolAsync(call, enabledTools, cts.Token);
                     call.Result = text;
                     call.IsError = isError;
                     current = new ChatMessage { Role = ChatRole.Tool, ParentId = current.Id, ToolCallId = call.Id, Content = text };
                     chat.Messages.Add(current);
+                    chat.ActiveLeafId = current.Id;
                 }
-                chat.ActiveLeafId = current.Id;
-                _s.Chats.Save(chat);
+                if (!await PersistAsync(chat)) break;
                 Messages.LastOrDefault(m => m.Message.Id == answer.Id)?.RefreshTools();
-                if (step == maxSteps - 1) Status = L.Get("Tools_MaxSteps");
+                if (step == maxSteps - 1) SetGenerationStatus(L.Get("Tools_MaxSteps"));
             }
-            // В фоне: генерация уже закончилась, модель загружена — запрос короткий
-            if (chat.TitlePending && !cts.IsCancellationRequested) _ = RequestTitleAsync(item, client, model);
+            if (chat.TitlePending && !cts.IsCancellationRequested && !PreparingForShutdown)
+                _ = RequestTitleAsync(item, client, model);
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            SetGenerationStatus(L.Get("Chat_Stopped"));
+        }
+        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or IOException or InvalidOperationException
+                                       or Newtonsoft.Json.JsonException or OperationCanceledException)
+        {
+            SetGenerationStatus(L.F("Chat_GenerationFailed", ex.GetBaseException().Message));
+            Log.Error("Chat", "Cannot complete chat turn", ex);
+        }
         finally
         {
-            IsGenerating = false;
-            Endpoint.Busy = false;
-            if (ReferenceEquals(_genCts, cts)) _genCts = null;
-            cts.Dispose();
-            chat.UpdatedAt = DateTime.UtcNow;
-            _s.Chats.Save(chat);
+            try
+            {
+                if (savedQuestion)
+                {
+                    chat.UpdatedAt = DateTime.UtcNow;
+                    await PersistAsync(chat);
+                }
+            }
+            finally
+            {
+                _generatingChat = null;
+                _genCts = null;
+                _generationDone = null;
+                cts.Dispose();
+                IsGenerating = false;
+                Endpoint.Busy = false;
+                done.TrySetResult(true);
+            }
         }
     }
 
@@ -761,16 +811,19 @@ public sealed partial class ChatPageViewModel : PageViewModel
         var chat = item.Session;
         var path = chat.ActivePath().ToList();
         var question = path.FirstOrDefault(m => m.Role == ChatRole.User)?.Content;
-        var answer = path.LastOrDefault(m => m.Role == ChatRole.Assistant && m.Error == null && m.Content.Length > 0)?.Content;
+        var answer = path.LastOrDefault(m => m.Role == ChatRole.Assistant && m.Error == null && m.Content.Length > 0
+            && m.Stats?.FinishReason is not ("cancelled" or ChatMessage.Interrupted))?.Content;
         // Ответа ещё нет (ошибка, остановка) — попробуем после следующего
-        if (string.IsNullOrWhiteSpace(question) || answer == null) return;
-        chat.TitlePending = false;
+        if (string.IsNullOrWhiteSpace(question) || answer == null || _titleRequests.ContainsKey(chat)) return;
 
+        using var cancellation = new CancellationTokenSource();
+        _titleRequests.Add(chat, cancellation);
         var temporary = item.Title;
         string? title = null;
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellation.Token);
+            cts.CancelAfter(TimeSpan.FromSeconds(45));
             var result = await client.StreamAsync(ChatTitles.BuildRequest(question!, answer, model), _ => { }, cts.Token);
             var recovered = AnswerRecovery.Finish(result.Reasoning, result.Content, result.ToolCalls, result.Stats.FinishReason, null);
             title = ChatTitles.Clean(recovered.Content);
@@ -778,32 +831,36 @@ public sealed partial class ChatPageViewModel : PageViewModel
         catch (Exception ex) when (ex is OperationCanceledException or System.Net.Http.HttpRequestException or IOException
                                        or InvalidOperationException or Newtonsoft.Json.JsonException)
         {
-            Log.Info("Chat", "Title request failed: " + ex.GetBaseException().Message);
+            if (!cancellation.IsCancellationRequested)
+                Log.Info("Chat", "Title request failed: " + ex.GetBaseException().Message);
         }
+        finally { _titleRequests.Remove(chat); }
 
+        if (cancellation.IsCancellationRequested) return;
+        chat.TitlePending = false;
         // Пока шёл запрос, название могли сменить — тогда оставляем как есть
         if (title != null && item.Title == temporary)
         {
             item.Title = title;
             if (ReferenceEquals(SelectedChat, item)) OnPropertyChanged(nameof(Title));
         }
-        _s.Chats.Save(chat);
+        await PersistAsync(chat);
         Log.Info("Chat", "Chat title", new { chat = chat.Id, fromModel = title != null && item.Title == title });
     }
 
     /// <summary>Один запрос к модели со стримингом в новое сообщение ассистента.</summary>
-    private async Task<ChatMessage> StreamStepAsync(ChatSession chat, ChatMessage parent, ChatClient client, string? model, Func<Core.Tools.ToolDefinition, bool>? enabledTools, CancellationToken ct)
+    private async Task<ChatMessage> StreamStepAsync(ChatSession chat, ChatMessage parent, ChatClient client, string? model, string? modelRef,
+        Func<Core.Tools.ToolDefinition, bool>? enabledTools, CancellationToken ct)
     {
         var answer = new ChatMessage { Role = ChatRole.Assistant, ParentId = parent.Id };
         chat.Messages.Add(answer);
         chat.ActiveLeafId = answer.Id;
-        RebuildMessages();
+        if (IsSelected(chat)) RebuildMessages();
         // Объект ответа существует, даже если чат сейчас не открыт: при возврате лента возьмёт именно его
         var vm = Messages.LastOrDefault(m => m.Message.Id == answer.Id) ?? new MessageViewModel(answer, 0, 1);
         _live[answer.Id] = vm;
         vm.IsStreaming = true;
         vm.IsPreparing = true;
-        var modelRef = chat.ModelRef ?? SelectedModel?.Ref;
         vm.PreparingText = modelRef?.StartsWith("local:", StringComparison.Ordinal) == true
             ? L.Get("Chat_Prefilling")
             : L.Get("Chat_WaitingToken");
@@ -817,6 +874,8 @@ public sealed partial class ChatPageViewModel : PageViewModel
         // Ответ и статистика копятся здесь: числа токенов видны во время генерации и не пропадают при остановке или ошибке
         var live = new ChatResult();
         var tokensShownAt = DateTime.MinValue;
+        var checkpointAt = started;
+        Task? checkpoint = null;
         var flush = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(33) };
         void Flush()
         {
@@ -833,18 +892,30 @@ public sealed partial class ChatPageViewModel : PageViewModel
             (r, c) = AnswerRecovery.Separate(r, c);
             vm.Reasoning = r;
             vm.Content = c;
+            var now = DateTime.UtcNow;
+            if (now - checkpointAt >= TimeSpan.FromSeconds(2) && (checkpoint == null || checkpoint.IsCompleted)
+                && (c != answer.Content || r != (answer.Reasoning ?? string.Empty)))
+            {
+                checkpointAt = now;
+                answer.Content = c;
+                answer.Reasoning = r.Length > 0 ? r : null;
+                answer.Stats = new GenerationStats { FinishReason = ChatMessage.Interrupted };
+                chat.UpdatedAt = now;
+                checkpoint = PersistAsync(chat);
+            }
             if (first is { } ft)
             {
                 vm.IsPreparing = false;
-                var sec = (DateTime.UtcNow - ft).TotalSeconds;
+                var sec = (now - ft).TotalSeconds;
                 // llama-server сообщает точное число токенов и скорость в каждом чанке; у остальных — число порций потока
                 var exact = live.Stats.CompletionTokens > 0;
                 var tokens = exact ? live.Stats.CompletionTokens : deltaCount;
                 var speed = live.Stats.TokensPerSecond is { } tps ? tps.ToString("0.0") : sec > 0.2 ? (deltaCount / sec).ToString("0.0") : "…";
-                LiveStats = L.F("Chat_LiveStats", (exact ? string.Empty : "≈") + tokens.ToString("N0"), speed, Units.FormatDuration(ft - started));
-                if ((DateTime.UtcNow - tokensShownAt).TotalMilliseconds >= 250 && ReferenceEquals(SelectedChat?.Session, chat))
+                _generationStats = L.F("Chat_LiveStats", (exact ? string.Empty : "≈") + tokens.ToString("N0"), speed, Units.FormatDuration(ft - started));
+                if (IsSelected(chat)) LiveStats = _generationStats;
+                if ((now - tokensShownAt).TotalMilliseconds >= 250 && IsSelected(chat))
                 {
-                    tokensShownAt = DateTime.UtcNow;
+                    tokensShownAt = now;
                     RefreshTokens(live.Stats, exact ? null : deltaCount);
                 }
             }
@@ -854,7 +925,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
 
         try
         {
-            var profile = chat.ModelRef?.StartsWith("local:", StringComparison.Ordinal) != false && _s.ActiveModel != null ? _s.ProfileFor(_s.ActiveModel) : null;
+            var profile = modelRef?.StartsWith("local:", StringComparison.Ordinal) != false && _s.ActiveModel != null ? _s.ProfileFor(_s.ActiveModel) : null;
             var sampling = profile?.Sampling ?? new Core.Engine.SamplingSettings();
             var request = new ChatRequest
             {
@@ -870,12 +941,11 @@ public sealed partial class ChatPageViewModel : PageViewModel
                 ReasoningStyle = chat.ReasoningStyle ?? Core.Chat.ReasoningStyle.Auto,
                 Tools = enabledTools != null ? _s.Tools.ToOpenAiTools(enabledTools) : null,
             };
-            if (chat.ModelRef?.StartsWith("provider:", StringComparison.Ordinal) != true)
+            if (modelRef?.StartsWith("provider:", StringComparison.Ordinal) != true)
                 request.ChatTemplate = await _s.GetLocalChatTemplateAsync(ct);
             if (!string.IsNullOrWhiteSpace(chat.SystemPrompt))
                 request.Messages.Add(new ChatMessage { Role = ChatRole.System, Content = chat.SystemPrompt! });
-            var history = chat.ActivePath().Where(m => m.Id != answer.Id && m.Error == null &&
-                                                       (m.Role != ChatRole.Assistant || m.Content.Length > 0 || m.ToolCalls.Count > 0)).ToList();
+            var history = Core.Tools.ToolHistory.ForRequest(chat.ActivePath(), answer.Id);
             // Результаты инструментов из прошлых вопросов — сокращёнными (настройка; в чате они остаются полными)
             var toolSettings = _s.Settings.Current.Tools;
             request.Messages.AddRange(toolSettings.CompactOldResults ? Core.Tools.ToolHistory.CompactOldResults(history, toolSettings.OldResultChars) : history);
@@ -894,9 +964,10 @@ public sealed partial class ChatPageViewModel : PageViewModel
                 }
             }, ct, live);
             // Подсказка в правой панели: как программа поняла модель при «Авто»
-            ReasoningHint = (chat.ReasoningStyle ?? Core.Chat.ReasoningStyle.Auto) == Core.Chat.ReasoningStyle.Auto
-                ? L.F("Chat_ReasoningDetected", L.Get("Enum_ReasoningStyle_" + client.AppliedReasoningStyle))
-                : null;
+            if (IsSelected(chat))
+                ReasoningHint = (chat.ReasoningStyle ?? Core.Chat.ReasoningStyle.Auto) == Core.Chat.ReasoningStyle.Auto
+                    ? L.F("Chat_ReasoningDetected", L.Get("Enum_ReasoningStyle_" + client.AppliedReasoningStyle))
+                    : null;
 
             // Ответ мог целиком уйти в рассуждения (шаблон сам открыл <think>, а модель после инструмента ответила сразу)
             // или вызов инструмента остался текстом — приводим к виду «текст + рассуждения + вызовы»
@@ -917,25 +988,29 @@ public sealed partial class ChatPageViewModel : PageViewModel
                 answerFromReasoning = fixedUp.Promoted, toolCallsFromText = fixedUp.ToolCallsFromText,
             });
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             // Остановлено: оставляем всё, что успело прийти, вместе со статистикой
             var (r, c) = AnswerRecovery.Separate(live.Reasoning, live.Content);
             answer.Content = c;
             answer.Reasoning = r.Length > 0 ? r : null;
-            if (firstToken != null)
-            {
-                answer.Stats = live.Stats;
-                answer.Stats.FinishReason = "cancelled";
-            }
+            answer.Stats = live.Stats;
+            answer.Stats.FinishReason = "cancelled";
         }
-        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or IOException or InvalidOperationException or Newtonsoft.Json.JsonException)
+        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or IOException or InvalidOperationException
+                                       or Newtonsoft.Json.JsonException or OperationCanceledException)
         {
-            var message = ex is HttpStatusException hs ? $"HTTP {(int)hs.Status}: {hs.Body}" : ex.GetBaseException().Message;
+            var message = ex switch
+            {
+                HttpStatusException hs => $"HTTP {(int)hs.Status}: {hs.Body}",
+                EndOfStreamException => L.Get("Chat_StreamInterrupted"),
+                OperationCanceledException => L.Get("Chat_ResponseTimeout"),
+                _ => ex.GetBaseException().Message,
+            };
             var (r, c) = AnswerRecovery.Separate(live.Reasoning, live.Content);
             answer.Content = c;
             answer.Reasoning = r.Length > 0 ? r : null;
-            if (firstToken != null) answer.Stats = live.Stats;
+            answer.Stats = firstToken != null ? live.Stats : null;
             answer.Error = message;
             Endpoint.ReportRequest(modelRef, ex, null);
             Log.Error("Chat", "Generation failed", ex);
@@ -951,12 +1026,14 @@ public sealed partial class ChatPageViewModel : PageViewModel
             vm.UpdateStats();
             vm.RefreshTools();
             _live.Remove(answer.Id);
-            _s.Chats.Save(chat);
+            if (!await PersistAsync(chat)) SetGenerationStatus(L.Get("Chat_SaveFailed"));
             // Строка под полем ввода: итог этого ответа; после ошибки без единого токена — итог предыдущего, а не прочерки
-            LiveStats = vm.StatsText
-                        ?? Messages.LastOrDefault(m => m.StatsText != null)?.StatsText
-                        ?? L.Get("Chat_StatsEmpty");
-            if (ReferenceEquals(SelectedChat?.Session, chat)) RefreshTokens();
+            _generationStats = vm.StatsText;
+            if (IsSelected(chat))
+            {
+                RefreshSelectedGeneration();
+                RefreshTokens();
+            }
         }
         return answer;
     }
@@ -983,7 +1060,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
                 _s.Settings.Save();
             }
         }
-        Status = L.F("Tools_Running", tool.Name);
+        SetGenerationStatus(L.F("Tools_Running", tool.Name));
         try
         {
             var r = await _s.Tools.ExecuteAsync(tool, arguments, ct);
@@ -992,7 +1069,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
         }
         finally
         {
-            Status = null;
+            SetGenerationStatus(null);
         }
     }
     /// <summary>
@@ -1114,7 +1191,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
     [RelayCommand]
     private async Task RegenerateAsync(MessageViewModel m)
     {
-        if (IsGenerating || SelectedChat == null) return;
+        if (PreparingForShutdown || IsGenerating || SelectedChat == null) return;
         var parent = SelectedChat.Session.Find(m.IsUser ? m.Message.Id : m.Message.ParentId);
         if (parent == null) return;
         await GenerateAsync(SelectedChat, parent);

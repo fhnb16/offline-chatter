@@ -252,6 +252,63 @@ public sealed class DataTransferTests : IDisposable
         Assert.False(File.Exists(exe + ".old"));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Update_Locked_File_Leaves_The_Installed_Pair_Intact(bool lockExecutable)
+    {
+        var (exe, fresh) = UpdateFixture();
+        using (new FileStream(lockExecutable ? exe : exe + ".config", FileMode.Open, FileAccess.Read, FileShare.Read))
+            Assert.ThrowsAny<IOException>(() => UpdateChecker.Swap(exe, fresh, fresh + ".config"));
+
+        Assert.Equal("old", File.ReadAllText(exe));
+        Assert.Equal("oldcfg", File.ReadAllText(exe + ".config"));
+        Assert.Empty(Directory.GetFiles(_dir, "*.update.tmp"));
+    }
+
+    [Fact]
+    public void Update_Rejects_A_Changed_Config_Before_Replacing_Any_File()
+    {
+        var (exe, fresh) = UpdateFixture();
+        var hashes = UpdateFileHashes.Read(fresh, fresh + ".config", System.Threading.CancellationToken.None);
+        File.WriteAllText(fresh + ".config", "changed");
+
+        Assert.Throws<InvalidDataException>(() => UpdateChecker.Swap(exe, fresh, fresh + ".config", hashes));
+        Assert.Equal("old", File.ReadAllText(exe));
+        Assert.Equal("oldcfg", File.ReadAllText(exe + ".config"));
+    }
+
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    public void Update_Can_Roll_Back_After_A_Failed_Launch(bool existingConfig, bool newConfig)
+    {
+        var (exe, fresh) = UpdateFixture();
+        if (!existingConfig) File.Delete(exe + ".config");
+        using (new FileStream(exe, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
+        {
+            var installation = UpdateChecker.Swap(exe, fresh, newConfig ? fresh + ".config" : null);
+            Assert.Equal("new", File.ReadAllText(exe));
+            Assert.Equal(newConfig ? "newcfg" : "oldcfg", File.ReadAllText(exe + ".config"));
+            installation.Rollback();
+        }
+        Assert.Equal("old", File.ReadAllText(exe));
+        if (existingConfig) Assert.Equal("oldcfg", File.ReadAllText(exe + ".config"));
+        else Assert.False(File.Exists(exe + ".config"));
+    }
+
+    private (string Exe, string NewExe) UpdateFixture()
+    {
+        var exe = Path.Combine(_dir, "app.exe");
+        var fresh = Path.Combine(_dir, "new.exe");
+        File.WriteAllText(exe, "old");
+        File.WriteAllText(exe + ".config", "oldcfg");
+        File.WriteAllText(fresh, "new");
+        File.WriteAllText(fresh + ".config", "newcfg");
+        return (exe, fresh);
+    }
+
     [Fact]
     public void Settings_Restore_Hidden_Pages_And_Attachments()
     {

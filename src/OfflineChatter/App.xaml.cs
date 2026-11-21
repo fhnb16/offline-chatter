@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -35,6 +36,7 @@ public partial class App : Application
     private GlobalHotkey? _hotkey;
     private QuickAskWindow? _quick;
     private bool _exiting;
+    internal static Task UpdateCleanup { get; private set; } = Task.CompletedTask;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -116,7 +118,6 @@ public partial class App : Application
 
         Services = new AppServices(Paths, Settings);
         Rendering.ImageAttachments.Settings = Settings.Current.Attachments;
-        UpdateChecker.CleanupOld(ExePath);
         if (!Settings.Current.Network.OfflineMode) Services.ConnectMcpServers();
         _ = Services.CheckUpdatesInBackgroundAsync();
         _ = Services.CheckEngineUpdateInBackgroundAsync();
@@ -180,8 +181,12 @@ public partial class App : Application
         _single.ArgumentsReceived += args => Dispatcher.BeginInvoke(new Action(() => HandleArgs(args, fromOtherInstance: true)));
 
         UpdateJumpList();
+        var rendered = false;
         window.ContentRendered += (_, _) =>
         {
+            if (rendered) return;
+            rendered = true;
+            UpdateCleanup = Task.Run(() => UpdateChecker.CleanupOld(ExePath));
             HandleArgs(e.Args, fromOtherInstance: false);
             // Запуск из «Загрузок», с рабочего стола или из временной папки архиватора — предложить перенос
             Dispatcher.BeginInvoke(new Action(() => _ = Relocation.OfferIfNeededAsync(Services)), DispatcherPriority.ApplicationIdle);
@@ -240,17 +245,24 @@ public partial class App : Application
     public static string ExePath => Assembly.GetExecutingAssembly().Location;
 
     /// <summary>Перезапуск программы (новый процесс дождётся, пока этот освободит мьютекс единственного экземпляра).</summary>
-    public static void Restart(string? extraArgs = null)
+    internal static bool Restart(string? extraArgs = null)
     {
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(ExePath, ("--restarted " + extraArgs).Trim()) { UseShellExecute = false });
+            using var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(ExePath, ("--restarted " + extraArgs).Trim()) { UseShellExecute = false });
+            if (process == null) return false;
         }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
             Log.Error("App", "Restart failed", ex);
-            return;
+            return false;
         }
+        ExitAfterPrepared();
+        return true;
+    }
+
+    internal static void ExitAfterPrepared()
+    {
         if (Current is App app) app._exiting = true;
         Current.MainWindow?.Close();
         Current.Shutdown();
@@ -284,17 +296,26 @@ public partial class App : Application
 
     private void OnMainClosing(object? sender, CancelEventArgs e)
     {
-        if (_exiting || !Settings.Current.Window.CloseToTray) return;
+        if (_exiting) return;
         e.Cancel = true;
-        MainWindow?.Hide();
-        _tray?.Notify("Offline Chatter", L.Get("Notify_InTray"));
+        if (Settings.Current.Window.CloseToTray)
+        {
+            MainWindow?.Hide();
+            _tray?.Notify("Offline Chatter", L.Get("Notify_InTray"));
+        }
+        else Dispatcher.BeginInvoke(new Action(ExitApp));
     }
 
-    private void ExitApp()
+    private async void ExitApp()
     {
-        _exiting = true;
-        MainWindow?.Close();
-        Shutdown();
+        if (_exiting || _mainVm is not { } main || main.Chat.PreparingForShutdown) return;
+        if (!await main.Chat.PrepareForShutdownAsync(cancelGeneration: true))
+        {
+            ShowMainWindow();
+            MessageBox.Show(L.Get("Chat_ExitSaveFailed"), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        ExitAfterPrepared();
     }
 
     /// <summary>Jump List (Win7+): «Новый чат», «Быстрый вопрос» и последние чаты.</summary>

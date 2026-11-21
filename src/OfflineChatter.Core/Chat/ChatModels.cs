@@ -29,6 +29,8 @@ public sealed class ChatAttachment
     public string Data { get; set; } = string.Empty;
 
     public string DataUri => "data:" + MimeType + ";base64," + Data;
+
+    internal ChatAttachment Snapshot() => (ChatAttachment)MemberwiseClone();
 }
 
 /// <summary>Статистика генерации одного ответа.</summary>
@@ -73,6 +75,8 @@ public sealed class GenerationStats
     public string? FinishReason { get; set; }
     public string? Model { get; set; }
     public string? Provider { get; set; }
+
+    internal GenerationStats Snapshot() => (GenerationStats)MemberwiseClone();
 }
 
 /// <summary>Вызов инструмента (MCP / встроенные), этап 9.</summary>
@@ -83,11 +87,15 @@ public sealed class ToolCall
     public string Arguments { get; set; } = "{}";
     public string? Result { get; set; }
     public bool IsError { get; set; }
+
+    internal ToolCall Snapshot() => (ToolCall)MemberwiseClone();
 }
 
 /// <summary>Узел дерева сообщений. Ветвление: у одного родителя несколько детей (варианты).</summary>
 public sealed class ChatMessage
 {
+    public const string Interrupted = "interrupted";
+
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string? ParentId { get; set; }
     public ChatRole Role { get; set; }
@@ -99,6 +107,15 @@ public sealed class ChatMessage
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public GenerationStats? Stats { get; set; }
     public string? Error { get; set; }
+
+    internal ChatMessage Snapshot()
+    {
+        var copy = (ChatMessage)MemberwiseClone();
+        copy.Attachments = Attachments.Select(a => a.Snapshot()).ToList();
+        copy.ToolCalls = ToolCalls.Select(t => t.Snapshot()).ToList();
+        copy.Stats = Stats?.Snapshot();
+        return copy;
+    }
 }
 
 /// <summary>Чат: дерево сообщений + активная ветка + настройки беседы.</summary>
@@ -160,6 +177,15 @@ public sealed class ChatSession
 
     /// <summary>Последнее сообщение активной ветки.</summary>
     public string? ActiveLeafId { get; set; }
+
+    internal ChatSession Snapshot()
+    {
+        var copy = (ChatSession)MemberwiseClone();
+        copy.Tags = Tags.ToList();
+        copy.ToolIds = ToolIds?.ToList();
+        copy.Messages = Messages.Select(m => m.Snapshot()).ToList();
+        return copy;
+    }
 
     public ChatMessage? Find(string? id) => id == null ? null : Messages.FirstOrDefault(m => m.Id == id);
 

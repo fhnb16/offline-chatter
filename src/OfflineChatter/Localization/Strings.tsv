@@ -330,6 +330,14 @@ Stats_Ttft	first token {0}	первый токен {0}
 Stats_Draft	draft accepted {0}%	принято черновика {0}%
 Stats_Truncated	cut off by the token limit	обрезано лимитом токенов
 Stats_Stopped	stopped	остановлено
+Chat_Interrupted	Response interrupted	Ответ прерван
+Chat_Stopped	Response stopped	Ответ остановлен
+Chat_StreamInterrupted	The connection closed before the response finished	Соединение прервалось до завершения ответа
+Chat_ResponseTimeout	Timed out while waiting for the response	Истекло время ожидания ответа
+Chat_GenerationFailed	Could not complete the response: {0}	Не удалось завершить ответ: {0}
+Chat_SaveFailed	Could not save chat changes	Не удалось сохранить изменения в чатах
+Chat_RetrySave	Retry saving	Повторить сохранение
+Chat_ExitSaveFailed	Save chat changes before exiting. You can retry in the chat window.	Перед выходом сохраните изменения. Повторить сохранение можно в окне чата.
 
 # ---------- Провайдеры ----------
 Providers_Hint	Cloud and local OpenAI-compatible APIs. Keys are stored encrypted (DPAPI). Selected models appear in the chat model picker.	Облачные и локальные OpenAI-совместимые API. Ключи хранятся зашифрованными (DPAPI). Выбранные модели появляются в меню модели в чате.
@@ -728,6 +736,11 @@ Update_NotChecked	Updates have not been checked yet	Обновления ещё 
 Update_Downloading	Downloading {0}…	Скачиваем {0}…
 Update_VerifyingSignature	Verifying the update signature	Проверяем подпись обновления
 Update_Applying	Installing the update	Устанавливаем обновление
+Update_WaitingForChat	Waiting for the current response to finish and save	Ждём завершения ответа и сохранения чата
+Update_ChatSaveFailed	Save chat changes before installing the update	Сохраните изменения в чатах перед установкой обновления
+Update_RestartFailed	Could not start the updated app	Не удалось запустить обновлённую программу
+Update_ExitTimedOut	The previous instance did not close in time	Предыдущий экземпляр программы не закрылся вовремя
+Update_TrustChanged	The update signature needs confirmation. Start the app and retry the update.	Подпись обновления требует подтверждения. Запустите программу и повторите обновление.
 Update_Failed	Could not install the update: {0}. Download it from the release page instead.	Не удалось установить обновление: {0}. Скачайте его со страницы релиза.
 Update_Install	Install and restart	Установить и перезапустить
 Update_AutoCheck	Check for updates at startup	Проверять обновления при запуске

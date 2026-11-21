@@ -146,4 +146,27 @@ public class ToolBudgetTests
         Assert.False(new ToolsSettings().CompactOldResults); // по умолчанию выключено
         Assert.True(new ToolsSettings().CompactSchemas);
     }
+
+    [Fact]
+    public void Request_History_Keeps_Completed_Calls_And_Skips_Incomplete_Calls()
+    {
+        var assistant = new ChatMessage
+        {
+            Role = ChatRole.Assistant,
+            ToolCalls = { new ToolCall { Id = "finished" }, new ToolCall { Id = "interrupted" } },
+        };
+        var result = new ChatMessage { Role = ChatRole.Tool, ToolCallId = "finished", Content = "saved result" };
+        var next = new ChatMessage { Role = ChatRole.User, Content = "next" };
+        var draft = new ChatMessage { Role = ChatRole.Assistant };
+        var sent = ToolHistory.ForRequest(new[]
+        {
+            assistant, result, new ChatMessage { Role = ChatRole.Tool, ToolCallId = "orphan" }, next, draft,
+        }, draft.Id);
+
+        Assert.Equal("finished", Assert.Single(sent[0].ToolCalls).Id);
+        Assert.Same(result, sent[1]);
+        Assert.Same(next, sent[2]);
+        Assert.Equal(3, sent.Count);
+        Assert.Equal(2, assistant.ToolCalls.Count);
+    }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Windows;
 using OfflineChatter.Core.Diagnostics;
 using OfflineChatter.Core.Net;
@@ -20,9 +21,9 @@ public static class ElevatedUpdate
     private const int ErrorCancelled = 1223; // пользователь нажал «Нет» в окне UAC
 
     /// <summary>Запустить повышенный процесс. false — пользователь отказался в UAC или запуск не удался.</summary>
-    public static bool TryStart(string targetExe, string newExe, string? newConfig, string approvedSha256)
+    public static bool TryStart(string targetExe, string newExe, string? newConfig, UpdateFileHashes approved, bool consented)
     {
-        var args = $"{Switch} \"{newExe}\" \"{newConfig ?? "-"}\" {Process.GetCurrentProcess().Id} {approvedSha256}";
+        var args = $"{Switch} \"{newExe}\" \"{newConfig ?? "-"}\" {Process.GetCurrentProcess().Id} {approved.Executable} {approved.Configuration ?? "-"} {consented}";
         try
         {
             Process.Start(new ProcessStartInfo(targetExe, args) { Verb = "runas", UseShellExecute = true });
@@ -41,55 +42,57 @@ public static class ElevatedUpdate
         }
     }
 
-    /// <summary>Режим повышенного процесса: <c>--apply-update новый.exe новый.config|- pid sha256</c>. Возвращает код выхода.</summary>
+    /// <summary>Режим повышенного процесса. Возвращает код выхода.</summary>
     public static int Run(string[] args)
     {
-        if (args.Length < 5) return 2;
+        if (args.Length != 7 || !int.TryParse(args[3], out var pid) || pid <= 0 || !bool.TryParse(args[6], out var consented))
+            return 2;
         var newExe = args[1];
         var newConfig = args[2] == "-" ? null : args[2];
+        var approved = new UpdateFileHashes(args[4], args[5] == "-" ? null : args[5]);
         var target = App.ExePath;
 
         // Ждём, пока обычная копия программы закроется (иначе её exe.config может быть занят)
-        if (int.TryParse(args[3], out var pid))
-        {
-            try
-            {
-                using var p = Process.GetProcessById(pid);
-                p.WaitForExit(30000);
-            }
-            catch (ArgumentException) { /* уже завершилась */ }
-        }
-
-        // Файл лежит в папке пользователя и мог быть подменён, пока ждали согласия в UAC: сверяем его с тем,
-        // что проверила (и, если подписи нет, одобрила пользователем) обычная копия, и ещё раз проверяем подпись
-        string actualSha;
         try
         {
-            actualSha = DownloadManager.ComputeSha256(newExe, System.Threading.CancellationToken.None);
+            using var p = Process.GetProcessById(pid);
+            if (!p.WaitForExit(30000))
+            {
+                MessageBox.Show(L.Get("Update_ExitTimedOut"), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
+                return 1;
+            }
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        catch (ArgumentException) { /* уже завершилась */ }
+        catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
         {
             MessageBox.Show(L.F("Update_Failed", ex.Message), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
             return 1;
         }
-        if (!string.Equals(actualSha, args[4], StringComparison.OrdinalIgnoreCase))
-        {
-            Log.Warn("Update", "Update file changed while waiting for elevation");
-            MessageBox.Show(L.Get("Update_FileChanged"), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
-            return 3;
-        }
-        var (verdict, reason, _) = Authenticode.CheckUpdate(target, newExe);
-        if (verdict == UpdateSignatureVerdict.Reject)
-        {
-            MessageBox.Show(L.Get("Update_SignatureRejected_" + reason), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
-            return 3;
-        }
 
+        UpdateInstallation installation;
         try
         {
-            UpdateChecker.Swap(target, newExe, newConfig);
+            using var candidate = File.OpenRead(newExe);
+            if (!approved.Matches(UpdateFileHashes.Read(newExe, newConfig, CancellationToken.None)))
+            {
+                Log.Warn("Update", "Update files changed while waiting for elevation");
+                MessageBox.Show(L.Get("Update_FileChanged"), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
+                return 3;
+            }
+            var (verdict, reason, _) = Authenticode.CheckUpdate(target, newExe);
+            if (verdict == UpdateSignatureVerdict.Reject)
+            {
+                MessageBox.Show(L.Get("Update_SignatureRejected_" + reason), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
+                return 3;
+            }
+            if (verdict == UpdateSignatureVerdict.Ask && !consented)
+            {
+                MessageBox.Show(L.Get("Update_TrustChanged"), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return 3;
+            }
+            installation = UpdateChecker.Swap(target, newExe, newConfig, approved);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
         {
             MessageBox.Show(L.F("Update_Failed", ex.Message), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
             return 1;
@@ -98,25 +101,20 @@ public static class ElevatedUpdate
         // Запуск обновлённой программы без прав администратора: через проводник, а не дочерним процессом
         try
         {
-            Process.Start(new ProcessStartInfo("explorer.exe", "\"" + target + "\"") { UseShellExecute = false });
+            using var launcher = Process.Start(new ProcessStartInfo("explorer.exe", "\"" + target + "\"") { UseShellExecute = false })
+                ?? throw new InvalidOperationException(L.Get("Update_RestartFailed"));
         }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            MessageBox.Show(L.Get("Update_DoneStartManually"), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        // Старый exe — это файл, из которого запущен этот процесс: удалить его можно только после выхода.
-        // Обычный пользователь в Program Files удалить его не сможет, поэтому удаляем отсюда, с паузой.
-        try
-        {
-            Process.Start(new ProcessStartInfo("cmd.exe", $"/c ping -n 4 127.0.0.1 >nul & del /f /q \"{target}.old\" \"{target}.config.old\"")
+            var detail = ex.Message;
+            try { installation.Rollback(); }
+            catch (IOException rollback)
             {
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-            });
+                detail += Environment.NewLine + rollback.Message;
+            }
+            MessageBox.Show(L.F("Update_Failed", detail), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
+            return 1;
         }
-        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) { }
         return 0;
     }
 }

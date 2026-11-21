@@ -100,8 +100,10 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                        <TextBlock Text="{Binding CompletionStatus}" Style="{StaticResource CaptionText}" Margin="0,4,0,0"
+                                   Visibility="{Binding CompletionStatus, Converter={StaticResource NullToCollapsed}}" />
                         <TextBlock Text="{Binding Error}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
-                                   Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" Margin="0,4,0,0" />
+                                   Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" Margin="0,4,0,0" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
 
@@ -315,15 +317,23 @@
 
         <!-- Статус и статистика -->
         <StackPanel Grid.Row="3" Margin="24,0,20,12">
+            <WrapPanel Margin="0,0,0,4" Visibility="{Binding HasSaveError, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{l:Loc Chat_SaveFailed}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusWarnBrush}"
+                           VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,4" />
+                <Button Content="{l:Loc Chat_RetrySave}" Command="{Binding RetrySaveCommand}" Margin="0,0,0,4" />
+            </WrapPanel>
             <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="8,0,0,0"
+                            Visibility="{Binding ContextText, Converter={StaticResource NullToCollapsed}}">
+                    <TextBlock Text="{Binding ContextText}" Style="{StaticResource StatText}"
+                               Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    <ProgressBar Style="{DynamicResource ProgressBarStyle}" Width="80" Height="6" MinHeight="0" Maximum="1"
+                                 Value="{Binding ContextRatio, Mode=OneWay, TargetNullValue=0}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                 Visibility="{Binding ContextRatio, Converter={StaticResource NullToCollapsed}}" AutomationProperties.Name="{Binding ContextText}" />
+                </StackPanel>
                 <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource AccentTextBrush}" Margin="0,0,12,0"
                            Visibility="{Binding Status, Converter={StaticResource NullToCollapsed}}" TextTrimming="CharacterEllipsis" />
                 <TextBlock Text="{Binding LiveStats}" Style="{StaticResource StatText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-            </DockPanel>
-            <DockPanel Margin="0,4,0,0" Visibility="{Binding ContextText, Converter={StaticResource NullToCollapsed}}">
-                <TextBlock Text="{Binding ContextText}" Style="{StaticResource StatText}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
-                <ProgressBar Style="{DynamicResource ProgressBarStyle}" Height="12" Value="{Binding ContextRatio, Mode=OneWay, TargetNullValue=0}" Maximum="1" Margin="8,0,0,0"
-                             Visibility="{Binding ContextRatio, Converter={StaticResource NullToCollapsed}}" AutomationProperties.Name="{Binding ContextText}" />
             </DockPanel>
         </StackPanel>
 
