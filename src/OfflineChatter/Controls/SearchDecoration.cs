@@ -70,6 +70,9 @@ public static class SearchDecoration
         {
             _box = box;
             IsHitTestVisible = false;
+            // Слой декораций остаётся видимым, даже когда скрыт родитель поля.
+            Visibility = box.IsVisible ? Visibility.Visible : Visibility.Collapsed;
+            box.IsVisibleChanged += OnBoxVisibilityChanged;
             box.TextChanged += Invalidate;
             box.SizeChanged += Invalidate;
             box.LayoutUpdated += OnLayout;
@@ -80,9 +83,13 @@ public static class SearchDecoration
         // Начало текста известно только после разметки шаблона — перерисовываем, когда оно сдвинулось
         private void OnLayout(object? sender, EventArgs e)
         {
+            if (!_box.IsVisible) return;
             var x = TextStart().X;
             if (!x.Equals(_lastX)) InvalidateVisual();
         }
+
+        private void OnBoxVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e) =>
+            Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed;
 
         private void Invalidate(object sender, EventArgs e) => InvalidateVisual();
 
@@ -128,6 +135,7 @@ public static class SearchDecoration
 
         public void Dispose()
         {
+            _box.IsVisibleChanged -= OnBoxVisibilityChanged;
             _box.TextChanged -= Invalidate;
             _box.SizeChanged -= Invalidate;
             _box.LayoutUpdated -= OnLayout;

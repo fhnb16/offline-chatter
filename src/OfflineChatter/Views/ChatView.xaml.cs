@@ -55,6 +55,12 @@ public partial class ChatView : UserControl
         }
     }
 
+    private void OnEditingButtonClick(object sender, RoutedEventArgs e)
+    {
+        // Возвращаем фокус до выполнения команды: кнопка удаления исчезнет вместе с вложением.
+        if (e.OriginalSource is Button && _vm?.IsEditing == true) InputBox.Focus();
+    }
+
     private void OnMessagesChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.Action == NotifyCollectionChangedAction.Reset || e.Action == NotifyCollectionChangedAction.Add)

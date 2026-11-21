@@ -1201,11 +1201,11 @@ public sealed partial class ChatPageViewModel : PageViewModel
     private void Edit(MessageViewModel m)
     {
         if (!m.IsUser || IsGenerating) return;
-        Editing = m;
         InputText = m.Content;
         PendingAttachments.Clear();
         foreach (var a in m.Message.Attachments) PendingAttachments.Add(new AttachmentView(a));
         OnPropertyChanged(nameof(HasPending));
+        Editing = m;
     }
 
     [RelayCommand]

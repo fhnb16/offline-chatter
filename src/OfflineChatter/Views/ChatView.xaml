@@ -121,7 +121,7 @@
                     <Button Style="{StaticResource IconButton}" ToolTip="{l:Loc Chat_Copy}" Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
                         <Path Data="{StaticResource IconCopy}" Style="{StaticResource IconPath}" />
                     </Button>
-                    <Button x:Name="EditBtn" Style="{StaticResource IconButton}" ToolTip="{l:Loc Chat_Edit}" Visibility="Collapsed"
+                    <Button x:Name="EditBtn" Style="{StaticResource IconButton}" ToolTip="{l:Loc Chat_Edit}" Visibility="Collapsed" Click="OnEditingButtonClick"
                             Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
                         <Path Data="{StaticResource IconEdit}" Style="{StaticResource IconPath}" />
                     </Button>
@@ -253,7 +253,7 @@
         </StackPanel>
 
         <!-- Поле ввода -->
-        <Border Grid.Row="2" Margin="20,4,20,6" Style="{StaticResource Card}" Padding="6">
+        <Border Grid.Row="2" Margin="20,4,20,6" Style="{StaticResource Card}" Padding="6" Button.Click="OnEditingButtonClick">
             <StackPanel>
                 <DockPanel Margin="6,2,6,6" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
                     <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Content="{l:Loc Common_Cancel}" Command="{Binding CancelEditCommand}" />
