@@ -385,6 +385,11 @@ public static class ThemeManager
             target[type] = style;
         }
 
+        var progress = new Style(typeof(ProgressBar), native?[typeof(ProgressBar)] as Style);
+        progress.Setters.Add(new Setter(FrameworkElement.HeightProperty, 16.0));
+        progress.Setters.Add(new Setter(FrameworkElement.MinHeightProperty, 12.0));
+        target["ProgressBarStyle"] = progress;
+
         // Строки списков: в High Contrast — системные; в остальных скинах шаблон задаёт Skins/Native.xaml
         if (native == null)
         {

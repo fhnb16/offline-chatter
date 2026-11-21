@@ -63,8 +63,8 @@
                                    Visibility="{Binding ReasoningTail, Converter={StaticResource NullToCollapsed}}" />
 
                         <StackPanel Margin="0,4,0,8" Visibility="{Binding IsPreparing, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="{Binding PreparingText}" Style="{StaticResource CaptionText}" Margin="0,0,0,4" />
-                            <ProgressBar IsIndeterminate="True" Width="180" Height="4" HorizontalAlignment="Left" />
+                            <TextBlock Text="{Binding PreparingText}" Style="{StaticResource CaptionText}" Margin="0,0,0,4" TextWrapping="Wrap" />
+                            <ProgressBar Style="{DynamicResource ProgressBarStyle}" IsIndeterminate="True" AutomationProperties.Name="{Binding PreparingText}" />
                         </StackPanel>
 
                         <!-- Тело -->
@@ -140,6 +140,9 @@
                 </WrapPanel>
             </Grid>
             <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsPreparing}" Value="True">
+                    <Setter TargetName="Bubble" Property="Width" Value="{Binding ActualWidth, ElementName=Root}" />
+                </DataTrigger>
                 <DataTrigger Binding="{Binding IsUser}" Value="True">
                     <Setter TargetName="Bubble" Property="HorizontalAlignment" Value="Right" />
                     <Setter TargetName="Bubble" Property="MaxWidth" Value="640" />
@@ -311,15 +314,18 @@
         </Border>
 
         <!-- Статус и статистика -->
-        <DockPanel Grid.Row="3" Margin="24,0,20,10">
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Visibility="{Binding ContextText, Converter={StaticResource NullToCollapsed}}">
-                <TextBlock Text="{Binding ContextText}" Style="{StaticResource StatText}" VerticalAlignment="Center" />
-                <ProgressBar Width="80" Value="{Binding ContextRatio, Mode=OneWay}" Maximum="1" Margin="8,0,0,0" VerticalAlignment="Center" />
-            </StackPanel>
-            <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource AccentTextBrush}" Margin="0,0,12,0"
-                       Visibility="{Binding Status, Converter={StaticResource NullToCollapsed}}" TextTrimming="CharacterEllipsis" />
-            <TextBlock Text="{Binding LiveStats}" Style="{StaticResource StatText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
-        </DockPanel>
+        <StackPanel Grid.Row="3" Margin="24,0,20,12">
+            <DockPanel>
+                <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource AccentTextBrush}" Margin="0,0,12,0"
+                           Visibility="{Binding Status, Converter={StaticResource NullToCollapsed}}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding LiveStats}" Style="{StaticResource StatText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+            <DockPanel Margin="0,4,0,0" Visibility="{Binding ContextText, Converter={StaticResource NullToCollapsed}}">
+                <TextBlock Text="{Binding ContextText}" Style="{StaticResource StatText}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                <ProgressBar Style="{DynamicResource ProgressBarStyle}" Height="12" Value="{Binding ContextRatio, Mode=OneWay, TargetNullValue=0}" Maximum="1" Margin="8,0,0,0"
+                             Visibility="{Binding ContextRatio, Converter={StaticResource NullToCollapsed}}" AutomationProperties.Name="{Binding ContextText}" />
+            </DockPanel>
+        </StackPanel>
 
         <!-- Правая панель: параметры беседы -->
         <Border x:Name="Inspector" Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" Width="300" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1,0,0,0"

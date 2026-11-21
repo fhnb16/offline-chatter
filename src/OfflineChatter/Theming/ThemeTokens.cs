@@ -43,6 +43,8 @@ public static class ThemeKeys
     public const string SubtlePressed = "SubtlePressedBrush";
     public const string SelectedItem = "SelectedItemBrush";
     public const string Divider = "DividerBrush";
+    public const string ProgressTrack = "ProgressTrackBrush";
+    public const string ProgressFill = "ProgressFillBrush";
     public const string FocusStroke = "FocusStrokeBrush";
     public const string ScrollThumb = "ScrollThumbBrush";
     public const string Selection = "SelectionBrush";
@@ -206,6 +208,18 @@ internal static class ThemeTokens
         r[ThemeKeys.SubtlePressed] = B(d ? 0x0AFFFFFFu : 0x06000000u);
         r[ThemeKeys.SelectedItem] = B(d ? 0x14FFFFFFu : 0x0F000000u);
         r[ThemeKeys.Divider] = B(d ? 0x15FFFFFFu : 0x14000000u);
+        var progressTrack = C(d ? 0xFF494949u : 0xFFE1E1E1u);
+        var trackLuminance = AccentPalette.Luminance(progressTrack) + 0.05;
+        bool HasProgressContrast(Color color)
+        {
+            var luminance = AccentPalette.Luminance(color) + 0.05;
+            return d ? luminance >= 3 * trackLuminance : trackLuminance >= 3 * luminance;
+        }
+        var progressFill = HasProgressContrast(fill) ? fill
+            : HasProgressContrast(t.AccentText) ? t.AccentText
+            : AccentPalette.Mix(fill, d ? Colors.White : Colors.Black, d ? 0.60 : 0.50);
+        r[ThemeKeys.ProgressTrack] = B(progressTrack);
+        r[ThemeKeys.ProgressFill] = B(progressFill);
         r[ThemeKeys.FocusStroke] = B(d ? 0xFFFFFFFFu : 0xE4000000u);
         r[ThemeKeys.ScrollThumb] = B(d ? 0x8BFFFFFFu : 0x72000000u);
 

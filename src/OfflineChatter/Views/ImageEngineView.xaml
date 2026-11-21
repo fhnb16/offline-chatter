@@ -161,9 +161,15 @@
                     </Button>
                     <Button Command="{Binding CancelInstallCommand}" Content="{l:Loc Common_Cancel}" Margin="0,0,8,4"
                             Visibility="{Binding IsInstalling, Converter={StaticResource BoolToVisibility}}" />
-                    <TextBlock Text="{Binding InstallStatus}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Margin="4,0,0,4" />
                 </WrapPanel>
-                <ProgressBar IsIndeterminate="True" Margin="0,8,0,0" Visibility="{Binding IsLoadingReleases, Converter={StaticResource BoolToVisibility}}" />
+                <TextBlock Text="{Binding InstallStatus}" Style="{StaticResource CaptionText}" TextWrapping="Wrap"
+                           Visibility="{Binding InstallStatus, Converter={StaticResource NullToCollapsed}}" />
+                <ProgressBar Style="{DynamicResource ProgressBarStyle}" IsIndeterminate="True" Margin="0,4,0,0" Visibility="{Binding IsInstalling, Converter={StaticResource BoolToVisibility}}"
+                             AutomationProperties.Name="{Binding InstallStatus}" />
+                <StackPanel Margin="0,8,0,0" Visibility="{Binding IsLoadingReleases, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="{l:Loc Engine_LoadingReleases}" Style="{StaticResource CaptionText}" Margin="0,0,0,4" TextWrapping="Wrap" />
+                    <ProgressBar Style="{DynamicResource ProgressBarStyle}" IsIndeterminate="True" AutomationProperties.Name="{l:Loc Engine_LoadingReleases}" />
+                </StackPanel>
                 <TextBlock Text="{Binding ReleasesError}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
                            Visibility="{Binding ReleasesError, Converter={StaticResource NullToCollapsed}}" Margin="0,8,0,0" TextWrapping="Wrap" />
 

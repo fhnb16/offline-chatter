@@ -447,39 +447,58 @@
     </Style>
 
     <!-- ===== Индикатор прогресса ===== -->
-    <Style TargetType="ProgressBar">
-        <Setter Property="Height" Value="4" />
-        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-        <Setter Property="Background" Value="{DynamicResource ControlStrokeBrush}" />
+    <Style x:Key="ProgressBarStyle" TargetType="ProgressBar">
+        <Setter Property="Height" Value="16" />
+        <Setter Property="MinHeight" Value="12" />
+        <Setter Property="UseLayoutRounding" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource ProgressFillBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ProgressTrackBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ProgressBar">
-                    <Grid>
-                        <Border x:Name="PART_Track" Background="{TemplateBinding Background}" CornerRadius="2" Height="1" VerticalAlignment="Center" />
-                        <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" CornerRadius="2" HorizontalAlignment="Left" />
-                        <Border x:Name="Indeterminate" Background="{TemplateBinding Foreground}" CornerRadius="2" Width="60"
-                                HorizontalAlignment="Left" Visibility="Collapsed">
-                            <Border.RenderTransform>
-                                <TranslateTransform x:Name="Slide" X="0" />
-                            </Border.RenderTransform>
+                    <Grid ClipToBounds="True">
+                        <Border x:Name="PART_Track" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" CornerRadius="{DynamicResource ControlCornerRadius}" HorizontalAlignment="Left" />
+                        <Border x:Name="Marquee" CornerRadius="{DynamicResource ControlCornerRadius}" Visibility="Collapsed">
+                            <Border.Background>
+                                <DrawingBrush ViewboxUnits="Absolute" Viewbox="0,0,1,1" Stretch="Fill">
+                                    <DrawingBrush.RelativeTransform>
+                                        <TranslateTransform />
+                                    </DrawingBrush.RelativeTransform>
+                                    <DrawingBrush.Drawing>
+                                        <GeometryDrawing Brush="{DynamicResource ProgressFillBrush}">
+                                            <GeometryDrawing.Geometry>
+                                                <RectangleGeometry Rect="0,0,0.25,1" />
+                                            </GeometryDrawing.Geometry>
+                                        </GeometryDrawing>
+                                    </DrawingBrush.Drawing>
+                                </DrawingBrush>
+                            </Border.Background>
                         </Border>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsIndeterminate" Value="True">
                             <Setter TargetName="PART_Indicator" Property="Visibility" Value="Collapsed" />
-                            <Setter TargetName="Indeterminate" Property="Visibility" Value="Visible" />
-                            <Trigger.EnterActions>
-                                <BeginStoryboard x:Name="Run">
-                                    <Storyboard RepeatBehavior="Forever">
-                                        <DoubleAnimation Storyboard.TargetName="Slide" Storyboard.TargetProperty="X"
-                                                         From="-60" To="400" Duration="0:0:1.4" />
+                            <Setter TargetName="Marquee" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsIndeterminate" Value="True" />
+                                <Condition Property="IsVisible" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.EnterActions>
+                                <BeginStoryboard x:Name="RunMarquee">
+                                    <Storyboard AutoReverse="True" RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="Marquee"
+                                                         Storyboard.TargetProperty="(Border.Background).(Brush.RelativeTransform).(TranslateTransform.X)"
+                                                         From="0" To="0.75" Duration="0:0:1.2" />
                                     </Storyboard>
                                 </BeginStoryboard>
-                            </Trigger.EnterActions>
-                            <Trigger.ExitActions>
-                                <StopStoryboard BeginStoryboardName="Run" />
-                            </Trigger.ExitActions>
-                        </Trigger>
+                            </MultiTrigger.EnterActions>
+                            <MultiTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunMarquee" />
+                            </MultiTrigger.ExitActions>
+                        </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

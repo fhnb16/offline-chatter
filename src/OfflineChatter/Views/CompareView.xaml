@@ -16,7 +16,10 @@
                     <ComboBox DockPanel.Dock="Top" ItemsSource="{Binding DataContext.Models, RelativeSource={RelativeSource AncestorType=UserControl}}"
                               SelectedItem="{Binding Model}" ItemTemplate="{StaticResource ModelItem}" />
                     <TextBlock DockPanel.Dock="Bottom" Text="{Binding Stats}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" />
-                    <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Margin="0,8,0,0" Visibility="{Binding IsStreaming, Converter={StaticResource BoolToVisibility}}" />
+                    <StackPanel DockPanel.Dock="Top" Margin="0,8,0,0" Visibility="{Binding IsStreaming, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="{l:Loc Compare_Responding}" Style="{StaticResource CaptionText}" Margin="0,0,0,4" TextWrapping="Wrap" />
+                        <ProgressBar Style="{DynamicResource ProgressBarStyle}" IsIndeterminate="True" AutomationProperties.Name="{l:Loc Compare_Responding}" />
+                    </StackPanel>
                     <ScrollViewer Margin="0,10,0,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <r:MarkdownView Markdown="{Binding Answer}" IsStreaming="{Binding IsStreaming}" />
                     </ScrollViewer>

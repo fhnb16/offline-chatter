@@ -528,8 +528,10 @@
                                 <TextBlock Text="{l:Loc Net_CheckTitle}" Style="{StaticResource SettingLabel}" />
                                 <Button Command="{Binding CheckCommand}" Content="{l:Loc Net_Check}" HorizontalAlignment="Right" />
                             </c:AdaptiveRow>
-                            <ProgressBar IsIndeterminate="True" Margin="0,10,0,0"
-                                         Visibility="{Binding IsChecking, Converter={StaticResource BoolToVisibility}}" />
+                            <StackPanel Margin="0,8,0,0" Visibility="{Binding IsChecking, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="{l:Loc Net_Checking}" Style="{StaticResource CaptionText}" Margin="0,0,0,4" />
+                                <ProgressBar Style="{DynamicResource ProgressBarStyle}" IsIndeterminate="True" AutomationProperties.Name="{l:Loc Net_Checking}" />
+                            </StackPanel>
                             <ItemsControl ItemsSource="{Binding CheckResults}" Margin="0,8,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -689,9 +691,10 @@
                                     </StackPanel>
                                 </Button>
                             </WrapPanel>
-                            <ProgressBar IsIndeterminate="True" Margin="0,8,0,0" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
-                            <TextBlock Text="{Binding Message}" Style="{StaticResource CaptionText}" Margin="0,6,0,0"
+                            <TextBlock Text="{Binding Message}" Style="{StaticResource CaptionText}" Margin="0,4,0,0" TextWrapping="Wrap"
                                        Visibility="{Binding Message, Converter={StaticResource NullToCollapsed}}" />
+                            <ProgressBar Style="{DynamicResource ProgressBarStyle}" IsIndeterminate="True" Margin="0,4,0,0" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"
+                                         AutomationProperties.Name="{Binding Message}" />
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -784,9 +787,10 @@
                             </WrapPanel>
                         </StackPanel>
                     </Border>
-                    <ProgressBar IsIndeterminate="True" Margin="0,4,0,4" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
-                    <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" Margin="4,0,0,8"
+                    <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" Margin="4,0,4,4" TextWrapping="Wrap"
                                Visibility="{Binding Status, Converter={StaticResource NullToCollapsed}}" />
+                    <ProgressBar Style="{DynamicResource ProgressBarStyle}" IsIndeterminate="True" Margin="4,0,4,8" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"
+                                 AutomationProperties.Name="{Binding Status}" />
 
                     <TextBlock Text="{l:Loc Move_Title}" Style="{StaticResource GroupTitle}" />
                     <Border Style="{StaticResource SettingCard}">
@@ -844,7 +848,8 @@
                                             Visibility="{Binding Update.CanInstall, Converter={StaticResource BoolToVisibility}, FallbackValue=Collapsed}" />
                                 </WrapPanel>
                             </c:AdaptiveRow>
-                            <ProgressBar IsIndeterminate="True" Margin="0,8,0,0" Visibility="{Binding IsUpdating, Converter={StaticResource BoolToVisibility}}" />
+                            <ProgressBar Style="{DynamicResource ProgressBarStyle}" IsIndeterminate="True" Margin="0,8,0,0" Visibility="{Binding IsUpdating, Converter={StaticResource BoolToVisibility}}"
+                                         AutomationProperties.Name="{Binding UpdateStatus}" />
                             <TextBlock Text="{Binding UpdateNotes}" Style="{StaticResource CaptionText}" Margin="0,10,0,0" MaxHeight="200"
                                        Visibility="{Binding UpdateNotes, Converter={StaticResource NullToCollapsed}}" />
                             <Button Style="{DynamicResource SubtleButtonStyle}" Content="{l:Loc Update_Open}" Command="{Binding OpenUpdatePageCommand}"

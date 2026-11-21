@@ -53,7 +53,7 @@ public sealed partial class DataViewModel : ObservableObject
             Filter = "JSON|*.json",
         };
         if (dlg.ShowDialog() != true) return;
-        await Run(() => ChatTransfer.Export(chats, dlg.FileName), L.F("Data_Exported", chats.Count, dlg.FileName));
+        await Run(() => ChatTransfer.Export(chats, dlg.FileName), "Data_Exporting", L.F("Data_Exported", chats.Count, dlg.FileName));
     }
 
     [RelayCommand(CanExecute = nameof(CanRun))]
@@ -74,7 +74,7 @@ public sealed partial class DataViewModel : ObservableObject
                     imported.Add(c);
                 }
             }
-        }, null);
+        }, "Data_Importing");
         foreach (var c in imported) chatPage.AddImported(c);
         if (imported.Count > 0 || Status == null) Status = L.F("Data_Imported", imported.Count);
     }
@@ -90,7 +90,7 @@ public sealed partial class DataViewModel : ObservableObject
         if (dlg.ShowDialog() != true) return;
         _s.Settings.Save();
         BackupInfo? info = null;
-        await Run(() => info = Backup.Create(_s.Paths, dlg.FileName, IncludeChats, _s.Version), null);
+        await Run(() => info = Backup.Create(_s.Paths, dlg.FileName, IncludeChats, _s.Version), "Data_CreatingBackup");
         if (info != null) Status = L.F("Data_BackupDone", info.ConfigFiles, info.ChatFiles, dlg.FileName);
     }
 
@@ -116,7 +116,7 @@ public sealed partial class DataViewModel : ObservableObject
 
         _s.Engine.Server.Stop();
         string? safety = null;
-        await Run(() => safety = Backup.Restore(_s.Paths, dlg.FileName, restoreChats: info.ChatFiles > 0, _s.Version), null);
+        await Run(() => safety = Backup.Restore(_s.Paths, dlg.FileName, restoreChats: info.ChatFiles > 0, _s.Version), "Data_RestoringBackup");
         if (safety == null) return;
         // Настройки в памяти больше не актуальны — без перезапуска старые значения перезаписали бы восстановленные
         MessageBox.Show(L.F("Data_RestoreDone", safety), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -150,13 +150,14 @@ public sealed partial class DataViewModel : ObservableObject
     [RelayCommand]
     private void OpenLogsFolder() => SettingsViewModel.OpenFolder(_s.Paths.Logs);
 
-    private async Task Run(Action action, string? success)
+    private async Task Run(Action action, string progressKey, string? success = null)
     {
+        Status = L.Get(progressKey);
         IsBusy = true;
         try
         {
             await Task.Run(action);
-            if (success != null) Status = success;
+            Status = success;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or Newtonsoft.Json.JsonException)
         {

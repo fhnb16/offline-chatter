@@ -110,6 +110,7 @@
   <data name="Net_SpeedLimitHint" xml:space="preserve"><value>0 — без ограничения</value></data>
   <data name="Net_CheckTitle" xml:space="preserve"><value>Проверка соединения</value></data>
   <data name="Net_Check" xml:space="preserve"><value>Проверить сеть</value></data>
+  <data name="Net_Checking" xml:space="preserve"><value>Проверяем соединение</value></data>
   <data name="Net_CheckOk" xml:space="preserve"><value>{0} мс · {1} · {2}</value></data>
   <data name="Enum_ProxyMode_System" xml:space="preserve"><value>Системный (как в Windows)</value></data>
   <data name="Enum_ProxyMode_None" xml:space="preserve"><value>Без прокси</value></data>
@@ -195,12 +196,15 @@
   <data name="Enum_InstallStage_Extracting" xml:space="preserve"><value>Распаковка…</value></data>
   <data name="Enum_InstallStage_Testing" xml:space="preserve"><value>Самопроверка…</value></data>
   <data name="Enum_InstallStage_Done" xml:space="preserve"><value>Готово</value></data>
+  <data name="Engine_LoadingReleases" xml:space="preserve"><value>Загружаем список сборок движка</value></data>
   <data name="Models_Mine" xml:space="preserve"><value>Мои модели</value></data>
   <data name="Models_AddFile" xml:space="preserve"><value>Добавить файл GGUF…</value></data>
   <data name="Models_PickFile" xml:space="preserve"><value>Выберите GGUF-модель (с любого диска; файл не копируется)</value></data>
   <data name="Models_Scan" xml:space="preserve"><value>Найти скачанные</value></data>
   <data name="Models_PickScanFolder" xml:space="preserve"><value>Папка для поиска GGUF-моделей</value></data>
   <data name="Models_Scanning" xml:space="preserve"><value>Поиск: папка моделей, кэш Hugging Face, LM Studio, ваши папки…</value></data>
+  <data name="Models_Searching" xml:space="preserve"><value>Ищем модели на Hugging Face</value></data>
+  <data name="Models_LoadingDetails" xml:space="preserve"><value>Загружаем сведения о модели</value></data>
   <data name="Models_ScanDone" xml:space="preserve"><value>Найдено моделей: {0}, новых: {1}</value></data>
   <data name="Models_NoneYet" xml:space="preserve"><value>Моделей пока нет. Скачайте рекомендуемую ниже, найдите на Hugging Face или добавьте GGUF-файл с любого диска.</value></data>
   <data name="Models_Use" xml:space="preserve"><value>Использовать</value></data>
@@ -497,6 +501,7 @@
   <data name="Nav_Welcome" xml:space="preserve"><value>Начало работы</value></data>
   <data name="Nav_Compare" xml:space="preserve"><value>Сравнение моделей</value></data>
   <data name="Compare_Hint" xml:space="preserve"><value>Один промпт — две модели рядом (локальные или API). Две локальные модели отвечают по очереди.</value></data>
+  <data name="Compare_Responding" xml:space="preserve"><value>Модель готовит ответ</value></data>
   <data name="Tray_Open" xml:space="preserve"><value>Открыть Offline Chatter</value></data>
   <data name="Tray_QuickAsk" xml:space="preserve"><value>Быстрый вопрос</value></data>
   <data name="Tray_Exit" xml:space="preserve"><value>Выход</value></data>
@@ -686,6 +691,10 @@
   <data name="Data_IncludeChats" xml:space="preserve"><value>Включить чаты</value></data>
   <data name="Data_Backup" xml:space="preserve"><value>Создать копию</value></data>
   <data name="Data_Restore" xml:space="preserve"><value>Восстановить из копии</value></data>
+  <data name="Data_Exporting" xml:space="preserve"><value>Экспортируем чаты</value></data>
+  <data name="Data_Importing" xml:space="preserve"><value>Импортируем чаты</value></data>
+  <data name="Data_CreatingBackup" xml:space="preserve"><value>Создаём резервную копию</value></data>
+  <data name="Data_RestoringBackup" xml:space="preserve"><value>Восстанавливаем данные из копии</value></data>
   <data name="Data_NoChats" xml:space="preserve"><value>Пока нечего экспортировать</value></data>
   <data name="Data_Exported" xml:space="preserve"><value>Экспортировано чатов: {0} → {1}</value></data>
   <data name="Data_Imported" xml:space="preserve"><value>Импортировано чатов: {0}</value></data>
@@ -704,6 +713,8 @@
   <data name="Update_Checking" xml:space="preserve"><value>Проверяем…</value></data>
   <data name="Update_NotChecked" xml:space="preserve"><value>Обновления ещё не проверялись</value></data>
   <data name="Update_Downloading" xml:space="preserve"><value>Скачиваем {0}…</value></data>
+  <data name="Update_VerifyingSignature" xml:space="preserve"><value>Проверяем подпись обновления</value></data>
+  <data name="Update_Applying" xml:space="preserve"><value>Устанавливаем обновление</value></data>
   <data name="Update_Failed" xml:space="preserve"><value>Не удалось установить обновление: {0}. Скачайте его со страницы релиза.</value></data>
   <data name="Update_Install" xml:space="preserve"><value>Установить и перезапустить</value></data>
   <data name="Update_AutoCheck" xml:space="preserve"><value>Проверять обновления при запуске</value></data>

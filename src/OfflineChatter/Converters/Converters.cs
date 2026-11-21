@@ -46,17 +46,6 @@ public sealed class EqualsToVisibilityConverter : IValueConverter
         throw new NotSupportedException();
 }
 
-/// <summary>double? прогресс → состояние индикатора на кнопке в панели задач (Win7+).</summary>
-public sealed class TaskbarStateConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
-        value is double d ? (d > 0 ? System.Windows.Shell.TaskbarItemProgressState.Normal : System.Windows.Shell.TaskbarItemProgressState.Indeterminate)
-                          : System.Windows.Shell.TaskbarItemProgressState.None;
-
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
-}
-
 /// <summary>Null → Collapsed.</summary>
 public sealed class NullToCollapsedConverter : IValueConverter
 {

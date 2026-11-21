@@ -85,7 +85,7 @@
 
     <!-- Прогресс загрузок на кнопке в панели задач (Win7+) -->
     <Window.TaskbarItemInfo>
-        <TaskbarItemInfo ProgressState="{Binding Downloads.AggregateProgress, Converter={StaticResource TaskbarState}}"
+        <TaskbarItemInfo ProgressState="{Binding Downloads.TaskbarProgressState}"
                          ProgressValue="{Binding Downloads.AggregateProgress, TargetNullValue=0, FallbackValue=0}" />
     </Window.TaskbarItemInfo>
 
@@ -201,15 +201,17 @@
                         </Grid>
                     </Button>
                     <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                            Command="{Binding OpenDownloadsCommand}" Visibility="{Binding Downloads.IsActive, Converter={StaticResource BoolToVisibility}}">
-                        <StackPanel Style="{StaticResource RailTip}" Tag="{Binding Downloads.ActiveSummary}">
-                            <StackPanel Orientation="Horizontal">
-                                <Path Data="{StaticResource IconDownload}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource TextSecondaryBrush}" />
+                            Command="{Binding OpenDownloadsCommand}" Visibility="{Binding Downloads.IsActive, Converter={StaticResource BoolToVisibility}}"
+                            ToolTip="{Binding Downloads.ActiveSummary}" ToolTipService.Placement="Right">
+                        <StackPanel>
+                            <DockPanel>
+                                <Path DockPanel.Dock="Left" Data="{StaticResource IconDownload}" Style="{StaticResource IconPath}" TextElement.Foreground="{DynamicResource TextSecondaryBrush}" />
                                 <TextBlock Text="{Binding Downloads.ActiveSummary}" Style="{StaticResource SidebarLabel}" FontFamily="{DynamicResource MonoFontFamily}"
                                            FontSize="{DynamicResource SmallFontSize}" Foreground="{DynamicResource TextSecondaryBrush}" />
-                            </StackPanel>
-                            <ProgressBar Value="{Binding Downloads.AggregatePercent, Mode=OneWay}" Maximum="100" Height="3" Margin="0,6,0,0"
-                                         IsIndeterminate="{Binding Downloads.IsAggregateIndeterminate, Mode=OneWay}" />
+                            </DockPanel>
+                            <ProgressBar Style="{DynamicResource ProgressBarStyle}" Value="{Binding Downloads.AggregatePercent, Mode=OneWay}" Maximum="100" Height="12" Margin="0,4,0,0"
+                                         IsIndeterminate="{Binding Downloads.IsAggregateIndeterminate, Mode=OneWay}"
+                                         AutomationProperties.Name="{Binding Downloads.ActiveSummary}" />
                         </StackPanel>
                     </Button>
                     <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
@@ -274,11 +276,30 @@
                 BorderBrush="{DynamicResource ContentBorderBrush}" BorderThickness="{DynamicResource ContentBorderThickness}"
                 CornerRadius="{DynamicResource ContentCornerRadius}">
             <DockPanel>
-                <ProgressBar DockPanel.Dock="Top" Height="2" MinHeight="0" Maximum="100" BorderThickness="0" Margin="8,0,8,0"
-                             Value="{Binding Downloads.AggregatePercent, Mode=OneWay}"
-                             IsIndeterminate="{Binding Downloads.IsAggregateIndeterminate, Mode=OneWay}"
-                             Visibility="{Binding Downloads.IsActive, Converter={StaticResource BoolToVisibility}}"
-                             ToolTip="{Binding Downloads.ActiveSummary}" />
+                <StackPanel DockPanel.Dock="Top" Margin="8,4"
+                            Visibility="{Binding Downloads.IsActive, Converter={StaticResource BoolToVisibility}}"
+                            ToolTip="{Binding Downloads.ActiveSummary}">
+                    <TextBlock Text="{Binding Downloads.ActiveSummary}" TextTrimming="CharacterEllipsis" Margin="0,0,0,4">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource StatText}">
+                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSidebarCollapsed}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsCompact}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <ProgressBar Style="{DynamicResource ProgressBarStyle}" Height="12" Maximum="100"
+                                 Value="{Binding Downloads.AggregatePercent, Mode=OneWay}"
+                                 IsIndeterminate="{Binding Downloads.IsAggregateIndeterminate, Mode=OneWay}"
+                                 AutomationProperties.Name="{Binding Downloads.ActiveSummary}" />
+                </StackPanel>
                 <!-- Компактный режим: с любой страницы обратно к чату -->
                 <DockPanel DockPanel.Dock="Top" Margin="16,10,16,0" Visibility="{Binding ShowBackToChat, Converter={StaticResource BoolToVisibility}}">
                     <Button DockPanel.Dock="Left" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding BackToChatCommand}">

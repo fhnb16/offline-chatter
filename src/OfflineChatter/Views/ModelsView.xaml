@@ -223,9 +223,12 @@
                                                    Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVisibility}}" />
                                     </WrapPanel>
                                     <StackPanel Visibility="{Binding Progress, Converter={StaticResource NullToCollapsed}}" Margin="0,4,0,0">
-                                        <ProgressBar Height="6" Maximum="100" Value="{Binding Progress.Percent, Mode=OneWay}"
-                                                     IsIndeterminate="{Binding Progress.Indeterminate, Mode=OneWay, FallbackValue=False}" />
-                                        <TextBlock Text="{Binding Progress.Text}" Style="{StaticResource StatText}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                        <TextBlock Text="{Binding Progress.Text}" Style="{StaticResource StatText}" TextWrapping="Wrap"
+                                                   FontSize="{DynamicResource CaptionFontSize}" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <ProgressBar Style="{DynamicResource ProgressBarStyle}" Maximum="100" Value="{Binding Progress.Percent, Mode=OneWay}" Margin="0,4,0,0"
+                                                     IsIndeterminate="{Binding Progress.Indeterminate, Mode=OneWay, FallbackValue=False}"
+                                                     Visibility="{Binding Progress.Active, Converter={StaticResource BoolToVisibility}, FallbackValue=Collapsed}"
+                                                     AutomationProperties.Name="{Binding Progress.Text}" />
                                         <TextBlock Text="{Binding Progress.Error}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}" TextWrapping="Wrap"
                                                    Visibility="{Binding Progress.Error, Converter={StaticResource NullToCollapsed}, FallbackValue=Collapsed}" />
                                     </StackPanel>
@@ -300,7 +303,10 @@
             <Border Style="{StaticResource NoticeCard}" Visibility="{Binding IsUnsupportedTask, Converter={StaticResource BoolToVisibility}}">
                 <TextBlock Text="{l:Loc Models_TaskUnsupported}" Style="{StaticResource CaptionText}" TextWrapping="Wrap" />
             </Border>
-            <ProgressBar IsIndeterminate="True" Margin="0,0,0,8" Visibility="{Binding IsSearching, Converter={StaticResource BoolToVisibility}}" />
+            <StackPanel Margin="0,0,0,8" Visibility="{Binding IsSearching, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{l:Loc Models_Searching}" Style="{StaticResource CaptionText}" Margin="0,0,0,4" TextWrapping="Wrap" />
+                <ProgressBar Style="{DynamicResource ProgressBarStyle}" IsIndeterminate="True" AutomationProperties.Name="{l:Loc Models_Searching}" />
+            </StackPanel>
             <TextBlock Text="{Binding SearchError}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
                        Visibility="{Binding SearchError, Converter={StaticResource NullToCollapsed}}" Margin="0,0,0,8" />
 
@@ -342,7 +348,10 @@
                                 <Run Text="{Binding SelectedResult.ContextLength, Mode=OneWay, StringFormat=' · ctx {0:N0}'}" />
                                 <Run Text="{Binding SelectedResult.LastModified, Mode=OneWay, StringFormat=' · {0:d}'}" />
                             </TextBlock>
-                            <ProgressBar IsIndeterminate="True" Margin="0,0,0,8" Visibility="{Binding IsLoadingDetails, Converter={StaticResource BoolToVisibility}}" />
+                            <StackPanel Margin="0,0,0,8" Visibility="{Binding IsLoadingDetails, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="{l:Loc Models_LoadingDetails}" Style="{StaticResource CaptionText}" Margin="0,0,0,4" TextWrapping="Wrap" />
+                                <ProgressBar Style="{DynamicResource ProgressBarStyle}" IsIndeterminate="True" AutomationProperties.Name="{l:Loc Models_LoadingDetails}" />
+                            </StackPanel>
                             <TextBlock Text="{Binding DetailsError}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
                                        Visibility="{Binding DetailsError, Converter={StaticResource NullToCollapsed}}" />
 
@@ -447,9 +456,7 @@
 
                             <!-- Ход загрузки этой модели: все шарды и mmproj одной полосой -->
                             <StackPanel Margin="0,12,0,0" Visibility="{Binding SelectedDownload, Converter={StaticResource NullToCollapsed}}">
-                                <ProgressBar Value="{Binding SelectedDownload.Percent, Mode=OneWay}" Maximum="100" Height="6"
-                                             IsIndeterminate="{Binding SelectedDownload.Indeterminate, Mode=OneWay, FallbackValue=False}" />
-                                <DockPanel Margin="0,6,0,0">
+                                <DockPanel>
                                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="8,0,0,0"
                                                 Visibility="{Binding IsSelectedDownloading, Converter={StaticResource BoolToVisibility}}">
                                         <Button Style="{StaticResource IconButton}" Command="{Binding PauseSelectedDownloadCommand}" ToolTip="{l:Loc Download_PauseResume}">
@@ -459,8 +466,13 @@
                                             <Path Data="{StaticResource IconClose}" Style="{StaticResource IconPath}" />
                                         </Button>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding SelectedDownload.Text}" Style="{StaticResource StatText}" FontSize="{DynamicResource CaptionFontSize}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding SelectedDownload.Text}" Style="{StaticResource StatText}" FontSize="{DynamicResource CaptionFontSize}"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
                                 </DockPanel>
+                                <ProgressBar Style="{DynamicResource ProgressBarStyle}" Value="{Binding SelectedDownload.Percent, Mode=OneWay}" Maximum="100" Margin="0,4,0,0"
+                                             IsIndeterminate="{Binding SelectedDownload.Indeterminate, Mode=OneWay, FallbackValue=False}"
+                                             Visibility="{Binding IsSelectedDownloading, Converter={StaticResource BoolToVisibility}}"
+                                             AutomationProperties.Name="{Binding SelectedDownload.Text}" />
                                 <TextBlock Text="{Binding SelectedDownload.Error}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource StatusErrorBrush}"
                                            Visibility="{Binding SelectedDownload.Error, Converter={StaticResource NullToCollapsed}, FallbackValue=Collapsed}" Margin="0,4,0,0" />
                             </StackPanel>

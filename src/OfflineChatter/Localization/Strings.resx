@@ -110,6 +110,7 @@
   <data name="Net_SpeedLimitHint" xml:space="preserve"><value>0 — no limit</value></data>
   <data name="Net_CheckTitle" xml:space="preserve"><value>Connection check</value></data>
   <data name="Net_Check" xml:space="preserve"><value>Check network</value></data>
+  <data name="Net_Checking" xml:space="preserve"><value>Checking the connection</value></data>
   <data name="Net_CheckOk" xml:space="preserve"><value>{0} ms · {1} · {2}</value></data>
   <data name="Enum_ProxyMode_System" xml:space="preserve"><value>System (as in Windows)</value></data>
   <data name="Enum_ProxyMode_None" xml:space="preserve"><value>No proxy</value></data>
@@ -195,12 +196,15 @@
   <data name="Enum_InstallStage_Extracting" xml:space="preserve"><value>Extracting…</value></data>
   <data name="Enum_InstallStage_Testing" xml:space="preserve"><value>Self-test…</value></data>
   <data name="Enum_InstallStage_Done" xml:space="preserve"><value>Done</value></data>
+  <data name="Engine_LoadingReleases" xml:space="preserve"><value>Loading the list of engine builds</value></data>
   <data name="Models_Mine" xml:space="preserve"><value>My models</value></data>
   <data name="Models_AddFile" xml:space="preserve"><value>Add GGUF file…</value></data>
   <data name="Models_PickFile" xml:space="preserve"><value>Select a GGUF model (any disk; the file is not copied)</value></data>
   <data name="Models_Scan" xml:space="preserve"><value>Find downloaded</value></data>
   <data name="Models_PickScanFolder" xml:space="preserve"><value>Folder to search for GGUF models</value></data>
   <data name="Models_Scanning" xml:space="preserve"><value>Searching: models folder, Hugging Face cache, LM Studio, your folders…</value></data>
+  <data name="Models_Searching" xml:space="preserve"><value>Searching for models on Hugging Face</value></data>
+  <data name="Models_LoadingDetails" xml:space="preserve"><value>Loading model details</value></data>
   <data name="Models_ScanDone" xml:space="preserve"><value>Found {0} models, {1} new</value></data>
   <data name="Models_NoneYet" xml:space="preserve"><value>No models yet. Download the recommended one below, search Hugging Face or add a GGUF file from any disk.</value></data>
   <data name="Models_Use" xml:space="preserve"><value>Use</value></data>
@@ -497,6 +501,7 @@ No — only remove from the list</value></data>
   <data name="Nav_Welcome" xml:space="preserve"><value>Getting started</value></data>
   <data name="Nav_Compare" xml:space="preserve"><value>Compare models</value></data>
   <data name="Compare_Hint" xml:space="preserve"><value>One prompt — two models side by side (local or API). Two local models run one after another.</value></data>
+  <data name="Compare_Responding" xml:space="preserve"><value>Generating a response</value></data>
   <data name="Tray_Open" xml:space="preserve"><value>Open Offline Chatter</value></data>
   <data name="Tray_QuickAsk" xml:space="preserve"><value>Quick question</value></data>
   <data name="Tray_Exit" xml:space="preserve"><value>Exit</value></data>
@@ -686,6 +691,10 @@ No — only remove from the list</value></data>
   <data name="Data_IncludeChats" xml:space="preserve"><value>Include chats</value></data>
   <data name="Data_Backup" xml:space="preserve"><value>Create backup</value></data>
   <data name="Data_Restore" xml:space="preserve"><value>Restore from backup</value></data>
+  <data name="Data_Exporting" xml:space="preserve"><value>Exporting chats</value></data>
+  <data name="Data_Importing" xml:space="preserve"><value>Importing chats</value></data>
+  <data name="Data_CreatingBackup" xml:space="preserve"><value>Creating a backup</value></data>
+  <data name="Data_RestoringBackup" xml:space="preserve"><value>Restoring from backup</value></data>
   <data name="Data_NoChats" xml:space="preserve"><value>There are no chats to export yet</value></data>
   <data name="Data_Exported" xml:space="preserve"><value>Exported chats: {0} → {1}</value></data>
   <data name="Data_Imported" xml:space="preserve"><value>Imported chats: {0}</value></data>
@@ -704,6 +713,8 @@ The app will now restart.</value></data>
   <data name="Update_Checking" xml:space="preserve"><value>Checking…</value></data>
   <data name="Update_NotChecked" xml:space="preserve"><value>Updates have not been checked yet</value></data>
   <data name="Update_Downloading" xml:space="preserve"><value>Downloading {0}…</value></data>
+  <data name="Update_VerifyingSignature" xml:space="preserve"><value>Verifying the update signature</value></data>
+  <data name="Update_Applying" xml:space="preserve"><value>Installing the update</value></data>
   <data name="Update_Failed" xml:space="preserve"><value>Could not install the update: {0}. Download it from the release page instead.</value></data>
   <data name="Update_Install" xml:space="preserve"><value>Install and restart</value></data>
   <data name="Update_AutoCheck" xml:space="preserve"><value>Check for updates at startup</value></data>

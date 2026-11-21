@@ -14,7 +14,6 @@
     <conv:EqualsToVisibilityConverter x:Key="EqualsToVisibility" />
     <conv:NullToCollapsedConverter x:Key="NullToCollapsed" />
     <conv:BytesConverter x:Key="Bytes" />
-    <conv:TaskbarStateConverter x:Key="TaskbarState" />
 
     <!-- ===== Иконки ===== -->
     <Geometry x:Key="IconPlus">M8,2.5 V13.5 M2.5,8 H13.5</Geometry>

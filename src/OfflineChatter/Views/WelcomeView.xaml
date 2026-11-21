@@ -81,8 +81,10 @@
                 </Button>
                 <Button Content="{l:Loc Welcome_Finish}" Command="{Binding FinishCommand}" Margin="8,0,0,0" Padding="16,8" />
             </StackPanel>
-            <ProgressBar IsIndeterminate="True" Margin="0,12,0,0" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
-            <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" Visibility="{Binding Status, Converter={StaticResource NullToCollapsed}}" />
+            <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" Margin="0,8,0,0" TextWrapping="Wrap"
+                       Visibility="{Binding Status, Converter={StaticResource NullToCollapsed}}" />
+            <ProgressBar Style="{DynamicResource ProgressBarStyle}" IsIndeterminate="True" Margin="0,4,0,0" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"
+                         AutomationProperties.Name="{Binding Status}" />
 
             <views:DownloadsView DataContext="{Binding Downloads}" Margin="0,16,0,0" />
         </StackPanel>

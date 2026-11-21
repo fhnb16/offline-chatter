@@ -338,6 +338,7 @@ public sealed partial class SettingsViewModel : PageViewModel
     private async Task CheckUpdatesAsync()
     {
         UpdateStatus = L.Get("Update_Checking");
+        IsUpdating = true;
         try
         {
             var info = await UpdateChecker.CheckAsync(_services.Http, AppServices.CurrentVersion, CancellationToken.None);
@@ -347,6 +348,10 @@ public sealed partial class SettingsViewModel : PageViewModel
         catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or OperationCanceledException or System.IO.IOException or Newtonsoft.Json.JsonException or InvalidCastException)
         {
             UpdateStatus = ex.GetBaseException().Message;
+        }
+        finally
+        {
+            IsUpdating = false;
         }
     }
 
@@ -385,6 +390,7 @@ public sealed partial class SettingsViewModel : PageViewModel
         try
         {
             var (exe, config) = await UpdateChecker.DownloadAsync(_services.Downloads, Update, _services.Paths.Cache, _services.Releases.MirrorUrl);
+            UpdateStatus = L.Get("Update_VerifyingSignature");
             // Подпись Authenticode: повреждённая — отказ; нет подписи или ей не доверяет Windows — по согласию пользователя
             var (verdict, reason, candidate) = await System.Threading.Tasks.Task.Run(() => Shell.Authenticode.CheckUpdate(App.ExePath, exe));
             if (verdict == Core.Net.UpdateSignatureVerdict.Reject)
@@ -404,6 +410,7 @@ public sealed partial class SettingsViewModel : PageViewModel
                 }
                 Core.Diagnostics.Log.Info("Update", "Unsigned update accepted by user", new { reason });
             }
+            UpdateStatus = L.Get("Update_Applying");
             if (elevate)
             {
                 _services.Engine.Server.Stop();

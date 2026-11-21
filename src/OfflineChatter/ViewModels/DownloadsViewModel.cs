@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Shell;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -25,8 +26,9 @@ public sealed partial class DownloadItemViewModel : ObservableObject
 
     public DownloadJob Job { get; }
     public string Name => Job.DisplayName;
-    public double Percent => Job.Progress * 100;
-    public bool IsIndeterminate => Job.State == DownloadState.Running && Job.Total is null or 0;
+    private long? Total => Job.Total ?? Job.ExpectedSize;
+    public double Percent => Total is long total && total > 0 ? Math.Min(100, 100.0 * Job.Received / total) : 0;
+    public bool IsIndeterminate => Job.State == DownloadState.Verifying || (Job.State == DownloadState.Running && Total is not > 0);
     public bool CanPause => Job.State is DownloadState.Running or DownloadState.Queued;
     public bool CanResume => Job.State is DownloadState.Paused or DownloadState.Failed;
     public bool CanCancel => !Job.IsFinished;
@@ -36,12 +38,14 @@ public sealed partial class DownloadItemViewModel : ObservableObject
     {
         get
         {
-            var size = Job.Total is > 0
-                ? $"{Units.FormatBytes(Job.Received)} / {Units.FormatBytes(Job.Total.Value)}"
+            var total = Total;
+            var size = total is > 0
+                ? $"{Units.FormatBytes(Job.Received)} / {Units.FormatBytes(total.Value)}"
                 : Units.FormatBytes(Job.Received);
             return Job.State switch
             {
-                DownloadState.Running => (Job.Total is > 0 ? Math.Round(Percent) + " % · " : string.Empty) + $"{size} · {Units.FormatSpeed(Job.BytesPerSecond)}" +
+                DownloadState.Running => L.Get("Enum_DownloadState_Running") + " · " +
+                                         (total is > 0 ? Math.Round(Percent) + " % · " : string.Empty) + $"{size} · {Units.FormatSpeed(Job.BytesPerSecond)}" +
                                          (Job.Eta is { } eta ? " · " + L.F("Download_Eta", Units.FormatDuration(eta)) : string.Empty),
                 DownloadState.Verifying => L.Get("Download_Verifying") + " · " + size,
                 DownloadState.Failed => L.Get("Download_Failed") + ": " + Job.Error,
@@ -95,33 +99,49 @@ public sealed partial class DownloadsViewModel : ObservableObject
 
     /// <summary>0..1 — суммарный прогресс; null — активных загрузок нет.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsActive), nameof(AggregatePercent), nameof(IsAggregateIndeterminate))]
+    [NotifyPropertyChangedFor(nameof(IsActive), nameof(AggregatePercent), nameof(TaskbarProgressState))]
     private double? _aggregateProgress;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TaskbarProgressState))]
+    private bool _isAggregateIndeterminate;
 
     /// <summary>Строка для боковой панели: «Загрузка 34 % · файл · 12 МБ/с».</summary>
     [ObservableProperty] private string? _activeSummary;
 
     public bool IsActive => AggregateProgress != null;
     public double AggregatePercent => (AggregateProgress ?? 0) * 100;
-    public bool IsAggregateIndeterminate => AggregateProgress is 0;
+    public TaskbarItemProgressState TaskbarProgressState => !IsActive ? TaskbarItemProgressState.None
+        : IsAggregateIndeterminate ? TaskbarItemProgressState.Indeterminate : TaskbarItemProgressState.Normal;
 
     /// <summary>Раз в полсекунды — чтобы карточки (модель, движок) обновляли свои полосы.</summary>
     public event EventHandler? Updated;
 
     private void UpdateAggregate()
     {
-        AggregateProgress = _manager.AggregateProgress;
         var active = _manager.Jobs.Where(j => j.State is DownloadState.Running or DownloadState.Queued or DownloadState.Verifying).ToList();
         if (active.Count == 0)
         {
+            AggregateProgress = null;
+            IsAggregateIndeterminate = false;
             ActiveSummary = null;
         }
         else
         {
-            var first = active.FirstOrDefault(j => j.State == DownloadState.Running) ?? active[0];
+            var running = active.FirstOrDefault(j => j.State == DownloadState.Running);
+            var verifying = active.FirstOrDefault(j => j.State == DownloadState.Verifying);
+            var first = running ?? verifying ?? active[0];
             var name = active.Count > 1 ? L.F("Download_FilesCount", first.DisplayName, active.Count - 1) : first.DisplayName;
-            var speed = active.Sum(j => j.BytesPerSecond);
-            ActiveSummary = L.F("Download_SidebarSummary", Math.Round(AggregatePercent), name) + (speed > 1 ? " · " + Units.FormatSpeed(speed) : string.Empty);
+            var hasTotal = active.All(j => (j.Total ?? j.ExpectedSize) is > 0);
+            IsAggregateIndeterminate = running != null ? !hasTotal : verifying != null;
+            AggregateProgress = hasTotal ? Math.Min(1, _manager.AggregateProgress ?? 0) : 0;
+            var speed = active.Where(j => j.State == DownloadState.Running).Sum(j => j.BytesPerSecond);
+            var stage = running != null ? "Enum_DownloadState_Running"
+                : verifying != null ? "Download_Verifying" : "Enum_DownloadState_Queued";
+            var summary = running != null && hasTotal
+                ? L.F("Download_SidebarSummary", Math.Round(AggregatePercent), name)
+                : L.Get(stage) + " · " + name;
+            ActiveSummary = summary + (speed > 1 ? " · " + Units.FormatSpeed(speed) : string.Empty);
         }
         Updated?.Invoke(this, EventArgs.Empty);
     }
@@ -133,25 +153,33 @@ public sealed partial class DownloadsViewModel : ObservableObject
         if (jobs.Count == 0) return null;
         var active = jobs.Any(j => !j.IsFinished);
         var failed = jobs.FirstOrDefault(j => j.State == DownloadState.Failed);
+        var running = jobs.Any(j => j.State == DownloadState.Running);
+        var verifying = jobs.Any(j => j.State == DownloadState.Verifying);
+        var hasTotal = jobs.All(j => (j.Total ?? j.ExpectedSize) is > 0 || j.State == DownloadState.Completed);
         long total = 0, received = 0;
         foreach (var j in jobs)
         {
-            total += j.Total ?? j.ExpectedSize ?? 0;
-            received += j.State == DownloadState.Completed ? (j.Total ?? j.ExpectedSize ?? j.Received) : j.Received;
+            var size = j.Total ?? j.ExpectedSize ?? (j.State == DownloadState.Completed ? j.Received : 0);
+            total += size;
+            received += j.State == DownloadState.Completed ? size : j.Received;
         }
         var speed = jobs.Where(j => j.State == DownloadState.Running).Sum(j => j.BytesPerSecond);
-        var percent = total > 0 ? Math.Min(100, 100.0 * received / total) : 0;
+        var percent = hasTotal && total > 0 ? Math.Min(100, 100.0 * received / total) : 0;
         string text;
         if (jobs.All(j => j.State == DownloadState.Completed)) text = L.Get("Download_GroupDone");
-        else if (jobs.Any(j => j.State == DownloadState.Verifying)) text = L.Get("Download_Verifying");
-        else if (failed != null && !jobs.Any(j => j.State is DownloadState.Running or DownloadState.Queued)) text = L.Get("Download_Failed");
-        else if (jobs.All(j => j.State is DownloadState.Paused or DownloadState.Completed)) text = L.Get("Enum_DownloadState_Paused") + " · " + Math.Round(percent) + " %";
+        else if (!running && verifying) text = L.Get("Download_Verifying");
+        else if (!running && jobs.Any(j => j.State == DownloadState.Queued)) text = L.Get("Enum_DownloadState_Queued");
+        else if (!running && failed != null) text = L.Get("Download_Failed");
+        else if (!running && jobs.Any(j => j.State == DownloadState.Paused))
+            text = L.Get("Enum_DownloadState_Paused") + (hasTotal ? " · " + Math.Round(percent) + " %" : string.Empty);
+        else if (!active) text = L.Get("Enum_DownloadState_Canceled");
         else
         {
-            var eta = speed > 1 && total > received ? " · " + L.F("Download_Eta", Units.FormatDuration(TimeSpan.FromSeconds((total - received) / speed))) : string.Empty;
-            text = $"{Math.Round(percent)} % · {Units.FormatBytes(received)} / {Units.FormatBytes(total)}" + (speed > 1 ? " · " + Units.FormatSpeed(speed) : string.Empty) + eta;
+            var size = hasTotal ? $"{Math.Round(percent)} % · {Units.FormatBytes(received)} / {Units.FormatBytes(total)}" : Units.FormatBytes(received);
+            var eta = hasTotal && speed > 1 && total > received ? " · " + L.F("Download_Eta", Units.FormatDuration(TimeSpan.FromSeconds((total - received) / speed))) : string.Empty;
+            text = L.Get("Enum_DownloadState_Running") + " · " + size + (speed > 1 ? " · " + Units.FormatSpeed(speed) : string.Empty) + eta;
         }
-        return new DownloadSummary(active, failed != null, active && total == 0, percent, text, failed?.Error);
+        return new DownloadSummary(active, failed != null, running ? !hasTotal : verifying, percent, text, failed?.Error);
     }
 
     public void CancelGroup(string group)

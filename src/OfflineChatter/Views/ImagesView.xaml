@@ -278,12 +278,14 @@
                                     Visibility="{Binding IsGenerating, Converter={StaticResource BoolToVisibility}}" ToolTip="{l:Loc Img_CancelHint}" />
                         </WrapPanel>
                         <StackPanel Visibility="{Binding IsGenerating, Converter={StaticResource BoolToVisibility}}" Margin="0,8,0,0">
-                            <ProgressBar Height="6" Maximum="100" Value="{Binding ProgressValue, Mode=OneWay}" IsIndeterminate="{Binding ProgressIndeterminate}" />
-                            <DockPanel Margin="0,6,0,0">
+                            <DockPanel>
                                 <TextBlock DockPanel.Dock="Right" Text="{Binding ElapsedText}" Style="{StaticResource StatText}" VerticalAlignment="Center" />
                                 <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" TextWrapping="Wrap" />
                             </DockPanel>
-                            <TextBlock Text="{Binding ProgressText}" Style="{StaticResource StatText}" Visibility="{Binding ProgressText, Converter={StaticResource NullToCollapsed}}" />
+                            <TextBlock Text="{Binding ProgressText}" Style="{StaticResource StatText}" Foreground="{DynamicResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap" Visibility="{Binding ProgressText, Converter={StaticResource NullToCollapsed}}" />
+                            <ProgressBar Style="{DynamicResource ProgressBarStyle}" Maximum="100" Value="{Binding ProgressValue, Mode=OneWay}" IsIndeterminate="{Binding ProgressIndeterminate}"
+                                         Margin="0,4,0,0" AutomationProperties.Name="{Binding Status}" AutomationProperties.HelpText="{Binding ProgressText}" />
                         </StackPanel>
                         <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionText}" Margin="0,6,0,0"
                                    Visibility="{Binding IsGenerating, Converter={StaticResource InverseBoolToVisibility}}" />

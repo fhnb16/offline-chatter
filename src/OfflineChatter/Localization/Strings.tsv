@@ -114,6 +114,7 @@ Net_SpeedLimit	Speed limit, KB/s	Ограничение скорости, КБ/�
 Net_SpeedLimitHint	0 — no limit	0 — без ограничения
 Net_CheckTitle	Connection check	Проверка соединения
 Net_Check	Check network	Проверить сеть
+Net_Checking	Checking the connection	Проверяем соединение
 Net_CheckOk	{0} ms · {1} · {2}	{0} мс · {1} · {2}
 Enum_ProxyMode_System	System (as in Windows)	Системный (как в Windows)
 Enum_ProxyMode_None	No proxy	Без прокси
@@ -201,6 +202,7 @@ Enum_InstallStage_Downloading	Downloading…	Загрузка…
 Enum_InstallStage_Extracting	Extracting…	Распаковка…
 Enum_InstallStage_Testing	Self-test…	Самопроверка…
 Enum_InstallStage_Done	Done	Готово
+Engine_LoadingReleases	Loading the list of engine builds	Загружаем список сборок движка
 
 # ---------- Модели ----------
 Models_Mine	My models	Мои модели
@@ -209,6 +211,8 @@ Models_PickFile	Select a GGUF model (any disk; the file is not copied)	Выбе�
 Models_Scan	Find downloaded	Найти скачанные
 Models_PickScanFolder	Folder to search for GGUF models	Папка для поиска GGUF-моделей
 Models_Scanning	Searching: models folder, Hugging Face cache, LM Studio, your folders…	Поиск: папка моделей, кэш Hugging Face, LM Studio, ваши папки…
+Models_Searching	Searching for models on Hugging Face	Ищем модели на Hugging Face
+Models_LoadingDetails	Loading model details	Загружаем сведения о модели
 Models_ScanDone	Found {0} models, {1} new	Найдено моделей: {0}, новых: {1}
 Models_NoneYet	No models yet. Download the recommended one below, search Hugging Face or add a GGUF file from any disk.	Моделей пока нет. Скачайте рекомендуемую ниже, найдите на Hugging Face или добавьте GGUF-файл с любого диска.
 Models_Use	Use	Использовать
@@ -515,6 +519,7 @@ Mcp_Exists	A server named «{0}» already exists	Сервер «{0}» уже е�
 Nav_Welcome	Getting started	Начало работы
 Nav_Compare	Compare models	Сравнение моделей
 Compare_Hint	One prompt — two models side by side (local or API). Two local models run one after another.	Один промпт — две модели рядом (локальные или API). Две локальные модели отвечают по очереди.
+Compare_Responding	Generating a response	Модель готовит ответ
 Tray_Open	Open Offline Chatter	Открыть Offline Chatter
 Tray_QuickAsk	Quick question	Быстрый вопрос
 Tray_Exit	Exit	Выход
@@ -704,6 +709,10 @@ Data_BackupHint	Settings, launch profiles, providers, MCP servers and prompt pre
 Data_IncludeChats	Include chats	Включить чаты
 Data_Backup	Create backup	Создать копию
 Data_Restore	Restore from backup	Восстановить из копии
+Data_Exporting	Exporting chats	Экспортируем чаты
+Data_Importing	Importing chats	Импортируем чаты
+Data_CreatingBackup	Creating a backup	Создаём резервную копию
+Data_RestoringBackup	Restoring from backup	Восстанавливаем данные из копии
 Data_NoChats	There are no chats to export yet	Пока нечего экспортировать
 Data_Exported	Exported chats: {0} → {1}	Экспортировано чатов: {0} → {1}
 Data_Imported	Imported chats: {0}	Импортировано чатов: {0}
@@ -717,6 +726,8 @@ Data_Folders	Folders	Папки
 Update_Checking	Checking…	Проверяем…
 Update_NotChecked	Updates have not been checked yet	Обновления ещё не проверялись
 Update_Downloading	Downloading {0}…	Скачиваем {0}…
+Update_VerifyingSignature	Verifying the update signature	Проверяем подпись обновления
+Update_Applying	Installing the update	Устанавливаем обновление
 Update_Failed	Could not install the update: {0}. Download it from the release page instead.	Не удалось установить обновление: {0}. Скачайте его со страницы релиза.
 Update_Install	Install and restart	Установить и перезапустить
 Update_AutoCheck	Check for updates at startup	Проверять обновления при запуске

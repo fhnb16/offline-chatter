@@ -330,7 +330,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
 
     [ObservableProperty] private string? _status;
     [ObservableProperty] private string _liveStats = L.Get("Chat_StatsEmpty");
-    [ObservableProperty] private double _contextRatio;
+    [ObservableProperty] private double? _contextRatio;
     [ObservableProperty] private string? _contextText;
 
     [ObservableProperty]
@@ -1012,7 +1012,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
 
         if (last == null)
         {
-            ContextRatio = 0;
+            ContextRatio = null;
             ContextText = null;
             rows.Add(new InsightRowData(L.Get("Tok_Context"), limit is > 0 ? "— / " + limit.Value.ToString("N0") : "—"));
         }
@@ -1022,7 +1022,7 @@ public sealed partial class ChatPageViewModel : PageViewModel
             var approx = last.Estimated || last.CompletionTokens <= 0 && output > 0 ? "≈" : string.Empty;
             var used = last.PromptTokens + output;
             var ratio = limit is > 0 ? Math.Min(1, used / (double)limit.Value) : 0;
-            ContextRatio = ratio;
+            ContextRatio = limit is > 0 ? ratio : null;
             ContextText = limit is > 0
                 ? L.F("Chat_Context", approx + used.ToString("N0"), limit.Value.ToString("N0"))
                 : L.F("Chat_ContextNoLimit", approx + used.ToString("N0"));
