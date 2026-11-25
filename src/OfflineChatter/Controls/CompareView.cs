@@ -3,91 +3,155 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using OfflineChatter.Theming;
 
 namespace OfflineChatter.Controls;
 
 /// <summary>
-/// Сравнение «до / после»: обе картинки вписаны в одно место, левая часть показывает «до», правая — «после».
-/// Граница двигается мышью и стрелками. Под картинками — шахматный фон: так видна прозрачность RGBA.
+/// Сравнение «до / после» в координатах вписанной результирующей картинки.
 /// </summary>
-public sealed class CompareView : Grid
+public sealed class CompareView : FrameworkElement
 {
-    private readonly Image _after = new() { Stretch = Stretch.Uniform };
-    private readonly Image _before = new() { Stretch = Stretch.Uniform };
-    private readonly Border _line = new() { Width = 2, HorizontalAlignment = HorizontalAlignment.Left, IsHitTestVisible = false };
-    private readonly RectangleGeometry _clip = new();
+    private readonly Brush _checker;
+
+    private static readonly DependencyProperty DividerBrushProperty = DependencyProperty.Register(
+        "DividerBrush", typeof(Brush), typeof(CompareView), new FrameworkPropertyMetadata(SystemColors.WindowTextBrush, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    private static readonly DependencyProperty GripBrushProperty = DependencyProperty.Register(
+        "GripBrush", typeof(Brush), typeof(CompareView), new FrameworkPropertyMetadata(SystemColors.WindowBrush, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public CompareView()
     {
         Focusable = true;
         Cursor = Cursors.SizeWE;
-        Background = CheckerBrush.Create(this);
-        _before.Clip = _clip;
-        _line.SetResourceReference(Border.BackgroundProperty, ThemeKeys.TextPrimary);
-        Children.Add(_after);
-        Children.Add(_before);
-        Children.Add(_line);
-        SizeChanged += (_, _) => Layout();
-        MouseLeftButtonDown += (_, e) =>
-        {
-            Focus();
-            CaptureMouse();
-            Move(e.GetPosition(this));
-            e.Handled = true;
-        };
-        MouseMove += (_, e) =>
-        {
-            if (IsMouseCaptured) Move(e.GetPosition(this));
-        };
-        MouseLeftButtonUp += (_, _) => ReleaseMouseCapture();
-        KeyDown += (_, e) =>
-        {
-            if (e.Key == Key.Left) Position = Math.Max(0, Position - 0.05);
-            else if (e.Key == Key.Right) Position = Math.Min(1, Position + 0.05);
-            else return;
-            e.Handled = true;
-        };
+        _checker = CheckerBrush.Create(this);
+        SetResourceReference(DividerBrushProperty, ThemeKeys.TextPrimary);
+        SetResourceReference(GripBrushProperty, ThemeKeys.CardBackground);
+        IsKeyboardFocusedChanged += (_, _) => InvalidateVisual();
     }
 
     public static readonly DependencyProperty BeforeProperty = DependencyProperty.Register(
-        nameof(Before), typeof(ImageSource), typeof(CompareView), new PropertyMetadata(null, (d, e) => ((CompareView)d)._before.Source = (ImageSource?)e.NewValue));
+        nameof(Before), typeof(BitmapSource), typeof(CompareView), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
-    public ImageSource? Before
+    public BitmapSource? Before
     {
-        get => (ImageSource?)GetValue(BeforeProperty);
+        get => (BitmapSource?)GetValue(BeforeProperty);
         set => SetValue(BeforeProperty, value);
     }
 
     public static readonly DependencyProperty AfterProperty = DependencyProperty.Register(
-        nameof(After), typeof(ImageSource), typeof(CompareView), new PropertyMetadata(null, (d, e) => ((CompareView)d)._after.Source = (ImageSource?)e.NewValue));
+        nameof(After), typeof(BitmapSource), typeof(CompareView), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender,
+            (d, _) => d.SetCurrentValue(PositionProperty, 0.5)));
 
-    public ImageSource? After
+    public BitmapSource? After
     {
-        get => (ImageSource?)GetValue(AfterProperty);
+        get => (BitmapSource?)GetValue(AfterProperty);
         set => SetValue(AfterProperty, value);
     }
 
     public static readonly DependencyProperty PositionProperty = DependencyProperty.Register(
-        nameof(Position), typeof(double), typeof(CompareView), new PropertyMetadata(0.5, (d, e) => ((CompareView)d).Layout()));
+        nameof(Position), typeof(double), typeof(CompareView), new FrameworkPropertyMetadata(0.5, FrameworkPropertyMetadataOptions.AffectsRender,
+            null, (_, value) => Math.Max(0, Math.Min(1, (double)value))), value => !double.IsNaN((double)value));
 
-    /// <summary>Доля ширины, занятая «до» (0…1).</summary>
     public double Position
     {
         get => (double)GetValue(PositionProperty);
         set => SetValue(PositionProperty, value);
     }
 
-    private void Move(Point p)
+    private Rect Frame => After is { } image ? Fit(image, new Rect(RenderSize)) : Rect.Empty;
+
+    private static Rect Fit(BitmapSource source, Rect bounds)
     {
-        if (ActualWidth > 0) Position = Math.Max(0, Math.Min(1, p.X / ActualWidth));
+        var scale = Math.Min(bounds.Width / source.PixelWidth, bounds.Height / source.PixelHeight);
+        var width = source.PixelWidth * scale;
+        var height = source.PixelHeight * scale;
+        return new Rect(bounds.X + (bounds.Width - width) / 2, bounds.Y + (bounds.Height - height) / 2, width, height);
     }
 
-    private void Layout()
+    protected override void OnRender(DrawingContext drawingContext)
     {
-        var x = ActualWidth * Position;
-        _clip.Rect = new Rect(0, 0, Math.Max(0, x), Math.Max(0, ActualHeight));
-        _line.Margin = new Thickness(Math.Max(0, x - 1), 0, 0, 0);
+        var frame = Frame;
+        if (frame.IsEmpty || frame.Width <= 0 || frame.Height <= 0 || After is not { } after) return;
+
+        var x = frame.Left + frame.Width * Position;
+        drawingContext.DrawRectangle(_checker, null, frame);
+        if (Before is { } before && Position > 0)
+        {
+            drawingContext.PushClip(new RectangleGeometry(new Rect(frame.Left, frame.Top, x - frame.Left, frame.Height)));
+            drawingContext.DrawImage(before, Fit(before, frame));
+            drawingContext.Pop();
+        }
+        if (Position < 1)
+        {
+            drawingContext.PushClip(new RectangleGeometry(new Rect(x, frame.Top, frame.Right - x, frame.Height)));
+            drawingContext.DrawImage(after, frame);
+            drawingContext.Pop();
+        }
+
+        var divider = (Brush)GetValue(DividerBrushProperty);
+        var grip = (Brush)GetValue(GripBrushProperty);
+        var center = new Point(x, frame.Top + frame.Height / 2);
+        var top = new Point(x, frame.Top);
+        var bottom = new Point(x, frame.Bottom);
+        drawingContext.DrawLine(new Pen(grip, 4), top, bottom);
+        var line = new Pen(divider, 2);
+        drawingContext.DrawLine(line, top, bottom);
+        var outline = IsKeyboardFocused && TryFindResource(ThemeKeys.Accent) is Brush accent ? new Pen(accent, 2) : line;
+        drawingContext.DrawEllipse(grip, outline, center, 12, 12);
+        DrawChevron("IconChevronLeft", x - 4);
+        DrawChevron("IconChevronRight", x + 4);
+
+        void DrawChevron(string key, double offset)
+        {
+            if (TryFindResource(key) is not Geometry geometry) return;
+            drawingContext.PushTransform(new TranslateTransform(offset - 8, center.Y - 8));
+            drawingContext.DrawGeometry(null, line, geometry);
+            drawingContext.Pop();
+        }
+    }
+
+    protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+    {
+        Focus();
+        CaptureMouse();
+        Move(e.GetPosition(this));
+        e.Handled = true;
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        if (!IsMouseCaptured) return;
+        if (e.LeftButton == MouseButtonState.Pressed) Move(e.GetPosition(this));
+        else ReleaseMouseCapture();
+    }
+
+    protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
+    {
+        if (!IsMouseCaptured) return;
+        Move(e.GetPosition(this));
+        ReleaseMouseCapture();
+        e.Handled = true;
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Key.Left: SetCurrentValue(PositionProperty, Position - 0.05); break;
+            case Key.Right: SetCurrentValue(PositionProperty, Position + 0.05); break;
+            case Key.Home: SetCurrentValue(PositionProperty, 0.0); break;
+            case Key.End: SetCurrentValue(PositionProperty, 1.0); break;
+            default: return;
+        }
+        e.Handled = true;
+    }
+
+    private void Move(Point p)
+    {
+        var frame = Frame;
+        if (!frame.IsEmpty && frame.Width > 0) SetCurrentValue(PositionProperty, (p.X - frame.Left) / frame.Width);
     }
 }
 
