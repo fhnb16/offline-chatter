@@ -393,22 +393,185 @@ public class ImageClientTests
     }
 
     [Fact]
-    public async Task Falls_Back_To_OpenAi_When_Sdapi_Missing()
+    public async Task Falls_Back_To_OpenAi_When_Native_And_Sdapi_Missing()
     {
         var b64 = Convert.ToBase64String(new byte[] { 9 });
         var seen = new List<string>();
         var handler = new StubHandler(req =>
         {
             seen.Add(req.RequestUri!.AbsolutePath);
-            return req.RequestUri.AbsolutePath == "/sdapi/v1/txt2img"
+            return req.RequestUri.AbsolutePath is "/sdapi/v1/txt2img" or "/sdcpp/v1/img_gen"
                 ? new HttpResponseMessage(HttpStatusCode.NotFound) { Content = new StringContent("not found") }
                 : new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent($"{{\"data\":[{{\"b64_json\":\"{b64}\"}}]}}") };
         });
         var client = new ImageClient(new HttpClient(handler), "http://127.0.0.1:1");
         var r = await client.GenerateAsync(new ImageRequest { Params = new ImageGenParams { Prompt = "a" } }, CancellationToken.None);
         Assert.Equal("/v1/images/generations", r.Endpoint);
-        Assert.Equal(new[] { "/sdapi/v1/txt2img", "/v1/images/generations" }, seen);
+        Assert.Equal(new[] { "/sdcpp/v1/img_gen", "/sdapi/v1/txt2img", "/v1/images/generations" }, seen);
         Assert.Equal(new byte[] { 9 }, r.Images[0]);
+    }
+
+    [Fact]
+    public void Native_Body_Has_Images_Sigmas_Lora_And_Tiling()
+    {
+        var p = new ImageGenParams
+        {
+            Prompt = "replace the jacket",
+            Mode = ImageMode.ImageToImage,
+            Width = 1024,
+            Height = 768,
+            Steps = 20,
+            Cfg = 1,
+            Seed = 5,
+            Strength = 1.7,
+            Sigmas = ImageSigmas.Format(ImageSigmas.QwenImage21Turbo),
+            Transparent = true,
+            Loras = { new ImageLora { Path = @"qwen\fast.safetensors", Multiplier = 0.8 } },
+        };
+        var png = new byte[] { 0x89, 0x50, 0x4E, 0x47, 1 };
+        var o = ImageClient.BuildNative(new ImageRequest
+        {
+            Params = p,
+            InitImage = png,
+            MaskImage = png,
+            RefImages = new[] { png, new byte[] { 0xFF, 0xD8, 1 } },
+            PromptImages = new Dictionary<string, byte[]> { ["1"] = png },
+            Preview = "tae",
+            VaeTiling = true,
+        });
+        Assert.StartsWith(TransparentPrompt.Prefix, (string?)o["prompt"]);
+        Assert.Equal(8, (int)o["sample_params"]!["sample_steps"]!); // шаги — из сигм
+        Assert.Equal(9, ((JArray)o["sample_params"]!["custom_sigmas"]!).Count);
+        Assert.Equal(1.0, (double)o["strength"]!); // зажато в 0..1
+        Assert.StartsWith("data:image/png;base64,", (string?)o["init_image"]);
+        Assert.StartsWith("data:image/png;base64,", (string?)o["mask_image"]);
+        Assert.StartsWith("data:image/jpeg;base64,", (string?)o["ref_images"]![1]);
+        Assert.NotNull(o["prompt_images"]!["1"]);
+        Assert.Equal("qwen/fast.safetensors", (string?)o["lora"]![0]!["path"]);
+        Assert.Equal(512, (int)o["vae_tiling_params"]!["tile_size_w"]!);
+        Assert.Equal("tae", (string?)o["preview"]);
+        Assert.Null(o["cache_mode"]);
+        Assert.True((bool)o["embed_image_metadata"]!);
+    }
+
+    [Fact]
+    public void Native_Body_Without_Images_Has_No_Image_Fields()
+    {
+        var o = ImageClient.BuildNative(new ImageRequest { Params = new ImageGenParams { Prompt = "cat", Strength = 0.5 } });
+        Assert.Null(o["init_image"]);
+        Assert.Null(o["strength"]);
+        Assert.Null(o["ref_images"]);
+        Assert.Null(o["prompt_images"]);
+        Assert.Null(o["vae_tiling_params"]);
+        Assert.Equal("cat", (string?)o["prompt"]);
+    }
+
+    [Fact]
+    public void Parses_Job_Progress()
+    {
+        var png = Convert.ToBase64String(new byte[] { 7, 7 });
+        var j = JToken.Parse("{\"id\":\"job_1\",\"status\":\"generating\",\"queue_position\":0," +
+                             "\"progress\":{\"stage\":\"sampling\",\"detail\":\"\",\"pass\":1,\"completed\":3,\"total\":8,\"unit\":\"steps\",\"stage_elapsed_ms\":3000,\"elapsed_ms\":7000}," +
+                             $"\"preview\":{{\"pass\":1,\"step\":3,\"total_steps\":8,\"b64_json\":\"{png}\"}}}}");
+        var p = ImageJobProgress.Parse(j);
+        Assert.Equal("sampling", p.Stage);
+        Assert.Equal(3, p.Completed);
+        Assert.Equal(8, p.Total);
+        Assert.Equal(new byte[] { 7, 7 }, p.Preview);
+        Assert.False(p.IsTerminal);
+        var unknown = ImageJobProgress.Parse(JToken.Parse("{\"status\":\"queued\",\"progress\":{\"stage\":\"conditioning\",\"completed\":null,\"total\":null},\"preview\":null}"));
+        Assert.Null(unknown.Completed);
+        Assert.Null(unknown.Preview);
+        Assert.Null(ImageJobProgress.PreviewKey(JToken.Parse("{\"preview\":null}")));
+    }
+
+    [Fact]
+    public async Task Native_Job_Polls_Progress_And_Returns_Images()
+    {
+        var img = Convert.ToBase64String(new byte[] { 1, 2, 3 });
+        var polls = 0;
+        var handler = new StubHandler(req =>
+        {
+            var path = req.RequestUri!.AbsolutePath;
+            if (path == "/sdcpp/v1/img_gen") return Json(HttpStatusCode.Accepted, "{\"id\":\"job_1\",\"status\":\"queued\"}");
+            if (path != "/sdcpp/v1/jobs/job_1") return Json(HttpStatusCode.NotFound, "{}");
+            polls++;
+            return polls switch
+            {
+                1 => Json(HttpStatusCode.OK, "{\"status\":\"generating\",\"progress\":{\"stage\":\"conditioning\",\"stage_elapsed_ms\":100,\"elapsed_ms\":600}}"),
+                2 => Json(HttpStatusCode.OK, "{\"status\":\"generating\",\"progress\":{\"stage\":\"sampling\",\"completed\":4,\"total\":8,\"stage_elapsed_ms\":4000,\"elapsed_ms\":6500}," +
+                                              $"\"preview\":{{\"pass\":1,\"step\":4,\"total_steps\":8,\"b64_json\":\"{img}\"}}}}"),
+                _ => Json(HttpStatusCode.OK, "{\"status\":\"completed\",\"progress\":{\"stage\":\"encoding\",\"stage_elapsed_ms\":0,\"elapsed_ms\":9000}," +
+                                              $"\"result\":{{\"output_format\":\"png\",\"images\":[{{\"index\":0,\"b64_json\":\"{img}\",\"generation_info\":\"seed = 5\"}}]}}}}"),
+            };
+        });
+        var client = new ImageClient(new HttpClient(handler), "http://127.0.0.1:1") { PollInterval = TimeSpan.FromMilliseconds(1) };
+        var reports = new List<ImageJobProgress>();
+        var r = await client.GenerateAsync(new ImageRequest { Params = new ImageGenParams { Prompt = "a", Seed = 5 } }, CancellationToken.None,
+            new SyncProgress<ImageJobProgress>(reports.Add));
+        Assert.Equal("/sdcpp/v1/img_gen", r.Endpoint);
+        Assert.Equal(new byte[] { 1, 2, 3 }, r.Images[0]);
+        Assert.Equal("seed = 5", r.GenerationInfo[0]);
+        Assert.Equal(TimeSpan.FromMilliseconds(2000), r.ConditioningTime); // 500 → 2500
+        Assert.Contains(reports, p => p.Preview != null && p.Completed == 4);
+        Assert.Equal(1.0, r.SecondsPerStep!.Value, 3); // 4 шага за 4 с
+    }
+
+    [Fact]
+    public async Task Native_Job_Cancel_Is_Sent_To_Server()
+    {
+        var cancelled = false;
+        using var cts = new CancellationTokenSource();
+        var handler = new StubHandler(req =>
+        {
+            var path = req.RequestUri!.AbsolutePath;
+            if (path == "/sdcpp/v1/img_gen") return Json(HttpStatusCode.Accepted, "{\"id\":\"job_2\"}");
+            if (path == "/sdcpp/v1/jobs/job_2/cancel")
+            {
+                cancelled = true;
+                return Json(HttpStatusCode.OK, "{\"cancel_requested\":true}");
+            }
+            cts.Cancel();
+            return Json(HttpStatusCode.OK, cancelled ? "{\"status\":\"cancelled\"}" : "{\"status\":\"generating\",\"progress\":{\"stage\":\"sampling\"}}");
+        });
+        var client = new ImageClient(new HttpClient(handler), "http://127.0.0.1:1") { PollInterval = TimeSpan.FromMilliseconds(1) };
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => client.GenerateAsync(new ImageRequest { Params = new ImageGenParams { Prompt = "a" } }, cts.Token));
+        Assert.True(cancelled);
+    }
+
+    [Fact]
+    public async Task Native_Job_Failure_Has_Server_Message()
+    {
+        var handler = new StubHandler(req => req.RequestUri!.AbsolutePath == "/sdcpp/v1/img_gen"
+            ? Json(HttpStatusCode.Accepted, "{\"id\":\"job_3\"}")
+            : Json(HttpStatusCode.OK, "{\"status\":\"failed\",\"error\":{\"code\":\"generation_failed\",\"message\":\"out of memory\"}}"));
+        var client = new ImageClient(new HttpClient(handler), "http://127.0.0.1:1") { PollInterval = TimeSpan.FromMilliseconds(1) };
+        var ex = await Assert.ThrowsAsync<ImageApiException>(() => client.GenerateAsync(new ImageRequest { Params = new ImageGenParams { Prompt = "a" } }, CancellationToken.None));
+        Assert.Equal("out of memory", ex.Message);
+    }
+
+    [Fact]
+    public void Legacy_Img2Img_Carries_Mask_And_Extra_Args()
+    {
+        var o = ImageClient.BuildImg2Img(new ImageRequest
+        {
+            Params = new ImageGenParams { Prompt = "x", Sigmas = "1,0.5,0", CacheMode = "easycache" },
+            InitImage = new byte[] { 1 },
+            MaskImage = new byte[] { 2 },
+        });
+        Assert.Equal(Convert.ToBase64String(new byte[] { 2 }), (string?)o["mask"]);
+        var prompt = (string?)o["prompt"]!;
+        Assert.Contains("custom_sigmas", prompt);
+        Assert.Contains("easycache", prompt);
+    }
+
+    private static HttpResponseMessage Json(HttpStatusCode code, string body) => new(code) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+
+    private sealed class SyncProgress<T> : IProgress<T>
+    {
+        private readonly Action<T> _a;
+        public SyncProgress(Action<T> a) => _a = a;
+        public void Report(T value) => _a(value);
     }
 
     private sealed class StubHandler : HttpMessageHandler
@@ -416,6 +579,349 @@ public class ImageClientTests
         private readonly Func<HttpRequestMessage, HttpResponseMessage> _f;
         public StubHandler(Func<HttpRequestMessage, HttpResponseMessage> f) => _f = f;
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => Task.FromResult(_f(request));
+    }
+}
+
+public class QwenImage21Tests
+{
+    [Theory]
+    [InlineData("Qwen-Image-2.1-Turbo-AD-Q4_K.gguf", ImageFamily.QwenImage21Turbo)]
+    [InlineData("qwen_image_2.1_turbo_int8_convrot.safetensors", ImageFamily.QwenImage21Turbo)]
+    [InlineData("qwen_image_2.1-Q4_K.gguf", ImageFamily.QwenImage21)]
+    [InlineData("leejet/Qwen-Image-2.1-GGUF", ImageFamily.QwenImage21)]
+    [InlineData("qwen-image-2512-Q3_K_M.gguf", ImageFamily.QwenImage)]
+    public void Detects_Family(string name, ImageFamily expected) => Assert.Equal(expected, ImagePresets.Detect(name));
+
+    [Theory]
+    [InlineData("taeqi2_1.safetensors", ImageComponent.Tae)]
+    [InlineData("taesdxl.safetensors", ImageComponent.Tae)]
+    [InlineData("qwen_image_2.1_vae_bf16.safetensors", ImageComponent.Vae)]
+    [InlineData("Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf", ImageComponent.Llm)]
+    [InlineData("Qwen3VL-8B-Instruct-Q4_K_M.gguf", ImageComponent.Llm)]
+    [InlineData("qwen3vl_8b_int8_convrot.safetensors", ImageComponent.Llm)]
+    [InlineData("mmproj-F16.gguf", ImageComponent.LlmVision)]
+    [InlineData("Qwen-Image-2.1-Turbo-AD-Q4_K.gguf", ImageComponent.DiffusionModel)]
+    public void Guesses_Component(string name, ImageComponent expected) => Assert.Equal(expected, ImagePresets.GuessComponent(name));
+
+    [Fact]
+    public void Turbo_Preset_Uses_Fixed_Sigmas_And_32_Multiple()
+    {
+        var p = ImagePresets.Get(ImageFamily.QwenImage21Turbo);
+        Assert.True(p.IsDistilled);
+        Assert.True(p.SupportsAlpha);
+        Assert.True(p.SupportsPromptImages);
+        Assert.Equal(8, ImageSigmas.Steps(p.Sigmas!));
+        var g = new ImageGenParams { Mode = ImageMode.Edit, CacheMode = "easycache", Transparent = true };
+        g.ApplyPreset(p);
+        Assert.Equal(8, g.Steps);
+        Assert.Equal("1,0.978453,0.95418,0.926626,0.89508,0.845148,0.704534,0.414568,0", g.Sigmas);
+        Assert.Equal(string.Empty, g.CacheMode);
+        Assert.True(g.Transparent);
+        Assert.Equal(ImageMode.Edit, g.Mode);
+        var (w, h) = ImagePresets.SizeFor(p, 3, 2, 2.0);
+        Assert.Equal(0, w % 32);
+        Assert.Equal(0, h % 32);
+        Assert.InRange(w * h, 2048 * 2048 * 0.95, 2048 * 2048 * 1.05);
+        // Остальные пресеты: прежняя сетка 64
+        Assert.Equal(64, ImagePresets.Get(ImageFamily.Sdxl).RoundTo);
+    }
+
+    [Fact]
+    public void Base_Preset_Has_No_Sigmas_And_Drops_Alpha_For_Other_Families()
+    {
+        var g = new ImageGenParams { Transparent = true, Sigmas = "1,0" };
+        g.ApplyPreset(ImagePresets.Get(ImageFamily.QwenImage21));
+        Assert.Equal(string.Empty, g.Sigmas);
+        Assert.True(g.Transparent);
+        g.ApplyPreset(ImagePresets.Get(ImageFamily.ZImageTurbo));
+        Assert.False(g.Transparent);
+    }
+
+    [Fact]
+    public void Vae_Or_Tae_Is_Enough()
+    {
+        using var t = new TempDir();
+        string F(string n)
+        {
+            var p = t.Combine(n);
+            File.WriteAllText(p, "x");
+            return p;
+        }
+        var m = new ImageModel
+        {
+            Family = nameof(ImageFamily.QwenImage21Turbo),
+            Files = { [ImageComponent.DiffusionModel] = F("dit.gguf"), [ImageComponent.Llm] = F("Qwen3-VL-8B.gguf") },
+        };
+        Assert.Equal(new[] { ImageComponent.Vae }, m.Missing());
+        m.Files[ImageComponent.Tae] = F("taeqi2_1.safetensors");
+        Assert.True(m.IsReady);
+        Assert.True(m.NeedsVisionForEdit); // GGUF-кодировщик без mmproj
+        m.Files[ImageComponent.LlmVision] = F("mmproj-F16.gguf");
+        Assert.False(m.NeedsVisionForEdit);
+    }
+
+    [Fact]
+    public void Kits_Have_Vae_Or_Tae_And_Ram_Requirements()
+    {
+        var kits = ImageKits.All.Where(k => k.Family == ImageFamily.QwenImage21Turbo).ToList();
+        Assert.Equal(3, kits.Count);
+        Assert.All(kits, k =>
+        {
+            Assert.Contains(k.Files, f => f.Role == ImageComponent.LlmVision);
+            Assert.Contains(k.Files, f => f.Role == ImageComponent.Tae);
+            Assert.True(k.MinRam >= 16L << 30);
+        });
+        Assert.Contains(kits, k => k.Files.Any(f => f.Path == "Qwen-Image-2.1-Turbo-AD-Q4_K.gguf" && f.Size == 4201694944));
+    }
+
+    [Fact]
+    public void Server_Args_With_Vae_And_Tae()
+    {
+        var m = new ImageModel
+        {
+            Family = nameof(ImageFamily.QwenImage21Turbo),
+            Files =
+            {
+                [ImageComponent.DiffusionModel] = @"C:\m\dit.gguf",
+                [ImageComponent.Llm] = @"C:\m\llm.gguf",
+                [ImageComponent.LlmVision] = @"C:\m\mmproj.gguf",
+                [ImageComponent.Vae] = @"C:\m\vae.safetensors",
+                [ImageComponent.Tae] = @"C:\m\taeqi2_1.safetensors",
+            },
+        };
+        var args = ImageServerOptions.Resolve(m, new ImageLaunchSettings { MaxVram = "6,8", Mmap = true }).BuildArgs("127.0.0.1", 1, null);
+        var cmd = string.Join(" ", args);
+        Assert.Contains(@"--taesd C:\m\taeqi2_1.safetensors", cmd);
+        Assert.Contains("--taesd-preview-only", args);
+        Assert.Contains("--llm_vision", args);
+        Assert.Contains("--max-vram 6.8", cmd);
+        Assert.Contains("--conditioning-cache-size 8", cmd); // пресет
+        Assert.Contains("--mmap", args);
+        Assert.Contains("--sigmas 1,0.978453,", cmd);
+
+        // Только TAE — он и декодирует итог
+        m.Files.Remove(ImageComponent.Vae);
+        Assert.DoesNotContain("--taesd-preview-only", ImageServerOptions.Resolve(m, new ImageLaunchSettings()).BuildArgs("127.0.0.1", 1, null));
+        Assert.Equal("cuda0=6,vulkan0=4", ImageServerOptions.NormalizeVram(" cuda0=6, vulkan0=4 "));
+        Assert.Null(ImageServerOptions.NormalizeVram(" "));
+    }
+
+    [Fact]
+    public void Memory_Profiles_Fill_Launch_Settings()
+    {
+        var s = new ImageLaunchSettings { ExtraArgs = "--foo", Threads = 6 };
+        ImageMemoryProfiles.Apply(s, ImageMemoryProfile.Balanced, 8L << 30);
+        Assert.Equal("6.8", s.MaxVram);
+        Assert.True(s.OffloadToCpu);
+        Assert.Equal("on", s.FlashAttention);
+        Assert.Equal(8, s.ConditioningCacheSize);
+        Assert.Null(s.ClipOnCpu);
+        Assert.Equal("--foo", s.ExtraArgs);
+        Assert.Equal(6, s.Threads);
+        ImageMemoryProfiles.Apply(s, ImageMemoryProfile.EncoderOnCpu, 12L << 30);
+        Assert.True(s.ClipOnCpu);
+        Assert.Equal("10.2", s.MaxVram);
+        ImageMemoryProfiles.Apply(s, ImageMemoryProfile.SaveRam, 0);
+        Assert.True(s.Mmap);
+        Assert.Null(s.MaxVram);
+        Assert.Equal(2.0, ImageMemoryProfiles.VramBudgetGb(1L << 30));
+    }
+
+    [Fact]
+    public void Sigmas_Parse_And_Format()
+    {
+        Assert.Equal(new[] { 1.0, 0.5, 0.0 }, ImageSigmas.Parse("1, 0.5; 0"));
+        Assert.Null(ImageSigmas.Parse("1, x"));
+        Assert.Null(ImageSigmas.Parse("1"));
+        Assert.Null(ImageSigmas.Parse(""));
+        Assert.Equal("1,0.5,0", ImageSigmas.Format(new[] { 1.0, 0.5, 0.0 }));
+    }
+}
+
+public class ImageInputTests
+{
+    [Theory]
+    [InlineData(1, false, 1536)]
+    [InlineData(1, true, 2048)]
+    [InlineData(2, false, 1024)]
+    [InlineData(3, true, 1024)]
+    [InlineData(4, false, 768)]
+    [InlineData(10, false, 768)]
+    public void Ref_Limit_By_Count(int count, bool native, int expected) => Assert.Equal(expected, ImageInputPolicy.RefMaxSide(count, native));
+
+    [Fact]
+    public void Fit_Within_Keeps_Aspect_And_Multiple()
+    {
+        var (w, h, changed) = ImageInputPolicy.FitWithin(4000, 3000, 1536, 32);
+        Assert.True(changed);
+        Assert.Equal((1536, 1152), (w, h));
+        Assert.Equal((800, 600, false), ImageInputPolicy.FitWithin(800, 600, 1536));
+        var (w2, h2, _) = ImageInputPolicy.FitWithin(1000, 3000, 1024, 32);
+        Assert.True(h2 <= 1024 && w2 % 32 == 0 && h2 % 32 == 0);
+    }
+
+    [Fact]
+    public void Size_From_Source_At_1K_And_2K()
+    {
+        var (w, h) = ImageInputPolicy.SizeForSource(4000, 3000, 1024, 32);
+        Assert.Equal(0, w % 32);
+        Assert.Equal(0, h % 32);
+        Assert.True(w > h);
+        Assert.InRange(w * h, 1024 * 1024 * 0.93, 1024 * 1024 * 1.07);
+        var (w2, _) = ImageInputPolicy.SizeForSource(4000, 3000, 2048, 32);
+        Assert.Equal(w * 2, w2, 32.0);
+        Assert.Equal(64, ImageInputPolicy.AlignDown(70, 32));
+        Assert.Equal(32, ImageInputPolicy.Align(1, 32));
+    }
+
+    [Fact]
+    public void Vae_Tiling_By_Input_Or_Output()
+    {
+        Assert.False(ImageInputPolicy.NeedsVaeTiling(1024, 1024, new[] { (1024, 768) }));
+        Assert.True(ImageInputPolicy.NeedsVaeTiling(1536, 1024, Array.Empty<(int, int)>()));
+        Assert.True(ImageInputPolicy.NeedsVaeTiling(1024, 1024, new[] { (4000, 3000) }));
+    }
+
+    [Fact]
+    public void Placement_Crop_And_Pad()
+    {
+        var (src, dst) = ImageInputPolicy.Placement(2000, 1000, 1000, 1000, ImageFit.CropResize);
+        Assert.Equal(new PixelRect(500, 0, 1000, 1000), src);
+        Assert.Equal(new PixelRect(0, 0, 1000, 1000), dst);
+        (src, dst) = ImageInputPolicy.Placement(2000, 1000, 1000, 1000, ImageFit.FitPad);
+        Assert.Equal(new PixelRect(0, 0, 2000, 1000), src);
+        Assert.Equal(new PixelRect(0, 250, 1000, 500), dst);
+        (src, dst) = ImageInputPolicy.Placement(2000, 1000, 1000, 1000, ImageFit.Stretch);
+        Assert.Equal(new PixelRect(0, 0, 1000, 1000), dst);
+    }
+
+    [Fact]
+    public void Slow_Step_Per_Megapixel()
+    {
+        Assert.False(ImageInputPolicy.IsSlowStep(2.5, 1024, 1024));
+        Assert.True(ImageInputPolicy.IsSlowStep(14, 1024, 1024));
+        Assert.False(ImageInputPolicy.IsSlowStep(14, 2048, 2048)); // 4 Мп — 3,5 с на мегапиксель
+    }
+
+    [Fact]
+    public void Prompt_Image_Tags()
+    {
+        Assert.Equal(new[] { "1", "style" }, PromptImageTags.Ids("put <image:1> into <image:style>, keep <image:1>"));
+        Assert.Empty(PromptImageTags.Ids(@"literal \<image:1> text"));
+        Assert.Equal(new[] { "2" }, PromptImageTags.Ids(@"two slashes \\<image:2>"));
+        Assert.Equal("<image:3>", PromptImageTags.Tag("3"));
+    }
+
+    [Fact]
+    public void Transparent_Prompt_Wrap_Is_Idempotent()
+    {
+        var w = TransparentPrompt.Wrap("a red apple");
+        Assert.Equal(TransparentPrompt.Prefix + " a red apple. " + TransparentPrompt.Suffix, w);
+        Assert.Equal(w, TransparentPrompt.Wrap(w));
+    }
+
+    [Fact]
+    public void Param_Checks_For_Turbo_And_Edit()
+    {
+        var turbo = ImagePresets.Get(ImageFamily.QwenImage21Turbo);
+        var p = new ImageGenParams { Mode = ImageMode.Edit, Cfg = 4, CacheMode = "easycache", Steps = 6, Sigmas = turbo.SigmasText!, Width = 1024, Height = 1024 };
+        var w = ImageParamChecks.Check(turbo, p, visionMissing: true);
+        Assert.Contains(ImageParamWarning.DistilledCfg, w);
+        Assert.Contains(ImageParamWarning.DistilledStepCache, w);
+        Assert.Contains(ImageParamWarning.SigmasOverrideSteps, w);
+        Assert.Contains(ImageParamWarning.EditBelowNative, w);
+        Assert.Contains(ImageParamWarning.VisionMissing, w);
+        var ok = new ImageGenParams { Mode = ImageMode.Edit, Cfg = 1, Steps = 8, Sigmas = turbo.SigmasText!, Width = 2048, Height = 1536 };
+        Assert.Empty(ImageParamChecks.Check(turbo, ok));
+        Assert.Empty(ImageParamChecks.Check(ImagePresets.Get(ImageFamily.Sdxl), new ImageGenParams { Cfg = 7, CacheMode = "ucache" }));
+    }
+
+    [Fact]
+    public void Conditioning_Cache_Lru()
+    {
+        var c = new ConditioningCacheTracker { Capacity = 2 };
+        var k1 = ConditioningCacheTracker.Key("s", "a", "", new[] { new byte[] { 1 } });
+        var k2 = ConditioningCacheTracker.Key("s", "a", "", new[] { new byte[] { 2 } });
+        var k3 = ConditioningCacheTracker.Key("s", "b", "", Array.Empty<byte[]>());
+        Assert.NotEqual(k1, k2);
+        Assert.False(c.Touch(k1));
+        Assert.True(c.Touch(k1));
+        c.Touch(k2);
+        c.Touch(k3); // k1 вытеснен
+        Assert.False(c.Contains(k1));
+        Assert.True(c.Contains(k2));
+        c.Clear();
+        Assert.False(c.Contains(k3));
+    }
+
+    private static byte[] Png(int w, int h)
+    {
+        var ms = new MemoryStream();
+        ms.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, 0, 8);
+        void Chunk(string type, byte[] data)
+        {
+            var len = Enumerable.Reverse(BitConverter.GetBytes(data.Length)).ToArray();
+            ms.Write(len, 0, 4);
+            var t = Encoding.ASCII.GetBytes(type);
+            ms.Write(t, 0, 4);
+            ms.Write(data, 0, data.Length);
+            var crc = Enumerable.Reverse(BitConverter.GetBytes(PngMeta.Crc32(t.Concat(data)))).ToArray();
+            ms.Write(crc, 0, 4);
+        }
+        var ihdr = Enumerable.Reverse(BitConverter.GetBytes(w)).Concat(Enumerable.Reverse(BitConverter.GetBytes(h))).Concat(new byte[] { 8, 6, 0, 0, 0 }).ToArray();
+        Chunk("IHDR", ihdr);
+        Chunk("IDAT", new byte[] { 1, 2, 3 });
+        Chunk("IEND", Array.Empty<byte>());
+        return ms.ToArray();
+    }
+
+    [Fact]
+    public void Png_Size_And_Text_Roundtrip()
+    {
+        var png = Png(640, 480);
+        Assert.Equal((640, 480), PngMeta.ReadSize(png));
+        Assert.Null(PngMeta.ReadText(png));
+        var json = "{\"Prompt\":\"кот в шляпе\"}";
+        var withText = PngMeta.WithText(png, json);
+        Assert.Equal((640, 480), PngMeta.ReadSize(withText));
+        var back = PngMeta.ReadText(withText)!;
+        Assert.Equal("кот в шляпе", (string?)JObject.Parse(back)["Prompt"]);
+        // Повторная запись заменяет, а не добавляет второй чанк
+        var twice = PngMeta.WithText(withText, "{\"Prompt\":\"b\"}");
+        Assert.Equal("{\"Prompt\":\"b\"}", PngMeta.ReadText(twice));
+        Assert.True(twice.Length < withText.Length + 40);
+        Assert.Equal(0xAE426082u, PngMeta.Crc32(Encoding.ASCII.GetBytes("IEND"))); // известная CRC пустого IEND
+    }
+
+    [Fact]
+    public void Jpeg_Size()
+    {
+        // SOI, APP0 (длина 4), SOF0: длина 17, точность 8, высота 2, ширина 3
+        var jpeg = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x04, 0x00, 0x00, 0xFF, 0xC0, 0x00, 0x11, 0x08, 0x00, 0x02, 0x00, 0x03, 0x03, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        Assert.Equal((3, 2), PngMeta.ReadSize(jpeg));
+        Assert.Null(PngMeta.ReadSize(new byte[] { 1, 2, 3 }));
+    }
+
+    [Fact]
+    public void Canny_Finds_Square_Border()
+    {
+        const int n = 40;
+        var px = new byte[n * n * 4];
+        for (var y = 0; y < n; y++)
+        for (var x = 0; x < n; x++)
+        {
+            var o = (y * n + x) * 4;
+            var v = x >= 12 && x < 28 && y >= 12 && y < 28 ? (byte)255 : (byte)0;
+            px[o] = px[o + 1] = px[o + 2] = v;
+            px[o + 3] = 255;
+        }
+        var edges = Canny.Detect(px, n, n);
+        Assert.Equal(n * n, edges.Length);
+        Assert.Equal(0, edges[20 * n + 20]); // внутри квадрата
+        Assert.Equal(0, edges[2 * n + 2]); // фон
+        var border = Enumerable.Range(10, 4).Any(x => edges[20 * n + x] == 255);
+        Assert.True(border);
+        Assert.InRange(edges.Count(e => e == 255), 40, 300);
     }
 }
 

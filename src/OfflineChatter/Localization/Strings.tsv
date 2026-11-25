@@ -1185,7 +1185,7 @@ ImgComp_Hint_ClipL	Reads the prompt (FLUX, SD3)	Читает промпт (FLUX,
 ImgComp_Hint_ClipG	Reads the prompt (SD3)	Читает промпт (SD3)
 ImgComp_Hint_T5xxl	Reads long prompts (FLUX, SD3, Chroma)	Читает длинные промпты (FLUX, SD3, Chroma)
 ImgComp_Hint_Llm	Language model that reads the prompt (Qwen-Image, Z-Image, FLUX.2)	Языковая модель, которая читает промпт (Qwen-Image, Z-Image, FLUX.2)
-ImgComp_Hint_LlmVision	Lets the language model see reference images (Qwen-Image-Edit)	Позволяет языковой модели видеть референсы (Qwen-Image-Edit)
+ImgComp_Hint_LlmVision	Lets the language model see reference pictures (Qwen-Image-Edit, Qwen-Image 2.1)	Позволяет языковой модели видеть референсы (Qwen-Image-Edit, Qwen-Image 2.1)
 ImgComp_Hint_ClipVision	Image encoder for video models	Кодировщик картинок для видеомоделей
 Img_FileNotSet	not set — required	не указан — обязателен
 Img_FileOptional	not set — optional	не указан — по желанию
@@ -1246,10 +1246,10 @@ Img_StopServerHint	Frees the video memory; the generator starts again with the n
 Img_Mode	Mode	Режим
 Enum_ImageMode_TextToImage	From text	Из текста
 Enum_ImageMode_Edit	Edit by references	Редактирование по референсам
-Enum_ImageMode_ImageToImage	Redraw a picture	Перерисовка картинки
+Enum_ImageMode_ImageToImage	Redraw and mask	Перерисовка и маска
 Img_ModeHint_TextToImage	The picture is drawn from the description only	Картинка рисуется только по описанию
 Img_ModeHint_Edit	The model sees the reference pictures and changes them as described: “make it winter”, “put the cat on the sofa”	Модель видит референсы и меняет их по описанию: «сделай зиму», «посади кота на диван»
-Img_ModeHint_ImageToImage	The source picture is partly noised and redrawn; strength sets how much changes	Исходная картинка частично зашумляется и перерисовывается; сила задаёт, насколько изменится
+Img_ModeHint_ImageToImage	The source is partly noised and redrawn; strength sets how much changes. Paint a mask to redraw only part of the picture.	Исходник частично зашумляется и перерисовывается; сила задаёт, насколько изменится. Закрасьте маску, чтобы перерисовать только часть картинки.
 Img_Prompt	Description (prompt)	Описание (промпт)
 Img_PromptHint	Describe the subject, setting, style and light. English usually works better, but Qwen-Image and Z-Image understand Russian too.	Опишите предмет, место, стиль и свет. Обычно лучше по-английски, но Qwen-Image и Z-Image понимают и русский.
 Img_Negative	What to avoid (negative prompt)	Чего избегать (негативный промпт)
@@ -1383,3 +1383,128 @@ ImgApi_ApplyHint	Press Start so that the generator loads the model and the API a
 ImgApi_Endpoints	Also available: /v1/models, /sdapi/v1/txt2img and /sdapi/v1/img2img (Automatic1111 format). Extra parameters can be passed in the prompt as <sd_cpp_extra_args>{...}</sd_cpp_extra_args>.	Также доступны /v1/models, /sdapi/v1/txt2img и /sdapi/v1/img2img (формат Automatic1111). Дополнительные параметры можно передать в промпте блоком <sd_cpp_extra_args>{...}</sd_cpp_extra_args>.
 ImgApi_ExampleTitle	Request examples	Примеры запросов
 ImgApi_Apply	Start	Запустить
+
+# Qwen-Image 2.1, маска, превью, профили памяти
+Common_Or	or	или
+Enum_ImageComponent_Tae	Tiny autoencoder (TAE)	Мини-автокодировщик (TAE)
+ImgComp_Hint_Tae	Live preview at every step (TAESD, TAEQI2.1); without a full VAE it also decodes the result with slightly less detail	Живое превью на каждом шаге (TAESD, TAEQI2.1); без полного VAE декодирует и результат, чуть менее детально
+Enum_ImageFamily_QwenImage21	Qwen-Image 2.1	Qwen-Image 2.1
+Enum_ImageFamily_QwenImage21Turbo	Qwen-Image 2.1 Turbo	Qwen-Image 2.1 Turbo
+ImgFamily_Hint_QwenImage21	Generation and editing in one model. Authors' settings: 20 steps, CFG 1, sizes are multiples of 32. Needs the Qwen3-VL-8B encoder, mmproj for editing and the 2.1 VAE or TAEQI2.1.	Генерация и правка одной моделью. Настройки авторов: 20 шагов, CFG 1, размеры кратны 32. Нужны кодировщик Qwen3-VL-8B, mmproj для правки и VAE 2.1 или TAEQI2.1.
+ImgFamily_Hint_QwenImage21Turbo	8 steps on a fixed sigma schedule, CFG 1, Euler, no step cache. Editing is native at 2K: pick the edit at 1K, then press “Final in 2K”.	8 шагов по фиксированному расписанию сигм, CFG 1, Euler, без кэша шагов. Родной размер правки — 2K: подберите правку в 1K, затем «Финал в 2K».
+ImgKit_qwen_image_21_turbo_q4	Editing, redraw and generation in one model on 8 GB. AD-Q4_K leaves room for reference attention, mmproj F16 sees details and text on photos.	Правка, перерисовка и генерация одной моделью на 8 ГБ. AD-Q4_K оставляет место под внимание референсов, mmproj F16 видит детали и текст на фото.
+ImgKit_qwen_image_21_turbo_q4_lite	The same with mmproj Q8_0: about 400 MB less RAM, recognition almost the same. For 16 GB of RAM.	То же с mmproj Q8_0: примерно на 400 МБ меньше ОЗУ, распознавание почти такое же. Для 16 ГБ ОЗУ.
+ImgKit_qwen_image_21_turbo_q5	Best quality at 1K: AD-Q5_K and the Q8_0 encoder for small text. Keep the encoder on the CPU (profile “Encoder on the CPU”), needs 32 GB of RAM.	Лучшее качество в 1K: AD-Q5_K и кодировщик Q8_0 для мелкого текста. Кодировщик лучше держать на процессоре (профиль «Кодировщик на процессоре»), нужно 32 ГБ ОЗУ.
+ImgKit_NeedsRam	needs about {0} of RAM	нужно около {0} ОЗУ
+Enum_ImageFit_CropResize	Crop to fill	Обрезать по размеру
+Enum_ImageFit_FitPad	Fit with margins	Вписать с полями
+Enum_ImageFit_Stretch	Stretch	Растянуть
+Enum_ImageMemoryProfile_Balanced	Editing and generation, 8 GB	Правка и генерация, 8 ГБ
+Enum_ImageMemoryProfile_Balanced_Hint	Weights stay in RAM and go to the card when needed; video memory budget, flash attention, cache of 8 prompts, VAE tiles by size	Веса в ОЗУ и подгружаются в видеокарту по мере надобности; бюджет видеопамяти, flash attention, кэш на 8 промптов, плитки VAE по размеру
+Enum_ImageMemoryProfile_SaveRam	Saving RAM, 16 GB	Экономия ОЗУ, 16 ГБ
+Enum_ImageMemoryProfile_SaveRam_Hint	The same plus memory-mapped weight files: fewer copies in RAM. Works well with mmproj Q8_0.	То же плюс отображение файлов весов в память: меньше копий в ОЗУ. Хорошо сочетается с mmproj Q8_0.
+Enum_ImageMemoryProfile_EncoderOnCpu	Encoder on the CPU, 32 GB	Кодировщик на процессоре, 32 ГБ
+Enum_ImageMemoryProfile_EncoderOnCpu_Hint	The text encoder with mmproj runs on the CPU and takes no video memory. Prompt encoding is slower (4–8 s), but the cache keeps it while you change the seed.	Кодировщик с mmproj работает на процессоре и не занимает видеопамять. Разбор промпта медленнее (4–8 с), но кэш хранит его, пока вы меняете зерно.
+Img_DroppedParams	This picture has saved generation settings	В картинке сохранены параметры генерации
+Img_RestoreParams	Restore settings	Восстановить параметры
+Img_ParamsRestored	Settings restored from the picture	Параметры восстановлены из картинки
+Img_Mask	Mask	Маска
+Img_BrushSize	Brush	Кисть
+Img_Eraser	Eraser	Ластик
+Img_MaskInvert	Redraw outside the mask	Перерисовать вне маски
+Img_MaskClear	Clear mask	Стереть маску
+Img_MaskHint	Paint over what to redraw. Without a mask the whole picture changes.	Закрасьте то, что нужно перерисовать. Без маски меняется вся картинка.
+Img_Fit	Fit to the size	Подгонка под размер
+Img_FitHint	How the source and the mask fit the output size when the proportions differ	Как исходник и маска ложатся на размер результата, если пропорции разные
+Img_Canny	Keep only the outlines (Canny)	Только контуры (Canny)
+Img_CannyHint	The model gets the edges of the source instead of the picture: the composition follows the lines, colors and texture are drawn anew	Модель получает контуры исходника вместо картинки: композиция идёт по линиям, цвета и фактура рисуются заново
+Img_InsertTag	Insert into the prompt as <image:N>	Вставить в промпт как <image:N>
+Img_MakeFirst	Make first: the size is taken from the first picture	Сделать первой: размер берётся по первой картинке
+Img_RefsExtraHint	Additional references: the model sees them together with the source, for example to take a style or an object from them	Дополнительные референсы: модель видит их вместе с исходником, например чтобы взять стиль или предмет
+Img_LimitInput	Reduce large pictures	Уменьшать крупные картинки
+Img_LimitInputHint	One picture up to 1536 px (2048 at 2K), two or three up to 1024, more up to 768. Camera photos otherwise overflow video memory.	Одна картинка — до 1536 px (2048 в 2K), две-три — до 1024, больше — до 768. Иначе фото с камеры переполняют видеопамять.
+Img_RefSent	→ {0} × {1}	→ {0} × {1}
+Img_RefsScaled	Large pictures will be reduced to {0} px on the long side to fit in video memory	Крупные картинки будут уменьшены до {0} px по длинной стороне, чтобы хватило видеопамяти
+Img_VisionMissing	The model has no vision file (mmproj): editing with a GGUF encoder needs it. Add it in “Models”.	У модели нет файла зрения (mmproj): без него правка с GGUF-кодировщиком не работает. Добавьте его в «Моделях».
+Img_TagsHint	Click a picture number to insert <image:N>: the model sees that picture at this place in the text	Щёлкните номер картинки, чтобы вставить <image:N>: модель увидит эту картинку в этом месте текста
+Img_TagsInPrompt	Pictures in the prompt: {0}	Картинки в промпте: {0}
+Img_TagsUnsupported	This model does not understand pictures in the prompt; remove the <image:N> tags	Эта модель не понимает картинки в промпте; уберите теги <image:N>
+Img_TagsNeedImages	Pictures in the prompt work in the editing and redraw modes	Картинки в промпте работают в режимах правки и перерисовки
+Img_TagUnknown	{0} does not match any picture: numbers go from 1 in list order	{0} не соответствует ни одной картинке: номера идут с 1 по порядку списка
+Img_TooManyRefs	No more than {0} pictures	Не больше {0} картинок
+Img_Transparent	Transparent background (RGBA)	Прозрачный фон (RGBA)
+Img_TransparentHint	The prompt is wrapped in the form recommended by the authors; PNG keeps the alpha channel	Промпт оборачивается в форму, рекомендованную авторами; PNG сохраняет альфа-канал
+Img_SizeFromRef	By the picture	По картинке
+Img_SizeFromRefHint	Proportions of the first reference or the source, size is a multiple of the model step	Пропорции первого референса или исходника, размер кратен шагу модели
+Img_Size2K	2K	2K
+Img_Size2KHint	Four times the area: the native editing size of Qwen-Image 2.1, about 3–4 times slower; VAE tiles turn on by themselves	Площадь вчетверо больше: родной размер правки Qwen-Image 2.1, примерно в 3–4 раза медленнее; плитки VAE включаются сами
+Img_StepCache	Step cache	Кэш шагов
+Img_StepCacheHint	Skips similar steps: faster at 20 steps and more, harms models with 4–8 steps	Пропускает похожие шаги: быстрее при 20 шагах и больше, портит модели на 4–8 шагов
+Img_CacheOff	Off	Выключен
+Img_PreviewMode	Preview	Превью
+Img_PreviewModeHint	Picture at every step: TAE is clear and nearly free, projection is rough, full VAE is exact but slow	Картинка на каждом шаге: TAE — чёткое и почти бесплатное, проекция — грубое, полный VAE — точное, но медленное
+Img_Preview_auto	Auto	Авто
+Img_Preview_tae	TAE	TAE
+Img_Preview_proj	Latent projection	Проекция латентов
+Img_Preview_vae	Full VAE	Полный VAE
+Img_Preview_none	Off	Выключено
+Img_Sigmas	Sigmas	Сигмы
+Img_SigmasHint	Your own noise schedule separated by commas; the step count follows it. Turbo models need their fixed schedule.	Своё расписание шума через запятую; число шагов берётся из него. Turbo-моделям нужно их фиксированное расписание.
+Img_Lora	LoRA	LoRA
+Img_LoraNone	None	Нет
+Img_LoraStrength	LoRA strength	Сила LoRA
+Img_LoraHint	Acceleration LoRAs (4–6 steps) need their own step count and CFG	Ускоряющим LoRA (4–6 шагов) нужны свои шаги и CFG
+Img_LoraNoDir	Set the LoRA folder in “Engine → Images” to choose a LoRA here	Укажите папку LoRA в «Движок → Изображения», чтобы выбирать LoRA здесь
+Img_LoraSetDir	Open settings	Открыть настройки
+Img_Final2K	Final in 2K	Финал в 2K
+Img_Final2KHint	The same seed and prompt at 2K with the same proportions	То же зерно и промпт в 2K с теми же пропорциями
+Img_Preparing	Preparing pictures	Подготовка картинок
+Img_Canceling	Stopping generation	Остановка генерации
+Img_Queued	In queue: {0}	В очереди: {0}
+Img_Pass	pass {0}	проход {0}
+Img_StageElapsed	{0} · {1} s	{0} · {1} с
+Img_CondTime	Prompt encoding {0} s	Разбор промпта {0} с
+Img_CondTimeImages	Prompt and pictures encoding {0} s; the next run with the same text and pictures takes it from the cache	Разбор промпта и картинок {0} с; следующий запуск с тем же текстом и картинками возьмёт его из кэша
+Img_CondCached	Prompt taken from the cache	Промпт взят из кэша
+Img_CondCachedImages	Prompt and pictures taken from the cache: seed and strength change without re-encoding	Промпт и картинки взяты из кэша: зерно и сила меняются без повторного разбора
+Img_SlowStepCuda	Steps are slow for this size. In the NVIDIA Control Panel set “CUDA – Sysmem Fallback Policy” to “Prefer No Sysmem Fallback” for sd-server.exe, or use fewer or smaller references.	Шаги идут медленно для этого размера. В Панели управления NVIDIA для sd-server.exe выберите «Политика резервной системной памяти CUDA» → «Предпочитать без резервной системной памяти» или уменьшите число и размер референсов.
+Img_SlowStep	Steps are slow for this size: video memory is probably short. Try fewer or smaller references or the “Editing and generation, 8 GB” profile.	Шаги идут медленно для этого размера: видимо, не хватает видеопамяти. Уменьшите число и размер референсов или включите профиль «Правка и генерация, 8 ГБ».
+Img_LivePreview	Preview of the current step	Превью текущего шага
+Img_Compare	Before / after	До / после
+Img_CompareHint	Drag to compare: before on the left, after on the right	Потяните, чтобы сравнить: слева — до, справа — после
+ImgStage_queued	In queue	В очереди
+ImgStage_waiting	Waiting for the generator	Ожидание генератора
+ImgStage_preparing	Loading models	Загрузка моделей
+ImgStage_conditioning	Reading the prompt and pictures	Разбор промпта и картинок
+ImgStage_sampling	Drawing	Рисование
+ImgStage_vae_encode	Encoding pictures	Кодирование картинок
+ImgStage_vae_decode	Decoding the result	Декодирование результата
+ImgStage_upscaling	Upscaling	Увеличение
+ImgStage_adetailer	Refining details	Доработка деталей
+ImgStage_encoding	Saving the picture	Сохранение картинки
+ImgWarn_DistilledCfg	This model is distilled: CFG above 1 burns colors and works twice as slow	Модель дистиллирована: CFG выше 1 пережигает цвета и работает вдвое медленнее
+ImgWarn_DistilledStepCache	The step cache spoils models with 4–8 steps; turn it off	Кэш шагов портит модели на 4–8 шагов; выключите его
+ImgWarn_SigmasOverrideSteps	The step count follows the sigma list; the steps slider is ignored	Число шагов берётся из списка сигм; ползунок шагов не действует
+ImgWarn_EditBelowNative	Editing is native at 2K: at 1K edits can look oversharpened. Pick the edit here, then press “Final in 2K”.	Родной размер правки — 2K: в 1K правки бывают пережаренными. Подберите правку здесь, затем нажмите «Финал в 2K».
+ImgWarn_VisionMissing	The model has no vision file (mmproj) for editing	У модели нет файла зрения (mmproj) для правки
+ImgWarn_BadSigmas	Sigmas: numbers separated by commas, at least two	Сигмы: числа через запятую, не меньше двух
+ImgEngine_Profiles	Memory profiles	Профили памяти
+ImgEngine_ProfilesHint	One button fills the memory settings below; threads, LoRA and your own arguments stay. Restart the generator afterwards.	Одна кнопка заполняет параметры памяти ниже; потоки, LoRA и свои аргументы остаются. После этого перезапустите генератор.
+ImgEngine_ApplyProfile	Apply	Применить
+ImgEngine_ProfileApplied	Profile applied: {0}.	Профиль применён: {0}.
+ImgEngine_VramBudget	Graphics card {0} → video memory budget {1} GB	Видеокарта {0} → бюджет видеопамяти {1} ГБ
+ImgEngine_NvidiaSysmem	NVIDIA on Windows: in the NVIDIA Control Panel set “CUDA – Sysmem Fallback Policy” to “Prefer No Sysmem Fallback” for sd-server.exe. Otherwise at a memory peak the driver quietly moves data to RAM and generation becomes about ten times slower.	NVIDIA в Windows: в Панели управления NVIDIA для sd-server.exe выберите «Политика резервной системной памяти CUDA» → «Предпочитать без резервной системной памяти». Иначе на пике памяти драйвер молча переносит данные в ОЗУ, и генерация замедляется примерно в десять раз.
+ImgEngine_AutoVaeTiling	VAE tiles by size	Плитки VAE по размеру
+ImgEngine_AutoVaeTilingHint	In each request where the output or an input is larger than 1280 px: 2K pictures are encoded and decoded without running out of memory	В каждом запросе, где результат или входная картинка больше 1280 px: 2K-картинки кодируются и декодируются без нехватки памяти
+ImgEngine_Mmap	Map files into memory	Отображать файлы в память
+ImgEngine_MmapHint	Fewer copies of the weights in RAM; useful with 16 GB	Меньше копий весов в ОЗУ; полезно при 16 ГБ
+ImgEngine_MaxVram	Video memory budget, GB	Бюджет видеопамяти, ГБ
+ImgEngine_MaxVramHint	For example 6.8 on an 8 GB card or cuda0=6.8 per device; -1 keeps about 1 GB free. Empty means no budget.	Например, 6.8 на карте 8 ГБ или cuda0=6.8 по устройствам; -1 оставляет свободным около 1 ГБ. Пусто — без бюджета.
+ImgEngine_CondCache	Prompt cache	Кэш промптов
+ImgEngine_CondCacheHint	How many encoded prompts with pictures to keep: changing the seed, strength or steps does not run the encoder again. Empty means the model default, 0 turns it off.	Сколько разобранных промптов с картинками помнить: смена зерна, силы или шагов не запускает кодировщик заново. Пусто — значение модели, 0 — выключить.
+ImgEngine_TaePreviewOnly	TAE only for preview	TAE только для превью
+ImgEngine_TaePreviewOnlyHint	With both a full VAE and TAE the result is decoded by the full VAE (with alpha and fine detail), TAE draws only the steps	Если есть и полный VAE, и TAE, результат декодирует полный VAE (с альфой и мелкими деталями), а TAE рисует только шаги
+ImgEngine_VaeTileSize	VAE tile size, px	Размер плитки VAE, px
+ImgEngine_VaeTileSizeHint	512 is a good balance on 8 GB; smaller tiles use less memory but seams are more likely	512 — хороший баланс на 8 ГБ; плитки меньше расходуют меньше памяти, но швы вероятнее
+ImgEngine_Fact_Multiple	Size multiple	Кратность размера
+ImgEngine_Fact_Alpha	Transparency (RGBA)	Прозрачность (RGBA)

@@ -141,6 +141,8 @@ public sealed partial class ImageEngineViewModel : ObservableObject
     private async Task LoadHardwareAsync()
     {
         _hw ??= await _s.Engine.GetHardwareAsync();
+        OnPropertyChanged(nameof(VramBudgetText));
+        OnPropertyChanged(nameof(ShowNvidiaHint));
         RebuildVariants();
         _ = CheckHealthAsync();
     }
@@ -151,6 +153,7 @@ public sealed partial class ImageEngineViewModel : ObservableObject
         Installed.Clear();
         foreach (var e in _s.ImageEngines.List()) Installed.Add(new SdEngineItem(e, active?.Id == e.Id));
         OnPropertyChanged(nameof(HasInstalled));
+        OnPropertyChanged(nameof(ShowNvidiaHint));
         _ = CheckHealthAsync();
         SchedulePreview();
     }
@@ -415,9 +418,12 @@ public sealed partial class ImageEngineViewModel : ObservableObject
             if (Model == null) return Array.Empty<PresetFact>();
             var p = Model.Preset;
             string B(bool b) => L.Get(b ? "Common_Yes" : "Common_No");
+            var files = string.Join(", ", p.Required.Select(c => L.Get("Enum_ImageComponent_" + c)));
+            if (p.RequiredAny is { Count: > 0 } any)
+                files += ", " + string.Join(" " + L.Get("Common_Or") + " ", any.Select(c => L.Get("Enum_ImageComponent_" + c)));
             var list = new List<PresetFact>
             {
-                new(L.Get("ImgEngine_Fact_Files"), string.Join(", ", p.Required.Select(c => L.Get("Enum_ImageComponent_" + c)))),
+                new(L.Get("ImgEngine_Fact_Files"), files),
                 new(L.Get("Img_Size"), $"{p.Width} × {p.Height}"),
                 new(L.Get("Img_Steps"), p.Steps.ToString(CultureInfo.InvariantCulture)),
                 new("CFG", p.Cfg.ToString("0.##", CultureInfo.InvariantCulture)),
@@ -428,6 +434,10 @@ public sealed partial class ImageEngineViewModel : ObservableObject
                 new(L.Get("ImgEngine_Fact_Edit"), B(p.SupportsRefImages)),
             };
             if (p.FlowShift is { } fs) list.Add(new PresetFact("Flow shift", fs.ToString("0.##", CultureInfo.InvariantCulture)));
+            if (p.SigmasText is { } sig) list.Add(new PresetFact(L.Get("Img_Sigmas"), sig));
+            if (p.SizeMultiple > 8) list.Add(new PresetFact(L.Get("ImgEngine_Fact_Multiple"), p.SizeMultiple.ToString(CultureInfo.InvariantCulture)));
+            if (p.ConditioningCache is { } cc) list.Add(new PresetFact(L.Get("ImgEngine_CondCache"), cc.ToString(CultureInfo.InvariantCulture)));
+            if (p.SupportsAlpha) list.Add(new PresetFact(L.Get("ImgEngine_Fact_Alpha"), L.Get("Common_Yes")));
             if (p.ModelArgs != null) list.Add(new PresetFact("--model-args", p.ModelArgs));
             return list;
         }
@@ -473,12 +483,50 @@ public sealed partial class ImageEngineViewModel : ObservableObject
     [ObservableProperty] private bool _shareVram = true;
     [ObservableProperty] private string? _preview;
     [ObservableProperty] private string? _skippedText;
+    /// <summary>--max-vram: «6.8», «cuda0=6.8» или пусто.</summary>
+    [ObservableProperty] private string _maxVram = string.Empty;
+    /// <summary>--conditioning-cache-size; пусто — значение пресета.</summary>
+    [ObservableProperty] private string _conditioningCacheSize = string.Empty;
+    [ObservableProperty] private bool _taePreviewOnly = true;
+    [ObservableProperty] private bool? _mmap;
+    /// <summary>Плитки VAE по размеру в каждом запросе (настройка генерации, перезапуск не нужен).</summary>
+    [ObservableProperty] private bool _autoVaeTiling = true;
+    [ObservableProperty] private string _vaeTileSize = "512";
 
     private static readonly HashSet<string> LaunchFields = new(StringComparer.Ordinal)
     {
         nameof(Threads), nameof(OffloadToCpu), nameof(ClipOnCpu), nameof(VaeOnCpu), nameof(VaeTiling), nameof(FlashAttention),
         nameof(WeightType), nameof(Rng), nameof(LoraDir), nameof(ModelArgs), nameof(ServerDefaults), nameof(ExtraArgs), nameof(ShareVram),
+        nameof(MaxVram), nameof(ConditioningCacheSize), nameof(TaePreviewOnly), nameof(Mmap), nameof(AutoVaeTiling), nameof(VaeTileSize),
     };
+
+    /// <summary>Поля, которые меняют запросы, а не запуск сервера — для них подсказка о перезапуске не нужна.</summary>
+    private static readonly HashSet<string> RequestFields = new(StringComparer.Ordinal) { nameof(AutoVaeTiling), nameof(VaeTileSize), nameof(ShareVram) };
+
+    // ---------- Профили памяти ----------
+
+    public IReadOnlyList<ImageMemoryProfile> Profiles { get; } = Enum.GetValues(typeof(ImageMemoryProfile)).Cast<ImageMemoryProfile>().ToList();
+
+    /// <summary>«Видеокарта 8 ГБ → бюджет 6.8 ГБ» — что подставят профили.</summary>
+    public string? VramBudgetText => _hw?.BestGpu is { DedicatedMemory: > 0 } g
+        ? L.F("ImgEngine_VramBudget", Units.FormatBytes(g.DedicatedMemory), ImageMemoryProfiles.VramBudgetGb(g.DedicatedMemory).ToString("0.#", CultureInfo.CurrentCulture))
+        : null;
+
+    /// <summary>Сборка CUDA на NVIDIA — показать подсказку про системную память драйвера.</summary>
+    public bool ShowNvidiaHint => _s.ImageEngines.Active?.Manifest.Backend == EngineBackend.Cuda || _hw?.BestGpu?.Vendor == GpuVendor.Nvidia;
+
+    /// <summary>Заполнить параметры памяти готовым набором: остальное (потоки, LoRA, свои аргументы) не меняется.</summary>
+    [RelayCommand]
+    private void ApplyProfile(ImageMemoryProfile profile)
+    {
+        ImageMemoryProfiles.Apply(_i.Launch, profile, _hw?.BestGpu?.DedicatedMemory ?? 0);
+        _i.AutoVaeTiling = true;
+        LoadLaunch();
+        _s.Settings.Save();
+        SchedulePreview();
+        ApiMessage = L.F("ImgEngine_ProfileApplied", L.Get("Enum_ImageMemoryProfile_" + profile)) +
+                     (_s.ImageServer.State == ServerState.Ready ? " " + L.Get("ImgEngine_RestartHint") : string.Empty);
+    }
 
     private void LoadLaunch()
     {
@@ -497,6 +545,12 @@ public sealed partial class ImageEngineViewModel : ObservableObject
         ServerDefaults = l.ServerDefaults;
         ExtraArgs = l.ExtraArgs ?? string.Empty;
         ShareVram = _i.ShareVram;
+        MaxVram = l.MaxVram ?? string.Empty;
+        ConditioningCacheSize = l.ConditioningCacheSize?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        TaePreviewOnly = l.TaePreviewOnly;
+        Mmap = l.Mmap;
+        AutoVaeTiling = _i.AutoVaeTiling;
+        VaeTileSize = _i.VaeTileSize.ToString(CultureInfo.InvariantCulture);
         _loading = false;
     }
 
@@ -518,9 +572,16 @@ public sealed partial class ImageEngineViewModel : ObservableObject
         l.ServerDefaults = ServerDefaults;
         l.ExtraArgs = string.IsNullOrWhiteSpace(ExtraArgs) ? null : ExtraArgs.Trim();
         _i.ShareVram = ShareVram;
+        l.MaxVram = string.IsNullOrWhiteSpace(MaxVram) ? null : MaxVram.Trim();
+        l.ConditioningCacheSize = int.TryParse(ConditioningCacheSize.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var cc) && cc >= 0 ? cc : null;
+        l.TaePreviewOnly = TaePreviewOnly;
+        l.Mmap = Mmap;
+        _i.AutoVaeTiling = AutoVaeTiling;
+        _i.VaeTileSize = int.TryParse(VaeTileSize.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var ts) && ts >= 64 ? ts : 512;
         _s.Settings.Save();
         SchedulePreview();
-        if (_s.ImageServer.State == ServerState.Ready) ApiMessage = L.Get("ImgEngine_RestartHint");
+        if (e.PropertyName == nameof(LoraDir)) _s.NotifyImageSetupChanged();
+        if (_s.ImageServer.State == ServerState.Ready && !RequestFields.Contains(e.PropertyName)) ApiMessage = L.Get("ImgEngine_RestartHint");
     }
 
     /// <summary>Все параметры запуска — снова «авто» (значения пресета).</summary>

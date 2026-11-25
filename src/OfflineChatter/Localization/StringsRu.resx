@@ -1184,7 +1184,7 @@
   <data name="ImgComp_Hint_ClipG" xml:space="preserve"><value>Читает промпт (SD3)</value></data>
   <data name="ImgComp_Hint_T5xxl" xml:space="preserve"><value>Читает длинные промпты (FLUX, SD3, Chroma)</value></data>
   <data name="ImgComp_Hint_Llm" xml:space="preserve"><value>Языковая модель, которая читает промпт (Qwen-Image, Z-Image, FLUX.2)</value></data>
-  <data name="ImgComp_Hint_LlmVision" xml:space="preserve"><value>Позволяет языковой модели видеть референсы (Qwen-Image-Edit)</value></data>
+  <data name="ImgComp_Hint_LlmVision" xml:space="preserve"><value>Позволяет языковой модели видеть референсы (Qwen-Image-Edit, Qwen-Image 2.1)</value></data>
   <data name="ImgComp_Hint_ClipVision" xml:space="preserve"><value>Кодировщик картинок для видеомоделей</value></data>
   <data name="Img_FileNotSet" xml:space="preserve"><value>не указан — обязателен</value></data>
   <data name="Img_FileOptional" xml:space="preserve"><value>не указан — по желанию</value></data>
@@ -1241,10 +1241,10 @@
   <data name="Img_Mode" xml:space="preserve"><value>Режим</value></data>
   <data name="Enum_ImageMode_TextToImage" xml:space="preserve"><value>Из текста</value></data>
   <data name="Enum_ImageMode_Edit" xml:space="preserve"><value>Редактирование по референсам</value></data>
-  <data name="Enum_ImageMode_ImageToImage" xml:space="preserve"><value>Перерисовка картинки</value></data>
+  <data name="Enum_ImageMode_ImageToImage" xml:space="preserve"><value>Перерисовка и маска</value></data>
   <data name="Img_ModeHint_TextToImage" xml:space="preserve"><value>Картинка рисуется только по описанию</value></data>
   <data name="Img_ModeHint_Edit" xml:space="preserve"><value>Модель видит референсы и меняет их по описанию: «сделай зиму», «посади кота на диван»</value></data>
-  <data name="Img_ModeHint_ImageToImage" xml:space="preserve"><value>Исходная картинка частично зашумляется и перерисовывается; сила задаёт, насколько изменится</value></data>
+  <data name="Img_ModeHint_ImageToImage" xml:space="preserve"><value>Исходник частично зашумляется и перерисовывается; сила задаёт, насколько изменится. Закрасьте маску, чтобы перерисовать только часть картинки.</value></data>
   <data name="Img_Prompt" xml:space="preserve"><value>Описание (промпт)</value></data>
   <data name="Img_PromptHint" xml:space="preserve"><value>Опишите предмет, место, стиль и свет. Обычно лучше по-английски, но Qwen-Image и Z-Image понимают и русский.</value></data>
   <data name="Img_Negative" xml:space="preserve"><value>Чего избегать (негативный промпт)</value></data>
@@ -1376,4 +1376,127 @@
   <data name="ImgApi_Endpoints" xml:space="preserve"><value>Также доступны /v1/models, /sdapi/v1/txt2img и /sdapi/v1/img2img (формат Automatic1111). Дополнительные параметры можно передать в промпте блоком &lt;sd_cpp_extra_args&gt;{...}&lt;/sd_cpp_extra_args&gt;.</value></data>
   <data name="ImgApi_ExampleTitle" xml:space="preserve"><value>Примеры запросов</value></data>
   <data name="ImgApi_Apply" xml:space="preserve"><value>Запустить</value></data>
+  <data name="Common_Or" xml:space="preserve"><value>или</value></data>
+  <data name="Enum_ImageComponent_Tae" xml:space="preserve"><value>Мини-автокодировщик (TAE)</value></data>
+  <data name="ImgComp_Hint_Tae" xml:space="preserve"><value>Живое превью на каждом шаге (TAESD, TAEQI2.1); без полного VAE декодирует и результат, чуть менее детально</value></data>
+  <data name="Enum_ImageFamily_QwenImage21" xml:space="preserve"><value>Qwen-Image 2.1</value></data>
+  <data name="Enum_ImageFamily_QwenImage21Turbo" xml:space="preserve"><value>Qwen-Image 2.1 Turbo</value></data>
+  <data name="ImgFamily_Hint_QwenImage21" xml:space="preserve"><value>Генерация и правка одной моделью. Настройки авторов: 20 шагов, CFG 1, размеры кратны 32. Нужны кодировщик Qwen3-VL-8B, mmproj для правки и VAE 2.1 или TAEQI2.1.</value></data>
+  <data name="ImgFamily_Hint_QwenImage21Turbo" xml:space="preserve"><value>8 шагов по фиксированному расписанию сигм, CFG 1, Euler, без кэша шагов. Родной размер правки — 2K: подберите правку в 1K, затем «Финал в 2K».</value></data>
+  <data name="ImgKit_qwen_image_21_turbo_q4" xml:space="preserve"><value>Правка, перерисовка и генерация одной моделью на 8 ГБ. AD-Q4_K оставляет место под внимание референсов, mmproj F16 видит детали и текст на фото.</value></data>
+  <data name="ImgKit_qwen_image_21_turbo_q4_lite" xml:space="preserve"><value>То же с mmproj Q8_0: примерно на 400 МБ меньше ОЗУ, распознавание почти такое же. Для 16 ГБ ОЗУ.</value></data>
+  <data name="ImgKit_qwen_image_21_turbo_q5" xml:space="preserve"><value>Лучшее качество в 1K: AD-Q5_K и кодировщик Q8_0 для мелкого текста. Кодировщик лучше держать на процессоре (профиль «Кодировщик на процессоре»), нужно 32 ГБ ОЗУ.</value></data>
+  <data name="ImgKit_NeedsRam" xml:space="preserve"><value>нужно около {0} ОЗУ</value></data>
+  <data name="Enum_ImageFit_CropResize" xml:space="preserve"><value>Обрезать по размеру</value></data>
+  <data name="Enum_ImageFit_FitPad" xml:space="preserve"><value>Вписать с полями</value></data>
+  <data name="Enum_ImageFit_Stretch" xml:space="preserve"><value>Растянуть</value></data>
+  <data name="Enum_ImageMemoryProfile_Balanced" xml:space="preserve"><value>Правка и генерация, 8 ГБ</value></data>
+  <data name="Enum_ImageMemoryProfile_Balanced_Hint" xml:space="preserve"><value>Веса в ОЗУ и подгружаются в видеокарту по мере надобности; бюджет видеопамяти, flash attention, кэш на 8 промптов, плитки VAE по размеру</value></data>
+  <data name="Enum_ImageMemoryProfile_SaveRam" xml:space="preserve"><value>Экономия ОЗУ, 16 ГБ</value></data>
+  <data name="Enum_ImageMemoryProfile_SaveRam_Hint" xml:space="preserve"><value>То же плюс отображение файлов весов в память: меньше копий в ОЗУ. Хорошо сочетается с mmproj Q8_0.</value></data>
+  <data name="Enum_ImageMemoryProfile_EncoderOnCpu" xml:space="preserve"><value>Кодировщик на процессоре, 32 ГБ</value></data>
+  <data name="Enum_ImageMemoryProfile_EncoderOnCpu_Hint" xml:space="preserve"><value>Кодировщик с mmproj работает на процессоре и не занимает видеопамять. Разбор промпта медленнее (4–8 с), но кэш хранит его, пока вы меняете зерно.</value></data>
+  <data name="Img_DroppedParams" xml:space="preserve"><value>В картинке сохранены параметры генерации</value></data>
+  <data name="Img_RestoreParams" xml:space="preserve"><value>Восстановить параметры</value></data>
+  <data name="Img_ParamsRestored" xml:space="preserve"><value>Параметры восстановлены из картинки</value></data>
+  <data name="Img_Mask" xml:space="preserve"><value>Маска</value></data>
+  <data name="Img_BrushSize" xml:space="preserve"><value>Кисть</value></data>
+  <data name="Img_Eraser" xml:space="preserve"><value>Ластик</value></data>
+  <data name="Img_MaskInvert" xml:space="preserve"><value>Перерисовать вне маски</value></data>
+  <data name="Img_MaskClear" xml:space="preserve"><value>Стереть маску</value></data>
+  <data name="Img_MaskHint" xml:space="preserve"><value>Закрасьте то, что нужно перерисовать. Без маски меняется вся картинка.</value></data>
+  <data name="Img_Fit" xml:space="preserve"><value>Подгонка под размер</value></data>
+  <data name="Img_FitHint" xml:space="preserve"><value>Как исходник и маска ложатся на размер результата, если пропорции разные</value></data>
+  <data name="Img_Canny" xml:space="preserve"><value>Только контуры (Canny)</value></data>
+  <data name="Img_CannyHint" xml:space="preserve"><value>Модель получает контуры исходника вместо картинки: композиция идёт по линиям, цвета и фактура рисуются заново</value></data>
+  <data name="Img_InsertTag" xml:space="preserve"><value>Вставить в промпт как &lt;image:N&gt;</value></data>
+  <data name="Img_MakeFirst" xml:space="preserve"><value>Сделать первой: размер берётся по первой картинке</value></data>
+  <data name="Img_RefsExtraHint" xml:space="preserve"><value>Дополнительные референсы: модель видит их вместе с исходником, например чтобы взять стиль или предмет</value></data>
+  <data name="Img_LimitInput" xml:space="preserve"><value>Уменьшать крупные картинки</value></data>
+  <data name="Img_LimitInputHint" xml:space="preserve"><value>Одна картинка — до 1536 px (2048 в 2K), две-три — до 1024, больше — до 768. Иначе фото с камеры переполняют видеопамять.</value></data>
+  <data name="Img_RefSent" xml:space="preserve"><value>→ {0} × {1}</value></data>
+  <data name="Img_RefsScaled" xml:space="preserve"><value>Крупные картинки будут уменьшены до {0} px по длинной стороне, чтобы хватило видеопамяти</value></data>
+  <data name="Img_VisionMissing" xml:space="preserve"><value>У модели нет файла зрения (mmproj): без него правка с GGUF-кодировщиком не работает. Добавьте его в «Моделях».</value></data>
+  <data name="Img_TagsHint" xml:space="preserve"><value>Щёлкните номер картинки, чтобы вставить &lt;image:N&gt;: модель увидит эту картинку в этом месте текста</value></data>
+  <data name="Img_TagsInPrompt" xml:space="preserve"><value>Картинки в промпте: {0}</value></data>
+  <data name="Img_TagsUnsupported" xml:space="preserve"><value>Эта модель не понимает картинки в промпте; уберите теги &lt;image:N&gt;</value></data>
+  <data name="Img_TagsNeedImages" xml:space="preserve"><value>Картинки в промпте работают в режимах правки и перерисовки</value></data>
+  <data name="Img_TagUnknown" xml:space="preserve"><value>{0} не соответствует ни одной картинке: номера идут с 1 по порядку списка</value></data>
+  <data name="Img_TooManyRefs" xml:space="preserve"><value>Не больше {0} картинок</value></data>
+  <data name="Img_Transparent" xml:space="preserve"><value>Прозрачный фон (RGBA)</value></data>
+  <data name="Img_TransparentHint" xml:space="preserve"><value>Промпт оборачивается в форму, рекомендованную авторами; PNG сохраняет альфа-канал</value></data>
+  <data name="Img_SizeFromRef" xml:space="preserve"><value>По картинке</value></data>
+  <data name="Img_SizeFromRefHint" xml:space="preserve"><value>Пропорции первого референса или исходника, размер кратен шагу модели</value></data>
+  <data name="Img_Size2K" xml:space="preserve"><value>2K</value></data>
+  <data name="Img_Size2KHint" xml:space="preserve"><value>Площадь вчетверо больше: родной размер правки Qwen-Image 2.1, примерно в 3–4 раза медленнее; плитки VAE включаются сами</value></data>
+  <data name="Img_StepCache" xml:space="preserve"><value>Кэш шагов</value></data>
+  <data name="Img_StepCacheHint" xml:space="preserve"><value>Пропускает похожие шаги: быстрее при 20 шагах и больше, портит модели на 4–8 шагов</value></data>
+  <data name="Img_CacheOff" xml:space="preserve"><value>Выключен</value></data>
+  <data name="Img_PreviewMode" xml:space="preserve"><value>Превью</value></data>
+  <data name="Img_PreviewModeHint" xml:space="preserve"><value>Картинка на каждом шаге: TAE — чёткое и почти бесплатное, проекция — грубое, полный VAE — точное, но медленное</value></data>
+  <data name="Img_Preview_auto" xml:space="preserve"><value>Авто</value></data>
+  <data name="Img_Preview_tae" xml:space="preserve"><value>TAE</value></data>
+  <data name="Img_Preview_proj" xml:space="preserve"><value>Проекция латентов</value></data>
+  <data name="Img_Preview_vae" xml:space="preserve"><value>Полный VAE</value></data>
+  <data name="Img_Preview_none" xml:space="preserve"><value>Выключено</value></data>
+  <data name="Img_Sigmas" xml:space="preserve"><value>Сигмы</value></data>
+  <data name="Img_SigmasHint" xml:space="preserve"><value>Своё расписание шума через запятую; число шагов берётся из него. Turbo-моделям нужно их фиксированное расписание.</value></data>
+  <data name="Img_Lora" xml:space="preserve"><value>LoRA</value></data>
+  <data name="Img_LoraNone" xml:space="preserve"><value>Нет</value></data>
+  <data name="Img_LoraStrength" xml:space="preserve"><value>Сила LoRA</value></data>
+  <data name="Img_LoraHint" xml:space="preserve"><value>Ускоряющим LoRA (4–6 шагов) нужны свои шаги и CFG</value></data>
+  <data name="Img_LoraNoDir" xml:space="preserve"><value>Укажите папку LoRA в «Движок → Изображения», чтобы выбирать LoRA здесь</value></data>
+  <data name="Img_LoraSetDir" xml:space="preserve"><value>Открыть настройки</value></data>
+  <data name="Img_Final2K" xml:space="preserve"><value>Финал в 2K</value></data>
+  <data name="Img_Final2KHint" xml:space="preserve"><value>То же зерно и промпт в 2K с теми же пропорциями</value></data>
+  <data name="Img_Preparing" xml:space="preserve"><value>Подготовка картинок</value></data>
+  <data name="Img_Canceling" xml:space="preserve"><value>Остановка генерации</value></data>
+  <data name="Img_Queued" xml:space="preserve"><value>В очереди: {0}</value></data>
+  <data name="Img_Pass" xml:space="preserve"><value>проход {0}</value></data>
+  <data name="Img_StageElapsed" xml:space="preserve"><value>{0} · {1} с</value></data>
+  <data name="Img_CondTime" xml:space="preserve"><value>Разбор промпта {0} с</value></data>
+  <data name="Img_CondTimeImages" xml:space="preserve"><value>Разбор промпта и картинок {0} с; следующий запуск с тем же текстом и картинками возьмёт его из кэша</value></data>
+  <data name="Img_CondCached" xml:space="preserve"><value>Промпт взят из кэша</value></data>
+  <data name="Img_CondCachedImages" xml:space="preserve"><value>Промпт и картинки взяты из кэша: зерно и сила меняются без повторного разбора</value></data>
+  <data name="Img_SlowStepCuda" xml:space="preserve"><value>Шаги идут медленно для этого размера. В Панели управления NVIDIA для sd-server.exe выберите «Политика резервной системной памяти CUDA» → «Предпочитать без резервной системной памяти» или уменьшите число и размер референсов.</value></data>
+  <data name="Img_SlowStep" xml:space="preserve"><value>Шаги идут медленно для этого размера: видимо, не хватает видеопамяти. Уменьшите число и размер референсов или включите профиль «Правка и генерация, 8 ГБ».</value></data>
+  <data name="Img_LivePreview" xml:space="preserve"><value>Превью текущего шага</value></data>
+  <data name="Img_Compare" xml:space="preserve"><value>До / после</value></data>
+  <data name="Img_CompareHint" xml:space="preserve"><value>Потяните, чтобы сравнить: слева — до, справа — после</value></data>
+  <data name="ImgStage_queued" xml:space="preserve"><value>В очереди</value></data>
+  <data name="ImgStage_waiting" xml:space="preserve"><value>Ожидание генератора</value></data>
+  <data name="ImgStage_preparing" xml:space="preserve"><value>Загрузка моделей</value></data>
+  <data name="ImgStage_conditioning" xml:space="preserve"><value>Разбор промпта и картинок</value></data>
+  <data name="ImgStage_sampling" xml:space="preserve"><value>Рисование</value></data>
+  <data name="ImgStage_vae_encode" xml:space="preserve"><value>Кодирование картинок</value></data>
+  <data name="ImgStage_vae_decode" xml:space="preserve"><value>Декодирование результата</value></data>
+  <data name="ImgStage_upscaling" xml:space="preserve"><value>Увеличение</value></data>
+  <data name="ImgStage_adetailer" xml:space="preserve"><value>Доработка деталей</value></data>
+  <data name="ImgStage_encoding" xml:space="preserve"><value>Сохранение картинки</value></data>
+  <data name="ImgWarn_DistilledCfg" xml:space="preserve"><value>Модель дистиллирована: CFG выше 1 пережигает цвета и работает вдвое медленнее</value></data>
+  <data name="ImgWarn_DistilledStepCache" xml:space="preserve"><value>Кэш шагов портит модели на 4–8 шагов; выключите его</value></data>
+  <data name="ImgWarn_SigmasOverrideSteps" xml:space="preserve"><value>Число шагов берётся из списка сигм; ползунок шагов не действует</value></data>
+  <data name="ImgWarn_EditBelowNative" xml:space="preserve"><value>Родной размер правки — 2K: в 1K правки бывают пережаренными. Подберите правку здесь, затем нажмите «Финал в 2K».</value></data>
+  <data name="ImgWarn_VisionMissing" xml:space="preserve"><value>У модели нет файла зрения (mmproj) для правки</value></data>
+  <data name="ImgWarn_BadSigmas" xml:space="preserve"><value>Сигмы: числа через запятую, не меньше двух</value></data>
+  <data name="ImgEngine_Profiles" xml:space="preserve"><value>Профили памяти</value></data>
+  <data name="ImgEngine_ProfilesHint" xml:space="preserve"><value>Одна кнопка заполняет параметры памяти ниже; потоки, LoRA и свои аргументы остаются. После этого перезапустите генератор.</value></data>
+  <data name="ImgEngine_ApplyProfile" xml:space="preserve"><value>Применить</value></data>
+  <data name="ImgEngine_ProfileApplied" xml:space="preserve"><value>Профиль применён: {0}.</value></data>
+  <data name="ImgEngine_VramBudget" xml:space="preserve"><value>Видеокарта {0} → бюджет видеопамяти {1} ГБ</value></data>
+  <data name="ImgEngine_NvidiaSysmem" xml:space="preserve"><value>NVIDIA в Windows: в Панели управления NVIDIA для sd-server.exe выберите «Политика резервной системной памяти CUDA» → «Предпочитать без резервной системной памяти». Иначе на пике памяти драйвер молча переносит данные в ОЗУ, и генерация замедляется примерно в десять раз.</value></data>
+  <data name="ImgEngine_AutoVaeTiling" xml:space="preserve"><value>Плитки VAE по размеру</value></data>
+  <data name="ImgEngine_AutoVaeTilingHint" xml:space="preserve"><value>В каждом запросе, где результат или входная картинка больше 1280 px: 2K-картинки кодируются и декодируются без нехватки памяти</value></data>
+  <data name="ImgEngine_Mmap" xml:space="preserve"><value>Отображать файлы в память</value></data>
+  <data name="ImgEngine_MmapHint" xml:space="preserve"><value>Меньше копий весов в ОЗУ; полезно при 16 ГБ</value></data>
+  <data name="ImgEngine_MaxVram" xml:space="preserve"><value>Бюджет видеопамяти, ГБ</value></data>
+  <data name="ImgEngine_MaxVramHint" xml:space="preserve"><value>Например, 6.8 на карте 8 ГБ или cuda0=6.8 по устройствам; -1 оставляет свободным около 1 ГБ. Пусто — без бюджета.</value></data>
+  <data name="ImgEngine_CondCache" xml:space="preserve"><value>Кэш промптов</value></data>
+  <data name="ImgEngine_CondCacheHint" xml:space="preserve"><value>Сколько разобранных промптов с картинками помнить: смена зерна, силы или шагов не запускает кодировщик заново. Пусто — значение модели, 0 — выключить.</value></data>
+  <data name="ImgEngine_TaePreviewOnly" xml:space="preserve"><value>TAE только для превью</value></data>
+  <data name="ImgEngine_TaePreviewOnlyHint" xml:space="preserve"><value>Если есть и полный VAE, и TAE, результат декодирует полный VAE (с альфой и мелкими деталями), а TAE рисует только шаги</value></data>
+  <data name="ImgEngine_VaeTileSize" xml:space="preserve"><value>Размер плитки VAE, px</value></data>
+  <data name="ImgEngine_VaeTileSizeHint" xml:space="preserve"><value>512 — хороший баланс на 8 ГБ; плитки меньше расходуют меньше памяти, но швы вероятнее</value></data>
+  <data name="ImgEngine_Fact_Multiple" xml:space="preserve"><value>Кратность размера</value></data>
+  <data name="ImgEngine_Fact_Alpha" xml:space="preserve"><value>Прозрачность (RGBA)</value></data>
 </root>

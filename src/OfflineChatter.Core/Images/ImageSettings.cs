@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace OfflineChatter.Core.Images;
 
@@ -28,6 +30,29 @@ public sealed class ImageSettings
 
     /// <summary>Куда сохранять картинки (пусто — папка images рядом с данными программы).</summary>
     public string? OutputFolder { get; set; }
+
+    // ---------- Генерация: превью, память, входные картинки ----------
+
+    /// <summary>Живое превью по шагам: "auto" (TAE, если есть, иначе проекция латентов), "none", "proj", "tae", "vae".</summary>
+    public string PreviewMode { get; set; } = "auto";
+
+    /// <summary>Каждые сколько шагов обновлять превью.</summary>
+    public int PreviewInterval { get; set; } = 1;
+
+    /// <summary>
+    /// Плитки VAE в запросе, когда выход или вход больше <see cref="ImageInputPolicy.TilingThreshold"/>: кодирование и
+    /// декодирование 2K-картинок без плиток — частая причина нехватки видеопамяти до первого шага или на 100 %.
+    /// </summary>
+    public bool AutoVaeTiling { get; set; } = true;
+
+    /// <summary>Размер плитки VAE в пикселях.</summary>
+    public int VaeTileSize { get; set; } = 512;
+
+    /// <summary>
+    /// Уменьшать референсы по длинной стороне в зависимости от их числа (<see cref="ImageInputPolicy.RefMaxSide"/>):
+    /// фото с камеры раздувает и зрение кодировщика, и внимание диффузионной модели.
+    /// </summary>
+    public bool LimitInputSize { get; set; } = true;
 
     // ---------- Публичный OpenAI-совместимый API ----------
 
@@ -85,7 +110,58 @@ public sealed class ImageLaunchSettings
     /// <summary>Произвольные аргументы командной строки.</summary>
     public string? ExtraArgs { get; set; }
 
+    /// <summary>
+    /// Бюджет видеопамяти для весов и буферов (--max-vram): «6.8» — ГиБ на устройство, «cuda0=6.8» — по устройствам,
+    /// «-1» — оставить свободным около 1 ГиБ. Это не жёсткий предел: контекст драйвера в него не входит.
+    /// </summary>
+    public string? MaxVram { get; set; }
+
+    /// <summary>Сколько результатов кодирования промпта (и картинок) помнить (--conditioning-cache-size); null — значение пресета.</summary>
+    public int? ConditioningCacheSize { get; set; }
+
+    /// <summary>Если есть и VAE, и TAE: TAE только для превью, итог — полным VAE (--taesd-preview-only).</summary>
+    public bool TaePreviewOnly { get; set; } = true;
+
+    /// <summary>Отображать файлы весов в память (--mmap): меньше копий в ОЗУ при 16 ГБ.</summary>
+    public bool? Mmap { get; set; }
+
     public ImageLaunchSettings Clone() => (ImageLaunchSettings)MemberwiseClone();
+}
+
+/// <summary>Готовые наборы параметров памяти для «Движок → Изображения» (одна кнопка).</summary>
+public enum ImageMemoryProfile
+{
+    /// <summary>Правка и генерация на 8 ГБ: веса в ОЗУ, бюджет видеопамяти, flash attention, кэш промптов на 8.</summary>
+    Balanced,
+    /// <summary>То же, плюс отображение файлов в память — для 16 ГБ ОЗУ.</summary>
+    SaveRam,
+    /// <summary>Кодировщик на процессоре: 0 МБ видеопамяти на него; для 32 ГБ ОЗУ и кодировщика Q8_0.</summary>
+    EncoderOnCpu,
+}
+
+public static class ImageMemoryProfiles
+{
+    /// <summary>
+    /// Бюджет видеопамяти: 85 % объёма карты (8 ГБ → 6.8), минимум 2 ГиБ. На Windows часть памяти держат рабочий стол
+    /// и драйвер, поэтому полный объём не задаётся.
+    /// </summary>
+    public static double VramBudgetGb(long dedicatedBytes)
+    {
+        var gb = dedicatedBytes / (double)(1L << 30);
+        return Math.Max(2.0, Math.Round(gb * 0.85, 1));
+    }
+
+    /// <summary>Заполнить параметры запуска значениями профиля; остальное (потоки, LoRA, свои аргументы) не трогается.</summary>
+    public static void Apply(ImageLaunchSettings s, ImageMemoryProfile profile, long dedicatedVram)
+    {
+        s.OffloadToCpu = true;
+        s.FlashAttention = "on";
+        s.ConditioningCacheSize = 8;
+        s.VaeTiling = null; // плитки включаются по размеру в каждом запросе
+        s.MaxVram = dedicatedVram > 0 ? VramBudgetGb(dedicatedVram).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) : null;
+        s.Mmap = profile == ImageMemoryProfile.SaveRam ? true : null;
+        s.ClipOnCpu = profile == ImageMemoryProfile.EncoderOnCpu ? true : null;
+    }
 }
 
 /// <summary>Режим страницы генерации.</summary>
@@ -120,12 +196,43 @@ public sealed class ImageGenParams
     /// <summary>Сила изменения для img2img (0 — без изменений, 1 — нарисовать заново).</summary>
     public double Strength { get; set; } = 0.75;
 
+    /// <summary>Свои сигмы через запятую (Turbo: фиксированное расписание на 8 шагов); пусто — расписание сэмплера.</summary>
+    public string Sigmas { get; set; } = string.Empty;
+
+    /// <summary>Кэш шагов диффузии: "" (выключен), "easycache", "dbcache", "taylorseer", "cache-dit", "ucache", "spectrum".</summary>
+    public string CacheMode { get; set; } = string.Empty;
+
+    /// <summary>Прозрачный фон: промпт оборачивается в рекомендованную авторами форму (Qwen-Image 2.1 решает по тексту).</summary>
+    public bool Transparent { get; set; }
+
+    /// <summary>Как подогнать исходник img2img (и маску) под размер холста.</summary>
+    public ImageFit InitFit { get; set; } = ImageFit.CropResize;
+
+    /// <summary>Вместо исходника отправить его контуры (Canny): композиция по линиям, цвета — заново.</summary>
+    public bool InitCanny { get; set; }
+
+    /// <summary>Перерисовывать то, что вне маски.</summary>
+    public bool MaskInvert { get; set; }
+
+    /// <summary>Размер по первому референсу (пропорции фото, кратно модели).</summary>
+    public bool SizeFromRef { get; set; } = true;
+
+    /// <summary>Масштаб размера от базового: 1 — 1K (быстро), 2 — 2K (родной размер правки Qwen-Image 2.1).</summary>
+    public int SizeScale { get; set; } = 1;
+
+    public List<ImageLora> Loras { get; set; } = new();
+
     public string? ModelName { get; set; }
     public string? Family { get; set; }
 
-    public ImageGenParams Clone() => (ImageGenParams)MemberwiseClone();
+    public ImageGenParams Clone()
+    {
+        var c = (ImageGenParams)MemberwiseClone();
+        c.Loras = Loras.Select(l => new ImageLora { Path = l.Path, Multiplier = l.Multiplier }).ToList();
+        return c;
+    }
 
-    /// <summary>Значения пресета (размер, шаги, CFG, сэмплер); промпты и режим сохраняются.</summary>
+    /// <summary>Значения пресета (размер, шаги, CFG, сэмплер, сигмы); промпты и режим сохраняются.</summary>
     public void ApplyPreset(ImagePreset p)
     {
         Width = p.Width;
@@ -135,7 +242,17 @@ public sealed class ImageGenParams
         Sampler = p.Sampler;
         Scheduler = p.Scheduler ?? string.Empty;
         FlowShift = p.FlowShift;
+        Sigmas = p.SigmasText ?? string.Empty;
+        if (p.IsDistilled) CacheMode = string.Empty;
         Family = p.Id;
         if (Mode == ImageMode.Edit && !p.SupportsRefImages) Mode = ImageMode.TextToImage;
+        if (!p.SupportsAlpha) Transparent = false;
     }
+}
+
+/// <summary>LoRA для запроса: путь относительно папки LoRA сервера и сила.</summary>
+public sealed class ImageLora
+{
+    public string Path { get; set; } = string.Empty;
+    public double Multiplier { get; set; } = 1.0;
 }

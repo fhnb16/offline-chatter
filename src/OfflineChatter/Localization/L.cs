@@ -51,6 +51,19 @@ public static class L
         return "[" + key + "]";
     }
 
+    /// <summary>Строка или null, если такого ключа нет (для значений, которые присылает сервер и которых может не быть в таблице).</summary>
+    public static string? TryGet(string key)
+    {
+        try
+        {
+            return (IsRussian ? Ru.GetString(key, CultureInfo.InvariantCulture) : null) ?? En.GetString(key, CultureInfo.InvariantCulture);
+        }
+        catch (MissingManifestResourceException)
+        {
+            return null;
+        }
+    }
+
     public static string F(string key, params object?[] args)
     {
         var fmt = Get(key);

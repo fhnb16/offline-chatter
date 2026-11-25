@@ -220,6 +220,9 @@ public sealed partial class ModelsViewModel
             var text = vram > 0
                 ? L.F(fits ? "ImgKit_FitsGpu" : "ImgKit_Offload", Units.FormatBytes(kit.MinVram))
                 : L.Get("ImgKit_CpuOnly");
+            // Веса, выгруженные из видеопамяти, живут в ОЗУ: при нехватке начинается подкачка и всё встаёт
+            if (kit.MinRam > 0 && hw.TotalRam > 0 && hw.TotalRam < kit.MinRam * 0.95)
+                text += " · " + L.F("ImgKit_NeedsRam", Units.FormatBytes(kit.MinRam));
             Kits.Add(new ImageKitItem(kit, text, fits));
         }
         RefreshKitDownloads();

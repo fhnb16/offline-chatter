@@ -35,14 +35,28 @@ public sealed class ImageModel
     /// <summary>Каких обязательных файлов семейства нет (не назначены или пропали с диска).</summary>
     public IReadOnlyList<ImageComponent> Missing()
     {
-        var list = Preset.Required.Where(r => !Files.TryGetValue(r, out var p) || !File.Exists(p)).ToList();
+        bool Has(ImageComponent c) => Files.TryGetValue(c, out var p) && File.Exists(p);
+        var list = Preset.Required.Where(r => !Has(r)).ToList();
         // Свой набор: нужен хотя бы один основной файл
         if (Preset.Family == ImageFamily.Custom && MainFile == null) list.Add(ImageComponent.DiffusionModel);
+        // «VAE или TAE»: достаточно одного из файлов; не хватает — просим первый (обычно полный VAE)
+        if (Preset.RequiredAny is { Count: > 0 } any && !any.Any(Has) && !list.Contains(any[0])) list.Add(any[0]);
         list.AddRange(Files.Where(f => !File.Exists(f.Value) && !list.Contains(f.Key)).Select(f => f.Key));
         return list;
     }
 
     [JsonIgnore] public bool IsReady => MainFile != null && Missing().Count == 0;
+
+    public bool HasFile(ImageComponent c) => Files.TryGetValue(c, out var p) && !string.IsNullOrEmpty(p) && File.Exists(p);
+
+    /// <summary>
+    /// Правка по референсам видит картинки через mmproj. Если кодировщик — отдельный GGUF без зрения, sd.cpp упадёт с ошибкой,
+    /// поэтому страница заранее предупреждает. Комбинированные safetensors-кодировщики (Comfy) зрение содержат сами.
+    /// </summary>
+    [JsonIgnore]
+    public bool NeedsVisionForEdit =>
+        Preset.AllComponents.Contains(ImageComponent.LlmVision) && !HasFile(ImageComponent.LlmVision) &&
+        Files.TryGetValue(ImageComponent.Llm, out var llm) && llm.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase);
 
     [JsonIgnore]
     public long SizeBytes => Files.Values.Distinct(StringComparer.OrdinalIgnoreCase).Where(File.Exists).Sum(f => new FileInfo(f).Length);

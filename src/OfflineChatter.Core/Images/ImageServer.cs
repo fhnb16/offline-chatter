@@ -32,6 +32,13 @@ public sealed class ImageServerOptions
     /// <summary>Параметры генерации по умолчанию для клиентов сервера (null — не передавать).</summary>
     public ImageGenParams? Defaults { get; set; }
     public string? ExtraArgs { get; set; }
+    public string? MaxVram { get; set; }
+    public int? ConditioningCacheSize { get; set; }
+    public bool TaePreviewOnly { get; set; } = true;
+    public bool Mmap { get; set; }
+
+    /// <summary>Есть и полный VAE, и TAE: TAE рисует только превью (иначе sd.cpp декодировал бы им итог).</summary>
+    public bool TaeIsPreviewOnly => TaePreviewOnly && Files.ContainsKey(ImageComponent.Vae) && Files.ContainsKey(ImageComponent.Tae);
 
     public static string Flag(ImageComponent c) => c switch
     {
@@ -44,6 +51,7 @@ public sealed class ImageServerOptions
         ImageComponent.Llm => "--llm",
         ImageComponent.LlmVision => "--llm_vision",
         ImageComponent.ClipVision => "--clip_vision",
+        ImageComponent.Tae => "--taesd",
         _ => throw new ArgumentOutOfRangeException(nameof(c)),
     };
 
@@ -73,7 +81,19 @@ public sealed class ImageServerOptions
             ModelArgs = args.Length > 0 ? args : null,
             Defaults = defaults,
             ExtraArgs = s.ExtraArgs,
+            MaxVram = NormalizeVram(s.MaxVram),
+            ConditioningCacheSize = s.ConditioningCacheSize ?? p.ConditioningCache,
+            TaePreviewOnly = s.TaePreviewOnly,
+            Mmap = s.Mmap ?? false,
         };
+    }
+
+    /// <summary>«6,8» (русская запятая) → «6.8»; списки по устройствам «cuda0=6,vulkan0=4» не трогаются.</summary>
+    internal static string? NormalizeVram(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var v = value!.Trim().Replace(" ", string.Empty);
+        return v.Contains("=") ? v : v.Replace(',', '.');
     }
 
     /// <summary>
@@ -105,7 +125,8 @@ public sealed class ImageServerOptions
         // Порядок ролей фиксирован — превью командной строки не «прыгает»
         foreach (var c in Enum.GetValues(typeof(ImageComponent)).Cast<ImageComponent>())
             if (Files.TryGetValue(c, out var path) && !string.IsNullOrEmpty(path))
-                Add(Flag(c), path, c == ImageComponent.Checkpoint ? "-m" : null);
+                Add(Flag(c), path, c == ImageComponent.Checkpoint ? "-m" : c == ImageComponent.Tae ? "--tae" : null);
+        if (TaeIsPreviewOnly) Add("--taesd-preview-only");
 
         Add("--listen-ip", host, "--host");
         Add("--listen-port", I(port), "--port");
@@ -124,6 +145,9 @@ public sealed class ImageServerOptions
         if (Rng != null) Add("--rng", Rng);
         if (LoraDir != null) Add("--lora-model-dir", LoraDir);
         if (ModelArgs != null) Add("--model-args", ModelArgs);
+        if (MaxVram != null) Add("--max-vram", MaxVram);
+        if (ConditioningCacheSize is { } ccs and >= 0) Add("--conditioning-cache-size", I(ccs));
+        if (Mmap) Add("--mmap");
         if (Defaults is { } d)
         {
             Add("-W", I(d.Width), "--width");
@@ -133,6 +157,7 @@ public sealed class ImageServerOptions
             if (!string.IsNullOrEmpty(d.Sampler)) Add("--sampling-method", d.Sampler);
             if (!string.IsNullOrEmpty(d.Scheduler)) Add("--scheduler", d.Scheduler);
             if (d.FlowShift is { } fs) Add("--flow-shift", D(fs));
+            if (ImageSigmas.Parse(d.Sigmas) is { } sig) Add("--sigmas", ImageSigmas.Format(sig));
         }
         if (!string.IsNullOrWhiteSpace(ExtraArgs)) args.AddRange(ServerLaunchOptions.SplitCommandLine(ExtraArgs!));
         return args;

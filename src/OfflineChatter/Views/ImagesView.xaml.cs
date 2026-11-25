@@ -22,9 +22,9 @@ public partial class ImagesView : UserControl
     private void OnDrop(object sender, DragEventArgs e)
     {
         if (Vm == null || e.Data.GetData(DataFormats.FileDrop) is not string[] files) return;
-        Vm.AddFiles(files.Where(f => f.EndsWith(".png", System.StringComparison.OrdinalIgnoreCase) || f.EndsWith(".jpg", System.StringComparison.OrdinalIgnoreCase)
+        _ = Vm.AddFilesAsync(files.Where(f => f.EndsWith(".png", System.StringComparison.OrdinalIgnoreCase) || f.EndsWith(".jpg", System.StringComparison.OrdinalIgnoreCase)
                                      || f.EndsWith(".jpeg", System.StringComparison.OrdinalIgnoreCase) || f.EndsWith(".webp", System.StringComparison.OrdinalIgnoreCase)
-                                     || f.EndsWith(".bmp", System.StringComparison.OrdinalIgnoreCase)));
+                                     || f.EndsWith(".bmp", System.StringComparison.OrdinalIgnoreCase) || f.EndsWith(".gif", System.StringComparison.OrdinalIgnoreCase)));
         e.Handled = true;
     }
 

@@ -26,6 +26,11 @@ public enum ImageComponent
     LlmVision,
     /// <summary>CLIP Vision (Wan I2V): --clip_vision.</summary>
     ClipVision,
+    /// <summary>
+    /// Маленький автокодировщик (TAESD, TAEQI2.1): --taesd. Рядом с полным VAE — только для живого превью
+    /// (--taesd-preview-only), без VAE — вместо него.
+    /// </summary>
+    Tae,
 }
 
 public enum ImageFamily
@@ -44,6 +49,8 @@ public enum ImageFamily
     QwenImage,
     QwenImageEdit,
     QwenImageEdit2511,
+    QwenImage21,
+    QwenImage21Turbo,
     ZImage,
     ZImageTurbo,
     Custom,
@@ -71,7 +78,13 @@ public sealed record ImagePreset(
     bool SupportsRefImages = false,
     bool SupportsImg2Img = true,
     string? ModelArgs = null,
-    string? Recipe = null)
+    string? Recipe = null,
+    IReadOnlyList<ImageComponent>? RequiredAny = null,
+    int SizeMultiple = 8,
+    IReadOnlyList<double>? Sigmas = null,
+    bool SupportsAlpha = false,
+    int? ConditioningCache = null,
+    int? NativeEditSide = null)
 {
     public string Id => Family.ToString();
 
@@ -82,6 +95,49 @@ public sealed record ImagePreset(
     public int BaseArea => Width * Height;
 
     public IEnumerable<ImageComponent> AllComponents => Required.Concat(Optional);
+
+    /// <summary>Шаг сетки размеров для кнопок пропорций: кратность модели, но не мельче 64, если модель не требует иного.</summary>
+    public int RoundTo => SizeMultiple >= 32 ? SizeMultiple : 64;
+
+    /// <summary>
+    /// Дистиллированная модель (Turbo, Lightning, schnell): мало шагов и CFG 1. Кэш шагов (EasyCache, DBCache) ей вредит,
+    /// CFG выше 1 ломает картинку.
+    /// </summary>
+    public bool IsDistilled => Steps <= 8 && Cfg <= 1.0;
+
+    /// <summary>Картинки внутри промпта (&lt;image:ID&gt;) понимают только кодировщики Qwen-VL со зрением (mmproj).</summary>
+    public bool SupportsPromptImages => AllComponents.Contains(ImageComponent.LlmVision);
+
+    /// <summary>Расписание шума модели строкой «1,0.97,…,0» (для поля и --sigmas); null — нет своего.</summary>
+    public string? SigmasText => Sigmas == null ? null : ImageSigmas.Format(Sigmas);
+}
+
+/// <summary>Свои значения сигм: разбор и запись строкой через запятую.</summary>
+public static class ImageSigmas
+{
+    /// <summary>Фиксированное расписание Qwen-Image 2.1 Turbo (model_index.json; в sd.cpp — пресет qwen-image-2.1-turbo).</summary>
+    public static IReadOnlyList<double> QwenImage21Turbo { get; } = new[] { 1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.845148, 0.704534, 0.414568, 0.0 };
+
+    public static string Format(IEnumerable<double> values) =>
+        string.Join(",", values.Select(v => v.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)));
+
+    /// <summary>«1, 0.9; 0,5» → [1, 0.9, 0.5]. Пусто — null; любое нечисло — null (поле подсветит ошибку).</summary>
+    public static IReadOnlyList<double>? Parse(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var parts = text!.Split(new[] { ',', ';', ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+        var list = new List<double>();
+        foreach (var p in parts)
+        {
+            if (!double.TryParse(p, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v) || v < 0 || double.IsNaN(v))
+                return null;
+            list.Add(v);
+        }
+        return list.Count >= 2 ? list : null;
+    }
+
+    /// <summary>Число шагов, которое даст расписание: на одно меньше числа сигм.</summary>
+    public static int Steps(IReadOnlyList<double> sigmas) => Math.Max(1, sigmas.Count - 1);
 }
 
 public static class ImagePresets
@@ -125,6 +181,17 @@ public static class ImagePresets
         new ImagePreset(ImageFamily.QwenImageEdit2511, "Qwen-Image-Edit 2511",
             new[] { ImageComponent.DiffusionModel, ImageComponent.Vae, ImageComponent.Llm }, new[] { ImageComponent.LlmVision }, 1024, 1024, 20, 2.5, "euler",
             FlowShift: 3, OffloadToCpu: true, SupportsRefImages: true, ModelArgs: "qwen_image_zero_cond_t=true", Recipe: "qwen-image-edit-2511"),
+        // Qwen-Image 2.1: генерация и правка одной моделью, кодировщик Qwen3-VL-8B (+ mmproj для правки), свой VAE или TAEQI2.1,
+        // размеры кратны 32, есть альфа-канал. Умолчания — рецепты sd-server qwen-image-21 / qwen-image-21-turbo.
+        new ImagePreset(ImageFamily.QwenImage21, "Qwen-Image 2.1",
+            new[] { ImageComponent.DiffusionModel, ImageComponent.Llm }, new[] { ImageComponent.LlmVision, ImageComponent.Vae, ImageComponent.Tae },
+            1024, 1024, 20, 1.0, "euler", OffloadToCpu: true, SupportsRefImages: true, Recipe: "qwen-image-21",
+            RequiredAny: new[] { ImageComponent.Vae, ImageComponent.Tae }, SizeMultiple: 32, SupportsAlpha: true, ConditioningCache: 8, NativeEditSide: 2048),
+        new ImagePreset(ImageFamily.QwenImage21Turbo, "Qwen-Image 2.1 Turbo",
+            new[] { ImageComponent.DiffusionModel, ImageComponent.Llm }, new[] { ImageComponent.LlmVision, ImageComponent.Vae, ImageComponent.Tae },
+            1024, 1024, 8, 1.0, "euler", OffloadToCpu: true, SupportsRefImages: true, Recipe: "qwen-image-21-turbo",
+            RequiredAny: new[] { ImageComponent.Vae, ImageComponent.Tae }, SizeMultiple: 32, Sigmas: ImageSigmas.QwenImage21Turbo, SupportsAlpha: true,
+            ConditioningCache: 8, NativeEditSide: 2048),
         new ImagePreset(ImageFamily.ZImage, "Z-Image",
             new[] { ImageComponent.DiffusionModel, ImageComponent.Vae, ImageComponent.Llm }, None, 1024, 1024, 20, 4.0, "euler",
             OffloadToCpu: true, Recipe: "z-image"),
@@ -132,7 +199,7 @@ public static class ImagePresets
             new[] { ImageComponent.DiffusionModel, ImageComponent.Vae, ImageComponent.Llm }, None, 1024, 1024, 8, 1.0, "euler",
             OffloadToCpu: true, Recipe: "z-image-turbo"),
         new ImagePreset(ImageFamily.Custom, "Custom", None,
-            new[] { ImageComponent.Checkpoint, ImageComponent.DiffusionModel, ImageComponent.Vae, ImageComponent.ClipL, ImageComponent.ClipG, ImageComponent.T5xxl, ImageComponent.Llm, ImageComponent.LlmVision },
+            new[] { ImageComponent.Checkpoint, ImageComponent.DiffusionModel, ImageComponent.Vae, ImageComponent.ClipL, ImageComponent.ClipG, ImageComponent.T5xxl, ImageComponent.Llm, ImageComponent.LlmVision, ImageComponent.Tae },
             512, 512, 20, 7.0, "euler_a"),
     };
 
@@ -164,6 +231,9 @@ public static class ImagePresets
         var n = name!.ToLowerInvariant().Replace('_', '-').Replace(' ', '-');
         bool Has(params string[] parts) => parts.Any(p => n.Contains(p));
 
+        // «qwen-image-2.1» раньше «qwen-image»; «qwen-image-2512» сюда не попадает
+        if (Has("qwen-image-2.1", "qwen-image-21", "qwen-image-2-1", "qwenimage2.1", "qwenimage21"))
+            return Has("turbo") ? ImageFamily.QwenImage21Turbo : ImageFamily.QwenImage21;
         if (Has("qwen-image-edit", "qwen-edit", "qwenimageedit"))
             return Has("2511") ? ImageFamily.QwenImageEdit2511 : ImageFamily.QwenImageEdit;
         if (Has("qwen-image", "qwenimage")) return ImageFamily.QwenImage;
@@ -189,6 +259,9 @@ public static class ImagePresets
     {
         var f = Path.GetFileName(path).ToLowerInvariant().Replace('-', '_');
         if (f.Contains("mmproj")) return ImageComponent.LlmVision;
+        // Маленькие автокодировщики: taesd, taesdxl, taef1, taew2_1, taeqi2_1, taehv — до проверки «vae»
+        if (f.StartsWith("tae", StringComparison.Ordinal) || f.Contains("taesd") || f.Contains("_tae_") || f.Contains("taehv"))
+            return ImageComponent.Tae;
         if (f.Contains("clip_vision")) return ImageComponent.ClipVision;
         if (f.Contains("clip_l")) return ImageComponent.ClipL;
         if (f.Contains("clip_g")) return ImageComponent.ClipG;
@@ -196,6 +269,7 @@ public static class ImagePresets
         if (f.Contains("vae") || f is "ae.safetensors" or "ae.sft" || f.EndsWith("_ae.safetensors", StringComparison.Ordinal) || f.EndsWith("_ae.sft", StringComparison.Ordinal))
             return ImageComponent.Vae;
         if (f.Contains("qwen2.5_vl") || f.Contains("qwen_2.5_vl") || f.Contains("qwen2_5_vl") || f.Contains("qwen3_") || f.Contains("qwen_3_") ||
+            f.Contains("qwen3vl") || f.Contains("qwen3.5_") ||
             f.Contains("mistral") || (f.Contains("instruct") && !f.Contains("image")))
             return ImageComponent.Llm;
         return family is { } fam && Get(fam).Required.Contains(ImageComponent.Checkpoint) ? ImageComponent.Checkpoint
@@ -225,22 +299,29 @@ public static class ImagePresets
                && (name.StartsWith("diffusion_pytorch_model", StringComparison.Ordinal) || name.StartsWith("model", StringComparison.Ordinal) || name.StartsWith("pytorch_model", StringComparison.Ordinal));
     }
 
-    /// <summary>Размеры для пропорции при площади базового разрешения семейства (кратно 64).</summary>
-    public static (int width, int height) SizeFor(ImagePreset preset, int ratioW, int ratioH)
+    /// <summary>
+    /// Размеры для пропорции при площади базового разрешения семейства (кратно 64 или кратности модели, если она 32).
+    /// <paramref name="scale"/> — множитель стороны: 2 даёт «2K» (площадь ×4).
+    /// </summary>
+    public static (int width, int height) SizeFor(ImagePreset preset, int ratioW, int ratioH, double scale = 1.0)
     {
-        var area = (double)preset.BaseArea;
+        var area = (double)preset.BaseArea * scale * scale;
         var w = Math.Sqrt(area * ratioW / ratioH);
         var h = area / w;
-        static int Round64(double v) => Math.Max(256, (int)Math.Round(v / 64.0) * 64);
-        return (Round64(w), Round64(h));
+        var step = preset.RoundTo;
+        int Round(double v) => Math.Max(256, (int)Math.Round(v / step) * step);
+        return (Round(w), Round(h));
     }
 }
 
 /// <summary>Файл готового набора: роль, репозиторий Hugging Face, путь внутри и размер (проверены по API HF).</summary>
 public sealed record ImageKitFile(ImageComponent Role, string Repo, string Path, long Size);
 
-/// <summary>Готовый набор «всё для запуска»: основная модель и все кодировщики одним нажатием.</summary>
-public sealed record ImageKit(string Id, ImageFamily Family, string Title, IReadOnlyList<ImageKitFile> Files, long MinVram, bool Recommended = false)
+/// <summary>
+/// Готовый набор «всё для запуска»: основная модель и все кодировщики одним нажатием.
+/// <paramref name="MinRam"/> — сколько ОЗУ нужно, чтобы веса, выгруженные из видеопамяти, поместились без подкачки.
+/// </summary>
+public sealed record ImageKit(string Id, ImageFamily Family, string Title, IReadOnlyList<ImageKitFile> Files, long MinVram, bool Recommended = false, long MinRam = 0)
 {
     public long TotalSize => Files.Sum(f => f.Size);
     public ImagePreset Preset => ImagePresets.Get(Family);
@@ -257,6 +338,14 @@ public static class ImageKits
     private static readonly ImageKitFile FluxVae = new(ImageComponent.Vae, ComfyZImage, ComfyAe, 335304388);
     private static readonly ImageKitFile QwenImageVae = new(ImageComponent.Vae, QwenComfy, QwenVae, 253806246);
     private static readonly ImageKitFile QwenVlLlm = new(ImageComponent.Llm, QwenVl, "Qwen2.5-VL-7B-Instruct.Q4_K_M.gguf", 4683072512);
+
+    // Qwen-Image 2.1 Turbo: DiT с imatrix (AD-кванты), Qwen3-VL-8B + mmproj, полный VAE (RGBA) и TAEQI2.1 для превью
+    private const string Qwen21Turbo = "AtomicChat/Qwen-Image-2.1-Turbo-GGUF";
+    private const string Qwen3Vl = "unsloth/Qwen3-VL-8B-Instruct-GGUF";
+    private static readonly ImageKitFile Qwen21Vae = new(ImageComponent.Vae, "Comfy-Org/Qwen-Image-2.1", "vae/qwen_image_2.1_vae_bf16.safetensors", 675509688);
+    private static readonly ImageKitFile Qwen21Tae = new(ImageComponent.Tae, "madebyollin/taeqi2_1", "taeqi2_1.safetensors", 30591264);
+    private static readonly ImageKitFile Qwen3VlQ4 = new(ImageComponent.Llm, Qwen3Vl, "Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf", 5148699488);
+    private static readonly ImageKitFile Qwen3VlMmprojF16 = new(ImageComponent.LlmVision, Qwen3Vl, "mmproj-F16.gguf", 1159030336);
     private const long Gb = 1L << 30;
 
     /// <summary>Пути и размеры проверены по API Hugging Face (ноябрь 2026); закрытые (gated) репозитории не используются.</summary>
@@ -297,6 +386,33 @@ public static class ImageKits
             QwenVlLlm,
             new ImageKitFile(ImageComponent.LlmVision, QwenVl, "Qwen2.5-VL-7B-Instruct.mmproj-f16.gguf", 1354162912),
         }, 10 * Gb),
+        // Универсальный для 8 ГБ: AD-Q4_K оставляет ~2,6 ГБ видеопамяти под внимание референсов (правка, 2K, LoRA)
+        new ImageKit("qwen-image-21-turbo-q4", ImageFamily.QwenImage21Turbo, "Qwen-Image 2.1 Turbo · AD-Q4_K", new[]
+        {
+            new ImageKitFile(ImageComponent.DiffusionModel, Qwen21Turbo, "Qwen-Image-2.1-Turbo-AD-Q4_K.gguf", 4201694944),
+            Qwen3VlQ4,
+            Qwen3VlMmprojF16,
+            Qwen21Vae,
+            Qwen21Tae,
+        }, 8 * Gb, MinRam: 16 * Gb),
+        // Экономия ОЗУ: mmproj Q8_0 почти не отличается от F16 и на ~400 МБ меньше
+        new ImageKit("qwen-image-21-turbo-q4-lite", ImageFamily.QwenImage21Turbo, "Qwen-Image 2.1 Turbo · AD-Q4_K · mmproj Q8_0", new[]
+        {
+            new ImageKitFile(ImageComponent.DiffusionModel, Qwen21Turbo, "Qwen-Image-2.1-Turbo-AD-Q4_K.gguf", 4201694944),
+            Qwen3VlQ4,
+            new ImageKitFile(ImageComponent.LlmVision, "Qwen/Qwen3-VL-8B-Instruct-GGUF", "mmproj-Qwen3VL-8B-Instruct-Q8_0.gguf", 752289728),
+            Qwen21Vae,
+            Qwen21Tae,
+        }, 8 * Gb, MinRam: 16 * Gb),
+        // Максимум качества в 1K: AD-Q5_K и кодировщик Q8_0 (мелкий текст); кодировщик удобно держать на CPU — нужно 32 ГБ ОЗУ
+        new ImageKit("qwen-image-21-turbo-q5", ImageFamily.QwenImage21Turbo, "Qwen-Image 2.1 Turbo · AD-Q5_K · Q8_0", new[]
+        {
+            new ImageKitFile(ImageComponent.DiffusionModel, Qwen21Turbo, "Qwen-Image-2.1-Turbo-AD-Q5_K.gguf", 5399168736),
+            new ImageKitFile(ImageComponent.Llm, Qwen3Vl, "Qwen3-VL-8B-Instruct-Q8_0.gguf", 8709520224),
+            Qwen3VlMmprojF16,
+            Qwen21Vae,
+            Qwen21Tae,
+        }, 8 * Gb, MinRam: 32 * Gb),
     };
 
     public static ImageKit? Find(string? id) => All.FirstOrDefault(k => k.Id == id);
