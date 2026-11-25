@@ -17,6 +17,35 @@ using Xunit;
 
 namespace OfflineChatter.Core.Tests;
 
+public class ImagePromptHistoryTests
+{
+    [Fact]
+    public void Recent_Preserves_Text_And_Deduplicates_By_Both_Prompts()
+    {
+        var latest = new ImagePromptEntry("строка\nпромпта", "blur");
+        var otherNegative = latest with { NegativePrompt = "grain" };
+        var emptyNegative = latest with { NegativePrompt = string.Empty };
+        var entries = ImagePromptHistory.Recent(new[]
+        {
+            latest, null, new ImagePromptEntry(" ", ""), latest with { }, otherNegative,
+            latest with { NegativePrompt = null! }, emptyNegative,
+        });
+
+        Assert.Equal(new[] { latest, otherNegative, emptyNegative }, entries);
+        Assert.Equal("строка промпта", entries[0].PromptPreview);
+    }
+
+    [Fact]
+    public void Recent_Keeps_Only_The_Newest_Entries()
+    {
+        var used = Enumerable.Range(0, ImagePromptHistory.Limit + 5)
+            .Select(i => ImagePromptEntry.FromParams(new ImageGenParams { Prompt = $"Scene {i}" }))
+            .ToArray();
+
+        Assert.Equal(used.Take(ImagePromptHistory.Limit), ImagePromptHistory.Recent(used));
+    }
+}
+
 public class SdAssetMatcherTests
 {
     private static ReleaseAsset A(string name, long size = 100) => new(name, size, "https://github.com/x/" + name, "abc");

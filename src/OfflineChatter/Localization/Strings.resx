@@ -1247,6 +1247,8 @@ Install anyway?</value></data>
   <data name="Img_ModeHint_ImageToImage" xml:space="preserve"><value>The source is partly noised and redrawn; strength sets how much changes. Paint a mask to redraw only part of the picture.</value></data>
   <data name="Img_Prompt" xml:space="preserve"><value>Description (prompt)</value></data>
   <data name="Img_PromptHint" xml:space="preserve"><value>Describe the subject, setting, style and light. English usually works better, but Qwen-Image and Z-Image understand Russian too.</value></data>
+  <data name="Img_PromptHistory" xml:space="preserve"><value>Prompt history</value></data>
+  <data name="Img_PromptHistoryEmpty" xml:space="preserve"><value>Prompts appear here when you start generating images</value></data>
   <data name="Img_Negative" xml:space="preserve"><value>What to avoid (negative prompt)</value></data>
   <data name="Img_NegativeHint" xml:space="preserve"><value>For example: blurry, extra fingers, text, watermark</value></data>
   <data name="Img_Refs" xml:space="preserve"><value>Reference pictures</value></data>
@@ -1300,6 +1302,7 @@ Install anyway?</value></data>
   <data name="Img_Missing" xml:space="preserve"><value>Missing: {0}</value></data>
   <data name="Img_Results" xml:space="preserve"><value>Results</value></data>
   <data name="Img_NoResults" xml:space="preserve"><value>Pictures will appear here and are saved to the images folder</value></data>
+  <data name="Img_ResultPreviewUnavailable" xml:space="preserve"><value>No preview for the selected image</value></data>
   <data name="Img_OpenFolder" xml:space="preserve"><value>Folder</value></data>
   <data name="Img_Open" xml:space="preserve"><value>Open</value></data>
   <data name="Img_Copy" xml:space="preserve"><value>Copy picture</value></data>
@@ -1462,7 +1465,7 @@ Install anyway?</value></data>
   <data name="Img_SlowStep" xml:space="preserve"><value>Steps are slow for this size: video memory is probably short. Try fewer or smaller references or the “Editing and generation, 8 GB” profile.</value></data>
   <data name="Img_LivePreview" xml:space="preserve"><value>Preview of the current step</value></data>
   <data name="Img_Compare" xml:space="preserve"><value>Before / after</value></data>
-  <data name="Img_CompareHint" xml:space="preserve"><value>Drag to compare: before on the left, after on the right</value></data>
+  <data name="Img_CompareHint" xml:space="preserve"><value>Before on the left, after on the right. Drag the divider or use the arrow keys.</value></data>
   <data name="ImgStage_queued" xml:space="preserve"><value>In queue</value></data>
   <data name="ImgStage_waiting" xml:space="preserve"><value>Waiting for the generator</value></data>
   <data name="ImgStage_preparing" xml:space="preserve"><value>Loading models</value></data>

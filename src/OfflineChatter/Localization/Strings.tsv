@@ -1252,6 +1252,8 @@ Img_ModeHint_Edit	The model sees the reference pictures and changes them as desc
 Img_ModeHint_ImageToImage	The source is partly noised and redrawn; strength sets how much changes. Paint a mask to redraw only part of the picture.	Исходник частично зашумляется и перерисовывается; сила задаёт, насколько изменится. Закрасьте маску, чтобы перерисовать только часть картинки.
 Img_Prompt	Description (prompt)	Описание (промпт)
 Img_PromptHint	Describe the subject, setting, style and light. English usually works better, but Qwen-Image and Z-Image understand Russian too.	Опишите предмет, место, стиль и свет. Обычно лучше по-английски, но Qwen-Image и Z-Image понимают и русский.
+Img_PromptHistory	Prompt history	История промптов
+Img_PromptHistoryEmpty	Prompts appear here when you start generating images	Здесь появятся промпты, с которыми вы запускали генерацию
 Img_Negative	What to avoid (negative prompt)	Чего избегать (негативный промпт)
 Img_NegativeHint	For example: blurry, extra fingers, text, watermark	Например: blurry, extra fingers, text, watermark
 Img_Refs	Reference pictures	Референсы
@@ -1305,6 +1307,7 @@ Img_ModelIncomplete	The model is missing files: {0}. Add them in Models → Imag
 Img_Missing	Missing: {0}	Не хватает: {0}
 Img_Results	Results	Результаты
 Img_NoResults	Pictures will appear here and are saved to the images folder	Картинки появятся здесь и сохранятся в папку images
+Img_ResultPreviewUnavailable	No preview for the selected image	Нет превью выбранного изображения
 Img_OpenFolder	Folder	Папка
 Img_Open	Open	Открыть
 Img_Copy	Copy picture	Копировать картинку
@@ -1471,7 +1474,7 @@ Img_SlowStepCuda	Steps are slow for this size. In the NVIDIA Control Panel set �
 Img_SlowStep	Steps are slow for this size: video memory is probably short. Try fewer or smaller references or the “Editing and generation, 8 GB” profile.	Шаги идут медленно для этого размера: видимо, не хватает видеопамяти. Уменьшите число и размер референсов или включите профиль «Правка и генерация, 8 ГБ».
 Img_LivePreview	Preview of the current step	Превью текущего шага
 Img_Compare	Before / after	До / после
-Img_CompareHint	Drag to compare: before on the left, after on the right	Потяните, чтобы сравнить: слева — до, справа — после
+Img_CompareHint	Before on the left, after on the right. Drag the divider or use the arrow keys.	Слева исходник, справа результат. Передвигайте разделитель мышью или клавишами со стрелками.
 ImgStage_queued	In queue	В очереди
 ImgStage_waiting	Waiting for the generator	Ожидание генератора
 ImgStage_preparing	Loading models	Загрузка моделей

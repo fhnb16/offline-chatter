@@ -99,6 +99,7 @@ public static class DiagnosticBundle
 
         foreach (var f in Directory.EnumerateFiles(paths.Config, "*.json", SearchOption.AllDirectories))
         {
+            if (string.Equals(f, paths.ImagePromptHistoryFile, StringComparison.OrdinalIgnoreCase)) continue;
             try
             {
                 var rel = f.Substring(paths.Config.Length).TrimStart('\\', '/').Replace('\\', '/');

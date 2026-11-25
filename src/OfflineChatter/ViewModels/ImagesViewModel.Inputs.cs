@@ -299,8 +299,7 @@ public sealed partial class ImagesViewModel
         int RefLimit,
         int Multiple,
         bool AutoTiling,
-        int TileSize,
-        BitmapSource? BeforeImage);
+        int TileSize);
 
     private InputSnapshot SnapshotInputs(ImageGenParams p)
     {
@@ -308,12 +307,6 @@ public sealed partial class ImagesViewModel
         var refs = useRefs ? RefImages.Select(r => r.Image).ToList() : new List<GenImage>();
         var init = p.Mode == ImageMode.ImageToImage ? InitImage?.Image : null;
         var settings = _s.Settings.Current.Images;
-        var before = p.Mode switch
-        {
-            ImageMode.ImageToImage => InitPreview,
-            ImageMode.Edit when RefImages.Count > 0 => ImagePrep.Thumbnail(RefImages[0].Data, Math.Min(1024, RefImages[0].Image.Width)),
-            _ => null,
-        };
         return new InputSnapshot(
             refs,
             init,
@@ -322,8 +315,27 @@ public sealed partial class ImagesViewModel
             ImageInputPolicy.RefMaxSide(refs.Count, nativeSize: Math.Max(p.Width, p.Height) >= 1536),
             InputMultiple(),
             settings.AutoVaeTiling,
-            Math.Max(64, settings.VaeTileSize),
-            before);
+            Math.Max(64, settings.VaeTileSize));
+    }
+
+    private static BitmapSource? ComparisonPreview(ImageRequest request, InputSnapshot inputs)
+    {
+        var p = request.Params;
+        if (inputs.Init is { } init && request.InitImage is { } prepared)
+        {
+            // Даже при Canny сравниваем с фотографией, подогнанной к холсту так же, как контуры и маска.
+            var image = p.InitCanny ? ImagePrep.FitToCanvas(init, p.Width, p.Height, p.InitFit) : prepared;
+            return Thumbnail(image, p.Width, p.Height);
+        }
+        if (p.Mode == ImageMode.Edit && inputs.Refs.FirstOrDefault() is { } reference)
+            return Thumbnail(reference.Data, reference.Width, reference.Height);
+        return null;
+
+        static BitmapSource? Thumbnail(byte[] data, int width, int height)
+        {
+            var scale = Math.Min(1, 1024.0 / Math.Max(width, height));
+            return ImagePrep.Thumbnail(data, Math.Max(1, (int)Math.Round(width * scale)));
+        }
     }
 
     /// <summary>

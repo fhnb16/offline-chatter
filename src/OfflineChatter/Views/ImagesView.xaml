@@ -108,7 +108,7 @@
                 </DockPanel>
             </Border>
 
-            <c:SplitPanel Grid.Row="4" Spacing="12">
+            <c:SplitPanel Grid.Row="4" Spacing="12" StackedRatio="0.5">
                 <!-- ===== Параметры: своя прокрутка, запуск закреплён снизу ===== -->
                 <Border Style="{StaticResource Card}" Padding="0">
                     <DockPanel>
@@ -311,6 +311,33 @@
                                 <TextBlock Text="{Binding PromptTagsText}" Style="{StaticResource StatText}" Margin="0,4,0,0"
                                            Visibility="{Binding PromptTagsText, Converter={StaticResource NullToCollapsed}}" />
                             </StackPanel>
+                            <Expander Header="{l:Loc Img_PromptHistory}" IsExpanded="{Binding IsPromptHistoryOpen}" Margin="0,8,0,0">
+                                <Grid Margin="0,4,0,0">
+                                    <TextBlock Text="{l:Loc Img_PromptHistoryEmpty}" Style="{StaticResource CaptionText}" TextWrapping="Wrap"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Visibility="{Binding HasPromptHistory, Converter={StaticResource InverseBoolToVisibility}}" />
+                                    <ScrollViewer MaxHeight="192" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                                  Visibility="{Binding HasPromptHistory, Converter={StaticResource BoolToVisibility}}">
+                                        <ItemsControl ItemsSource="{Binding PromptHistory}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Style="{DynamicResource SubtleButtonStyle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                            FocusVisualStyle="{DynamicResource {x:Static SystemParameters.FocusVisualStyleKey}}"
+                                                            Command="{Binding DataContext.RestorePromptCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                            CommandParameter="{Binding}" ToolTip="{Binding Prompt}">
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding PromptPreview}" TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Text="{Binding NegativePromptPreview}" Style="{StaticResource CaptionText}" TextTrimming="CharacterEllipsis"
+                                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                       Visibility="{Binding HasNegativePrompt, Converter={StaticResource BoolToVisibility}}" />
+                                                        </StackPanel>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Expander>
                             <CheckBox IsChecked="{Binding Transparent}" Margin="0,8,0,0" Visibility="{Binding ShowTransparent, Converter={StaticResource BoolToVisibility}}">
                                 <StackPanel>
                                     <TextBlock Text="{l:Loc Img_Transparent}" Style="{StaticResource BodyText}" />
@@ -464,9 +491,21 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" MinHeight="120" />
+                            <RowDefinition Height="4*" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
+                            <RowDefinition MaxHeight="196">
+                                <RowDefinition.Style>
+                                    <Style TargetType="RowDefinition">
+                                        <Setter Property="Height" Value="0" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasGallery}" Value="True">
+                                                <Setter Property="Height" Value="*" />
+                                                <Setter Property="MinHeight" Value="40" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </RowDefinition.Style>
+                            </RowDefinition>
                         </Grid.RowDefinitions>
 
                         <DockPanel>
@@ -480,7 +519,7 @@
                         </DockPanel>
 
                         <!-- Область превью занимает всю свободную высоту; картинка вписывается целиком -->
-                        <Grid Grid.Row="1" Margin="0,12,0,0">
+                        <Grid Grid.Row="1" Margin="0,8,0,0">
                             <!-- Пусто: ни кадра генерации, ни выбранной картинки -->
                             <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}"
                                     Visibility="{Binding ShowPreviewPlaceholder, Converter={StaticResource BoolToVisibility}}">
@@ -501,7 +540,8 @@
                             <!-- Сравнение «до / после» -->
                             <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" ClipToBounds="True"
                                     Visibility="{Binding ShowCompare, Converter={StaticResource BoolToVisibility}}">
-                                <c:CompareView Before="{Binding SelectedImage.Before}" After="{Binding SelectedPreview}" ToolTip="{l:Loc Img_CompareHint}" />
+                                <c:CompareView Before="{Binding SelectedImage.Before}" After="{Binding SelectedPreview}" ToolTip="{l:Loc Img_CompareHint}"
+                                               AutomationProperties.Name="{l:Loc Img_Compare}" AutomationProperties.HelpText="{l:Loc Img_CompareHint}" />
                             </Border>
 
                             <!-- Выбранная картинка -->
@@ -553,7 +593,7 @@
                         </StackPanel>
 
                         <!-- Галерея: своя прокрутка, не дальше двух рядов -->
-                        <ListBox Grid.Row="3" ItemsSource="{Binding Gallery}" SelectedItem="{Binding SelectedImage}" Margin="0,12,0,0" MaxHeight="196"
+                        <ListBox Grid.Row="3" ItemsSource="{Binding Gallery}" SelectedItem="{Binding SelectedImage}" Margin="0,8,0,0" Padding="0"
                                  BorderThickness="0" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
                                  Visibility="{Binding HasGallery, Converter={StaticResource BoolToVisibility}}" MouseDoubleClick="OnGalleryDoubleClick">
                             <ListBox.ItemsPanel>
@@ -563,13 +603,16 @@
                             </ListBox.ItemsPanel>
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                                    <Setter Property="Padding" Value="2" />
-                                    <Setter Property="Margin" Value="0,0,4,4" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="0,0,4,0" />
                                 </Style>
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:GalleryItem}">
-                                    <Image Source="{Binding Thumb}" Width="88" Height="88" Stretch="UniformToFill" ToolTip="{Binding Tooltip}" />
+                                    <Viewbox Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ScrollContentPresenter}}"
+                                             MaxHeight="92" StretchDirection="DownOnly">
+                                        <Image Source="{Binding Thumb}" Width="88" Height="88" Margin="2" Stretch="UniformToFill" ToolTip="{Binding Tooltip}" />
+                                    </Viewbox>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>

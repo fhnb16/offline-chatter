@@ -1247,6 +1247,8 @@
   <data name="Img_ModeHint_ImageToImage" xml:space="preserve"><value>Исходник частично зашумляется и перерисовывается; сила задаёт, насколько изменится. Закрасьте маску, чтобы перерисовать только часть картинки.</value></data>
   <data name="Img_Prompt" xml:space="preserve"><value>Описание (промпт)</value></data>
   <data name="Img_PromptHint" xml:space="preserve"><value>Опишите предмет, место, стиль и свет. Обычно лучше по-английски, но Qwen-Image и Z-Image понимают и русский.</value></data>
+  <data name="Img_PromptHistory" xml:space="preserve"><value>История промптов</value></data>
+  <data name="Img_PromptHistoryEmpty" xml:space="preserve"><value>Здесь появятся промпты, с которыми вы запускали генерацию</value></data>
   <data name="Img_Negative" xml:space="preserve"><value>Чего избегать (негативный промпт)</value></data>
   <data name="Img_NegativeHint" xml:space="preserve"><value>Например: blurry, extra fingers, text, watermark</value></data>
   <data name="Img_Refs" xml:space="preserve"><value>Референсы</value></data>
@@ -1300,6 +1302,7 @@
   <data name="Img_Missing" xml:space="preserve"><value>Не хватает: {0}</value></data>
   <data name="Img_Results" xml:space="preserve"><value>Результаты</value></data>
   <data name="Img_NoResults" xml:space="preserve"><value>Картинки появятся здесь и сохранятся в папку images</value></data>
+  <data name="Img_ResultPreviewUnavailable" xml:space="preserve"><value>Нет превью выбранного изображения</value></data>
   <data name="Img_OpenFolder" xml:space="preserve"><value>Папка</value></data>
   <data name="Img_Open" xml:space="preserve"><value>Открыть</value></data>
   <data name="Img_Copy" xml:space="preserve"><value>Копировать картинку</value></data>
@@ -1462,7 +1465,7 @@
   <data name="Img_SlowStep" xml:space="preserve"><value>Шаги идут медленно для этого размера: видимо, не хватает видеопамяти. Уменьшите число и размер референсов или включите профиль «Правка и генерация, 8 ГБ».</value></data>
   <data name="Img_LivePreview" xml:space="preserve"><value>Превью текущего шага</value></data>
   <data name="Img_Compare" xml:space="preserve"><value>До / после</value></data>
-  <data name="Img_CompareHint" xml:space="preserve"><value>Потяните, чтобы сравнить: слева — до, справа — после</value></data>
+  <data name="Img_CompareHint" xml:space="preserve"><value>Слева исходник, справа результат. Передвигайте разделитель мышью или клавишами со стрелками.</value></data>
   <data name="ImgStage_queued" xml:space="preserve"><value>В очереди</value></data>
   <data name="ImgStage_waiting" xml:space="preserve"><value>Ожидание генератора</value></data>
   <data name="ImgStage_preparing" xml:space="preserve"><value>Загрузка моделей</value></data>

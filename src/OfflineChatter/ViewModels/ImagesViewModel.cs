@@ -204,6 +204,8 @@ public sealed partial class ImagesViewModel : PageViewModel
     private DateTime _startedAt;
     private bool _loading;
     private bool _nativeProgress;
+    private bool _loadingGallery;
+    private CancellationTokenSource? _previewLoad;
 
     public ImagesViewModel(AppServices services, MainViewModel main)
     {
@@ -727,7 +729,8 @@ public sealed partial class ImagesViewModel : PageViewModel
     public bool ShowPreviewPlaceholder => !ShowLivePreview && !ShowCompare && !ShowSingle;
 
     public string PreviewPlaceholderText =>
-        !IsGenerating ? L.Get("Img_NoResults") : L.Get(_livePreviewOn ? "Img_PreviewWaiting" : "Img_PreviewOff");
+        IsGenerating ? L.Get(_livePreviewOn ? "Img_PreviewWaiting" : "Img_PreviewOff")
+            : L.Get(HasSelectedImage ? "Img_ResultPreviewUnavailable" : "Img_NoResults");
 
     private bool CanGenerate() =>
         !IsGenerating && SelectedModel?.IsReady == true && HasEngine &&
@@ -799,6 +802,7 @@ public sealed partial class ImagesViewModel : PageViewModel
         long outputMark = -1;
         try
         {
+            await RememberPromptAsync(p, cts.Token);
             if (!(_s.ImageServer.State == ServerState.Ready && _s.ImageServer.Model?.Id == model.Id))
                 Status = L.F("Img_LoadingModel", model.DisplayName);
             var ok = await Task.Run(() => _s.EnsureImageServerAsync(model, cts.Token));
@@ -831,8 +835,11 @@ public sealed partial class ImagesViewModel : PageViewModel
             var result = await Task.Run(() => client.GenerateAsync(request, cts.Token, progress));
             _condCache.Touch(condKey);
 
-            var before = inputs.BeforeImage;
-            var saved = await Task.Run(() => Save(result, p, model, request));
+            var (saved, before) = await Task.Run(() =>
+            {
+                var items = Save(result, p, model, request);
+                return (items, ComparisonPreview(request, inputs));
+            });
             foreach (var item in saved)
             {
                 item.Before = before;
@@ -1021,14 +1028,15 @@ public sealed partial class ImagesViewModel : PageViewModel
     public ObservableCollection<GalleryItem> Gallery { get; } = new();
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelectedImage), nameof(SelectedPreview), nameof(CanCompare), nameof(ShowCompare), nameof(ShowSingle), nameof(ShowResultTools),
-        nameof(ShowPreviewPlaceholder))]
+    [NotifyPropertyChangedFor(nameof(HasSelectedImage), nameof(CanCompare), nameof(ShowCompare), nameof(ShowSingle), nameof(ShowResultTools),
+        nameof(ShowPreviewPlaceholder), nameof(PreviewPlaceholderText))]
     private GalleryItem? _selectedImage;
 
     public bool HasSelectedImage => SelectedImage != null;
 
-    /// <summary>Крупный просмотр выбранной картинки (полный размер, декодируется по требованию).</summary>
-    public BitmapSource? SelectedPreview => SelectedImage is { } g ? LoadThumb(g.Path, 1024) : null;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowCompare), nameof(ShowSingle), nameof(ShowPreviewPlaceholder))]
+    private BitmapSource? _selectedPreview;
 
     public bool HasGallery => Gallery.Count > 0;
 
@@ -1039,8 +1047,8 @@ public sealed partial class ImagesViewModel : PageViewModel
     [NotifyPropertyChangedFor(nameof(ShowCompare), nameof(ShowSingle), nameof(ShowPreviewPlaceholder))]
     private bool _isComparing;
 
-    public bool ShowCompare => IsComparing && CanCompare && !ShowLivePreview;
-    public bool ShowSingle => HasSelectedImage && !ComparingActive && !ShowLivePreview;
+    public bool ShowCompare => SelectedPreview != null && ComparingActive && !ShowLivePreview;
+    public bool ShowSingle => SelectedPreview != null && !ComparingActive && !ShowLivePreview;
     public bool ShowResultTools => HasSelectedImage && !ShowLivePreview;
     private bool ComparingActive => IsComparing && CanCompare;
 
@@ -1048,31 +1056,47 @@ public sealed partial class ImagesViewModel : PageViewModel
     {
         RefreshModels();
         RefreshLoras();
-        if (Gallery.Count == 0) _ = LoadGalleryAsync();
+        _ = EnsurePromptHistoryLoadedAsync();
+        if (Gallery.Count == 0 && !_loadingGallery) _ = LoadGalleryAsync();
     }
 
     private async Task LoadGalleryAsync()
     {
-        var folder = _s.ImagesFolder;
-        var items = await Task.Run(() =>
+        _loadingGallery = true;
+        try
         {
-            if (!Directory.Exists(folder)) return new List<GalleryItem>();
-            try
+            var folder = _s.ImagesFolder;
+            var items = await Task.Run(() =>
             {
-                return Directory.EnumerateFiles(folder, "*.png", SearchOption.AllDirectories)
-                    .Select(f => new FileInfo(f)).OrderByDescending(f => f.LastWriteTimeUtc).Take(GalleryLimit)
-                    .Select(f => new GalleryItem(f.FullName, LoadThumb(f.FullName), ReadSidecar(f.FullName)?.Params, null))
-                    .ToList();
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                if (!Directory.Exists(folder)) return new List<GalleryItem>();
+                try
+                {
+                    return Directory.EnumerateFiles(folder, "*.png", SearchOption.AllDirectories)
+                        .Select(f => new FileInfo(f)).OrderByDescending(f => f.LastWriteTimeUtc).Take(GalleryLimit)
+                        .Select(f => new GalleryItem(f.FullName, LoadThumb(f.FullName), ReadSidecar(f.FullName)?.Params, null))
+                        .ToList();
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    Log.Warn("Images", "Cannot read gallery", ex);
+                    return new List<GalleryItem>();
+                }
+            }, CancellationToken.None);
+            var paths = new HashSet<string>(Gallery.Select(item => item.Path), StringComparer.OrdinalIgnoreCase);
+            foreach (var item in items)
             {
-                Log.Warn("Images", "Cannot read gallery", ex);
-                return new List<GalleryItem>();
+                if (Gallery.Count >= GalleryLimit) break;
+                if (paths.Add(item.Path)) Gallery.Add(item);
             }
-        });
-        Gallery.Clear();
-        foreach (var i in items) Gallery.Add(i);
-        OnPropertyChanged(nameof(HasGallery));
+            OnPropertyChanged(nameof(HasGallery));
+
+            await EnsurePromptHistoryLoadedAsync();
+            PromptHistory = ImagePromptHistory.Recent(PromptHistory.Concat(items.Select(item => ImagePromptEntry.FromParams(item.Params))));
+        }
+        finally
+        {
+            _loadingGallery = false;
+        }
     }
 
     /// <summary>Параметры картинки: из соседнего .json, иначе из tEXt-чанка внутри PNG.</summary>
@@ -1111,7 +1135,8 @@ public sealed partial class ImagesViewModel : PageViewModel
             bmp.Freeze();
             return bmp;
         }
-        catch (Exception ex) when (ex is IOException or NotSupportedException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+        catch (Exception ex) when (ex is IOException or NotSupportedException or UnauthorizedAccessException or InvalidOperationException
+                                       or FileFormatException or System.Runtime.InteropServices.COMException or ArgumentException)
         {
             return null;
         }
@@ -1208,7 +1233,30 @@ public sealed partial class ImagesViewModel : PageViewModel
         catch (System.ComponentModel.Win32Exception ex) { Log.Warn("Images", "Cannot open explorer", ex); }
     }
 
-    partial void OnSelectedImageChanged(GalleryItem? value) => OnPropertyChanged(nameof(HasGallery));
+    partial void OnSelectedImageChanged(GalleryItem? value)
+    {
+        _previewLoad?.Cancel();
+        _previewLoad = null;
+        SelectedPreview = null;
+        OnPropertyChanged(nameof(HasGallery));
+        if (value != null) _ = LoadSelectedPreviewAsync(value);
+    }
+
+    private async Task LoadSelectedPreviewAsync(GalleryItem item)
+    {
+        using var load = new CancellationTokenSource();
+        _previewLoad = load;
+        try
+        {
+            var preview = await Task.Run(() => LoadThumb(item.Path, 1024), load.Token);
+            if (!load.IsCancellationRequested) SelectedPreview = preview ?? item.Thumb;
+        }
+        catch (OperationCanceledException) when (load.IsCancellationRequested) { }
+        finally
+        {
+            if (_previewLoad == load) _previewLoad = null;
+        }
+    }
 
     // ---------------- Параметры из перетащенной картинки ----------------
 
