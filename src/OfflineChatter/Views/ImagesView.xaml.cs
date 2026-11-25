@@ -41,11 +41,7 @@ public partial class ImagesView : UserControl
             e.Handled = true;
             return;
         }
-        if (e.Key != Key.V) return;
-        if (Clipboard.ContainsText() && !Clipboard.ContainsImage()) return;
-        if (!Clipboard.ContainsImage() && !Clipboard.ContainsFileDropList()) return;
-        Vm.PasteImage();
-        e.Handled = true;
+        if (e.Key == Key.V) e.Handled = Vm.TryPasteImage(allowFilesWithText: false);
     }
 
     private void OnGalleryDoubleClick(object sender, MouseButtonEventArgs e) => Vm?.OpenImageCommand.Execute(Vm.SelectedImage);

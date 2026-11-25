@@ -33,7 +33,12 @@ public static class ImagePrep
     }
 
     /// <summary>Из буфера обмена или окна просмотра: всегда PNG (без потерь, с альфой).</summary>
-    public static GenImage FromBitmap(BitmapSource src) => new(EncodePng(src), src.PixelWidth, src.PixelHeight, HasAlpha(src));
+    public static GenImage FromBitmap(BitmapSource src)
+    {
+        // Даже у замороженного BitmapFrame чтение метаданных может обратиться к декодеру в исходном потоке.
+        var frame = BitmapFrame.Create(src, null, null, null);
+        return new GenImage(EncodePng(frame), src.PixelWidth, src.PixelHeight, HasAlpha(src));
+    }
 
     public static BitmapSource? Decode(byte[] data)
     {
@@ -236,10 +241,12 @@ public static class ImagePrep
         return px;
     }
 
-    public static byte[] EncodePng(BitmapSource src)
+    public static byte[] EncodePng(BitmapSource src) => EncodePng(BitmapFrame.Create(src));
+
+    private static byte[] EncodePng(BitmapFrame frame)
     {
         var enc = new PngBitmapEncoder();
-        enc.Frames.Add(BitmapFrame.Create(src));
+        enc.Frames.Add(frame);
         using var ms = new MemoryStream();
         enc.Save(ms);
         return ms.ToArray();

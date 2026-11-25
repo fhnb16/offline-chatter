@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -263,16 +264,38 @@ public sealed partial class ImagesViewModel
 
     /// <summary>Вставить картинку из буфера (Ctrl+V на странице): без потерь, с прозрачностью.</summary>
     [RelayCommand]
-    public void PasteImage()
+    private void PasteImage() => TryPasteImage(allowFilesWithText: true);
+
+    internal bool TryPasteImage(bool allowFilesWithText)
     {
-        var bmp = ImageAttachments.GetClipboardImage();
-        if (bmp == null)
+        try
         {
-            if (Clipboard.ContainsFileDropList()) _ = AddFilesAsync(Clipboard.GetFileDropList().Cast<string>());
-            return;
+            return PasteClipboardData(Clipboard.GetDataObject(), allowFilesWithText);
         }
-        if (bmp.CanFreeze && !bmp.IsFrozen) bmp.Freeze();
-        _ = PasteAsync(bmp);
+        catch (Exception ex) when (ex is COMException or NotSupportedException or InvalidOperationException or ArgumentException or IOException)
+        {
+            Error = L.F("Img_CannotOpen", "clipboard", ex.Message);
+            return true;
+        }
+    }
+
+    private bool PasteClipboardData(IDataObject? data, bool allowFilesWithText)
+    {
+        if (data == null) return false;
+        if (ImageAttachments.GetClipboardImage(data) is { } bmp)
+        {
+            if (!bmp.IsFrozen)
+            {
+                if (!bmp.CanFreeze) bmp = new WriteableBitmap(bmp);
+                bmp.Freeze();
+            }
+            _ = PasteAsync(bmp);
+            return true;
+        }
+        if (!allowFilesWithText && data.GetDataPresent(DataFormats.UnicodeText)) return false;
+        if (data.GetData(DataFormats.FileDrop) is not string[] { Length: > 0 } files) return false;
+        _ = AddFilesAsync(files);
+        return true;
     }
 
     private async Task PasteAsync(BitmapSource bmp)
@@ -282,7 +305,7 @@ public sealed partial class ImagesViewModel
             var img = await Task.Run(() => ImagePrep.FromBitmap(bmp));
             AddImage(img, "clipboard.png");
         }
-        catch (Exception ex) when (ex is NotSupportedException or InvalidOperationException or ArgumentException or IOException)
+        catch (Exception ex) when (ex is COMException or NotSupportedException or InvalidOperationException or ArgumentException or IOException)
         {
             Error = L.F("Img_CannotOpen", "clipboard", ex.Message);
         }

@@ -97,11 +97,11 @@ public static class ImageAttachments
     /// белая после сжатия, картинка. Поэтому: сначала формат «PNG» (у него честная прозрачность), затем DIB
     /// с игнорированием альфы, если она вся нулевая, и только потом штатный путь.
     /// </summary>
-    public static BitmapSource? GetClipboardImage()
-    {
-        var data = Clipboard.GetDataObject();
-        if (data == null) return null;
+    public static BitmapSource? GetClipboardImage() =>
+        Clipboard.GetDataObject() is { } data ? GetClipboardImage(data) : null;
 
+    internal static BitmapSource? GetClipboardImage(IDataObject data)
+    {
         foreach (var format in new[] { "PNG", "image/png" })
         {
             if (data.GetDataPresent(format) && data.GetData(format) is MemoryStream png)
@@ -117,7 +117,7 @@ public static class ImageAttachments
             if (img != null) return img;
         }
 
-        return Clipboard.ContainsImage() ? Clipboard.GetImage() : null;
+        return data.GetData(DataFormats.Bitmap) as BitmapSource;
     }
 
     private static BitmapSource? Decode(Stream s)
