@@ -125,6 +125,13 @@ public sealed class ImageLaunchSettings
     /// <summary>Отображать файлы весов в память (--mmap): меньше копий в ОЗУ при 16 ГБ.</summary>
     public bool? Mmap { get; set; }
 
+    /// <summary>
+    /// Где хранить веса модулей (--params-backend): «te=disk» — текстовый кодировщик читается из файла по мере надобности
+    /// и не держится в ОЗУ. Без этого --offload-to-cpu кладёт все веса в ОЗУ, и при занятой памяти сервер отказывает
+    /// («RAM weight capacity exceeded»), а не уходит в подкачку.
+    /// </summary>
+    public string? ParamsBackend { get; set; }
+
     public ImageLaunchSettings Clone() => (ImageLaunchSettings)MemberwiseClone();
 }
 
@@ -133,7 +140,7 @@ public enum ImageMemoryProfile
 {
     /// <summary>Правка и генерация на 8 ГБ: веса в ОЗУ, бюджет видеопамяти, flash attention, кэш промптов на 8.</summary>
     Balanced,
-    /// <summary>То же, плюс отображение файлов в память — для 16 ГБ ОЗУ.</summary>
+    /// <summary>То же, плюс текстовый кодировщик читается с диска и файлы отображаются в память — для 16 ГБ или занятой ОЗУ.</summary>
     SaveRam,
     /// <summary>Кодировщик на процессоре: 0 МБ видеопамяти на него; для 32 ГБ ОЗУ и кодировщика Q8_0.</summary>
     EncoderOnCpu,
@@ -160,6 +167,7 @@ public static class ImageMemoryProfiles
         s.VaeTiling = null; // плитки включаются по размеру в каждом запросе
         s.MaxVram = dedicatedVram > 0 ? VramBudgetGb(dedicatedVram).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) : null;
         s.Mmap = profile == ImageMemoryProfile.SaveRam ? true : null;
+        s.ParamsBackend = profile == ImageMemoryProfile.SaveRam ? "te=disk" : null;
         s.ClipOnCpu = profile == ImageMemoryProfile.EncoderOnCpu ? true : null;
     }
 }

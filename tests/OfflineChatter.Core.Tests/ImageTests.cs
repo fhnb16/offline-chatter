@@ -721,10 +721,48 @@ public class QwenImage21Tests
         ImageMemoryProfiles.Apply(s, ImageMemoryProfile.EncoderOnCpu, 12L << 30);
         Assert.True(s.ClipOnCpu);
         Assert.Equal("10.2", s.MaxVram);
+        Assert.Null(s.ParamsBackend);
         ImageMemoryProfiles.Apply(s, ImageMemoryProfile.SaveRam, 0);
         Assert.True(s.Mmap);
+        Assert.Equal("te=disk", s.ParamsBackend);
         Assert.Null(s.MaxVram);
         Assert.Equal(2.0, ImageMemoryProfiles.VramBudgetGb(1L << 30));
+        ImageMemoryProfiles.Apply(s, ImageMemoryProfile.Balanced, 8L << 30);
+        Assert.Null(s.ParamsBackend);
+    }
+
+    [Fact]
+    public void Params_Backend_Goes_After_Offload()
+    {
+        var model = new ImageModel
+        {
+            Family = nameof(ImageFamily.QwenImage21Turbo),
+            Files = { [ImageComponent.DiffusionModel] = "d.gguf", [ImageComponent.Llm] = "l.gguf", [ImageComponent.Vae] = "v.safetensors" },
+        };
+        var o = ImageServerOptions.Resolve(model, new ImageLaunchSettings { OffloadToCpu = true, ParamsBackend = " te = disk " });
+        Assert.Equal("te=disk", o.ParamsBackend);
+        var args = o.BuildArgs("127.0.0.1", 1234, null);
+        var i = args.IndexOf("--params-backend");
+        Assert.True(i > args.IndexOf("--offload-to-cpu"));
+        Assert.Equal("te=disk", args[i + 1]);
+        Assert.DoesNotContain("--params-backend", ImageServerOptions.Resolve(model, new ImageLaunchSettings()).BuildArgs("127.0.0.1", 1, null));
+    }
+
+    [Fact]
+    public void Failures_Classified_From_Server_Output()
+    {
+        Assert.Equal(ImageFailureKind.RamExhausted, ImageFailures.Classify(new[]
+        {
+            "[I] loading tensors completed --- model_loader.cpp:1456",
+            "[E] RAM graph capacity exceeded. Requested 1784448 bytes, 0 bytes available, 0 bytes resident --- model_manager.cpp:1359",
+            "[E] LLM prompt encoding failed --- conditioner.hpp:2462",
+        }));
+        Assert.Equal(ImageFailureKind.RamExhausted, ImageFailures.Classify(new[]
+            { "[E] RAM weight capacity exceeded. Requested 155895168 bytes, 65134592 bytes available, 0 bytes resident" }));
+        Assert.Equal(ImageFailureKind.VramExhausted, ImageFailures.Classify(new[]
+            { "[E] CUDA0 weight capacity exceeded. Requested 1 bytes, 0 bytes available" }));
+        Assert.Equal(ImageFailureKind.VramExhausted, ImageFailures.Classify(new[] { "CUDA error: out of memory" }));
+        Assert.Equal(ImageFailureKind.Unknown, ImageFailures.Classify(new[] { "[E] vae encode compute failed --- vae.hpp:294" }));
     }
 
     [Fact]

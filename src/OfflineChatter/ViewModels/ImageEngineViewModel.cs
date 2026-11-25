@@ -489,6 +489,7 @@ public sealed partial class ImageEngineViewModel : ObservableObject
     [ObservableProperty] private string _conditioningCacheSize = string.Empty;
     [ObservableProperty] private bool _taePreviewOnly = true;
     [ObservableProperty] private bool? _mmap;
+    [ObservableProperty] private string _paramsBackend = string.Empty;
     /// <summary>Плитки VAE по размеру в каждом запросе (настройка генерации, перезапуск не нужен).</summary>
     [ObservableProperty] private bool _autoVaeTiling = true;
     [ObservableProperty] private string _vaeTileSize = "512";
@@ -497,7 +498,7 @@ public sealed partial class ImageEngineViewModel : ObservableObject
     {
         nameof(Threads), nameof(OffloadToCpu), nameof(ClipOnCpu), nameof(VaeOnCpu), nameof(VaeTiling), nameof(FlashAttention),
         nameof(WeightType), nameof(Rng), nameof(LoraDir), nameof(ModelArgs), nameof(ServerDefaults), nameof(ExtraArgs), nameof(ShareVram),
-        nameof(MaxVram), nameof(ConditioningCacheSize), nameof(TaePreviewOnly), nameof(Mmap), nameof(AutoVaeTiling), nameof(VaeTileSize),
+        nameof(MaxVram), nameof(ConditioningCacheSize), nameof(TaePreviewOnly), nameof(Mmap), nameof(AutoVaeTiling), nameof(VaeTileSize), nameof(ParamsBackend),
     };
 
     /// <summary>Поля, которые меняют запросы, а не запуск сервера — для них подсказка о перезапуске не нужна.</summary>
@@ -549,6 +550,7 @@ public sealed partial class ImageEngineViewModel : ObservableObject
         ConditioningCacheSize = l.ConditioningCacheSize?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
         TaePreviewOnly = l.TaePreviewOnly;
         Mmap = l.Mmap;
+        ParamsBackend = l.ParamsBackend ?? string.Empty;
         AutoVaeTiling = _i.AutoVaeTiling;
         VaeTileSize = _i.VaeTileSize.ToString(CultureInfo.InvariantCulture);
         _loading = false;
@@ -576,6 +578,7 @@ public sealed partial class ImageEngineViewModel : ObservableObject
         l.ConditioningCacheSize = int.TryParse(ConditioningCacheSize.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var cc) && cc >= 0 ? cc : null;
         l.TaePreviewOnly = TaePreviewOnly;
         l.Mmap = Mmap;
+        l.ParamsBackend = string.IsNullOrWhiteSpace(ParamsBackend) ? null : ParamsBackend.Trim();
         _i.AutoVaeTiling = AutoVaeTiling;
         _i.VaeTileSize = int.TryParse(VaeTileSize.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var ts) && ts >= 64 ? ts : 512;
         _s.Settings.Save();

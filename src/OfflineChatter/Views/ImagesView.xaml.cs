@@ -28,10 +28,20 @@ public partial class ImagesView : UserControl
         e.Handled = true;
     }
 
-    /// <summary>Ctrl+V с картинкой в буфере добавляет референс; текст вставляется в поле как обычно.</summary>
+    /// <summary>
+    /// Ctrl+Enter запускает генерацию (поле промпта само съело бы Enter как перевод строки);
+    /// Ctrl+V с картинкой в буфере добавляет референс, текст вставляется в поле как обычно.
+    /// </summary>
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (Vm == null || e.Key != Key.V || Keyboard.Modifiers != ModifierKeys.Control) return;
+        if (Vm == null || Keyboard.Modifiers != ModifierKeys.Control) return;
+        if (e.Key == Key.Enter)
+        {
+            if (Vm.GenerateCommand.CanExecute(null)) Vm.GenerateCommand.Execute(null);
+            e.Handled = true;
+            return;
+        }
+        if (e.Key != Key.V) return;
         if (Clipboard.ContainsText() && !Clipboard.ContainsImage()) return;
         if (!Clipboard.ContainsImage() && !Clipboard.ContainsFileDropList()) return;
         Vm.PasteImage();

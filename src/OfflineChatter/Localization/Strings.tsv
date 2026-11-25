@@ -1401,8 +1401,8 @@ Enum_ImageFit_FitPad	Fit with margins	Вписать с полями
 Enum_ImageFit_Stretch	Stretch	Растянуть
 Enum_ImageMemoryProfile_Balanced	Editing and generation, 8 GB	Правка и генерация, 8 ГБ
 Enum_ImageMemoryProfile_Balanced_Hint	Weights stay in RAM and go to the card when needed; video memory budget, flash attention, cache of 8 prompts, VAE tiles by size	Веса в ОЗУ и подгружаются в видеокарту по мере надобности; бюджет видеопамяти, flash attention, кэш на 8 промптов, плитки VAE по размеру
-Enum_ImageMemoryProfile_SaveRam	Saving RAM, 16 GB	Экономия ОЗУ, 16 ГБ
-Enum_ImageMemoryProfile_SaveRam_Hint	The same plus memory-mapped weight files: fewer copies in RAM. Works well with mmproj Q8_0.	То же плюс отображение файлов весов в память: меньше копий в ОЗУ. Хорошо сочетается с mmproj Q8_0.
+Enum_ImageMemoryProfile_SaveRam	Saving RAM	Экономия ОЗУ
+Enum_ImageMemoryProfile_SaveRam_Hint	For 16 GB or when other programs occupy memory: the text encoder is read from disk instead of being kept in RAM, weight files are memory-mapped. The prompt is read a few seconds longer.	Для 16 ГБ или когда память занята другими программами: текстовый кодировщик читается с диска, а не держится в ОЗУ, файлы весов отображаются в память. Промпт разбирается на несколько секунд дольше.
 Enum_ImageMemoryProfile_EncoderOnCpu	Encoder on the CPU, 32 GB	Кодировщик на процессоре, 32 ГБ
 Enum_ImageMemoryProfile_EncoderOnCpu_Hint	The text encoder with mmproj runs on the CPU and takes no video memory. Prompt encoding is slower (4–8 s), but the cache keeps it while you change the seed.	Кодировщик с mmproj работает на процессоре и не занимает видеопамять. Разбор промпта медленнее (4–8 с), но кэш хранит его, пока вы меняете зерно.
 Img_DroppedParams	This picture has saved generation settings	В картинке сохранены параметры генерации
@@ -1508,3 +1508,9 @@ ImgEngine_VaeTileSize	VAE tile size, px	Размер плитки VAE, px
 ImgEngine_VaeTileSizeHint	512 is a good balance on 8 GB; smaller tiles use less memory but seams are more likely	512 — хороший баланс на 8 ГБ; плитки меньше расходуют меньше памяти, но швы вероятнее
 ImgEngine_Fact_Multiple	Size multiple	Кратность размера
 ImgEngine_Fact_Alpha	Transparency (RGBA)	Прозрачность (RGBA)
+Img_PreviewWaiting	The preview appears after the first sampling step	Превью появится после первого шага
+Img_PreviewOff	Live preview is off: the picture appears when generation finishes	Превью выключено: картинка появится, когда генерация закончится
+ImgEngine_ParamsBackend	Where weights are kept	Где хранить веса
+ImgEngine_ParamsBackendHint	te=disk reads the text encoder from the file instead of RAM; disk keeps all weights on disk. Empty means everything in RAM when offloading to the CPU.	te=disk — текстовый кодировщик читается из файла, а не из ОЗУ; disk — все веса на диске. Пусто — всё в ОЗУ при выгрузке на процессор.
+Img_FailRam	The generator ran out of RAM (free now: {0} GB) and does not use the page file. Close heavy programs, choose the "Saving RAM" profile in Engine → Images, or a Q4 text encoder.	Генератору не хватило оперативной памяти (свободно сейчас: {0} ГБ), в файл подкачки он не уходит. Закройте тяжёлые программы, выберите профиль «Экономия ОЗУ» в «Движок → Изображения» или текстовый кодировщик Q4.
+Img_FailVram	The generator ran out of video memory. Lower the video memory budget in Engine → Images, reduce the size or the number of reference images.	Генератору не хватило видеопамяти. Уменьшите бюджет видеопамяти в «Движок → Изображения», размер картинки или число референсов.

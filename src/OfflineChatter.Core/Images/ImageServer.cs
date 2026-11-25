@@ -36,6 +36,7 @@ public sealed class ImageServerOptions
     public int? ConditioningCacheSize { get; set; }
     public bool TaePreviewOnly { get; set; } = true;
     public bool Mmap { get; set; }
+    public string? ParamsBackend { get; set; }
 
     /// <summary>Есть и полный VAE, и TAE: TAE рисует только превью (иначе sd.cpp декодировал бы им итог).</summary>
     public bool TaeIsPreviewOnly => TaePreviewOnly && Files.ContainsKey(ImageComponent.Vae) && Files.ContainsKey(ImageComponent.Tae);
@@ -85,6 +86,7 @@ public sealed class ImageServerOptions
             ConditioningCacheSize = s.ConditioningCacheSize ?? p.ConditioningCache,
             TaePreviewOnly = s.TaePreviewOnly,
             Mmap = s.Mmap ?? false,
+            ParamsBackend = string.IsNullOrWhiteSpace(s.ParamsBackend) ? null : s.ParamsBackend!.Trim().Replace(" ", string.Empty),
         };
     }
 
@@ -148,6 +150,8 @@ public sealed class ImageServerOptions
         if (MaxVram != null) Add("--max-vram", MaxVram);
         if (ConditioningCacheSize is { } ccs and >= 0) Add("--conditioning-cache-size", I(ccs));
         if (Mmap) Add("--mmap");
+        // После --offload-to-cpu: сервер ставит «*=cpu» первым, явное назначение модуля его перекрывает
+        if (ParamsBackend != null) Add("--params-backend", ParamsBackend);
         if (Defaults is { } d)
         {
             Add("-W", I(d.Width), "--width");
@@ -224,6 +228,24 @@ public sealed class ImageServer : IDisposable
     public string Tail
     {
         get { lock (_tail) return string.Join(Environment.NewLine, _tail); }
+    }
+
+    private long _lineCount;
+
+    /// <summary>Сколько строк вывода получено с запуска — отметка перед заданием для <see cref="TailSince"/>.</summary>
+    public long LineMark
+    {
+        get { lock (_tail) return _lineCount; }
+    }
+
+    /// <summary>Строки вывода после отметки (в пределах хранимого хвоста): по ним объясняется ошибка задания.</summary>
+    public IReadOnlyList<string> TailSince(long mark)
+    {
+        lock (_tail)
+        {
+            var take = (int)Math.Min(_tail.Count, Math.Max(0, _lineCount - mark));
+            return _tail.Skip(_tail.Count - take).ToList();
+        }
     }
 
     public async Task StartAsync(SdEngineInstall engine, ImageModel model, ImageServerOptions options, FlagCatalog? flags, CancellationToken ct)
@@ -320,6 +342,7 @@ public sealed class ImageServer : IDisposable
         lock (_tail)
         {
             _tail.AddLast(line);
+            _lineCount++;
             while (_tail.Count > 400) _tail.RemoveFirst();
         }
         OutputLine?.Invoke(this, line);

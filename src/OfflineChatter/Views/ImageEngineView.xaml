@@ -325,6 +325,11 @@
                             <TextBlock Text="{l:Loc ImgEngine_MaxVram}" Style="{StaticResource FieldLabel}" />
                             <TextBox Text="{Binding MaxVram, UpdateSourceTrigger=PropertyChanged, Delay=600}" FontFamily="{DynamicResource MonoFontFamily}" />
                             <TextBlock Text="{l:Loc ImgEngine_MaxVramHint}" Style="{StaticResource FieldHint}" TextWrapping="Wrap" />
+                            <StackPanel Visibility="{DynamicResource UiAdvancedVisibility}">
+                                <TextBlock Text="{l:Loc ImgEngine_ParamsBackend}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding ParamsBackend, UpdateSourceTrigger=PropertyChanged, Delay=600}" FontFamily="{DynamicResource MonoFontFamily}" />
+                                <TextBlock Text="{l:Loc ImgEngine_ParamsBackendHint}" Style="{StaticResource FieldHint}" TextWrapping="Wrap" />
+                            </StackPanel>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource Panel}">

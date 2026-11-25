@@ -1392,8 +1392,8 @@
   <data name="Enum_ImageFit_Stretch" xml:space="preserve"><value>Растянуть</value></data>
   <data name="Enum_ImageMemoryProfile_Balanced" xml:space="preserve"><value>Правка и генерация, 8 ГБ</value></data>
   <data name="Enum_ImageMemoryProfile_Balanced_Hint" xml:space="preserve"><value>Веса в ОЗУ и подгружаются в видеокарту по мере надобности; бюджет видеопамяти, flash attention, кэш на 8 промптов, плитки VAE по размеру</value></data>
-  <data name="Enum_ImageMemoryProfile_SaveRam" xml:space="preserve"><value>Экономия ОЗУ, 16 ГБ</value></data>
-  <data name="Enum_ImageMemoryProfile_SaveRam_Hint" xml:space="preserve"><value>То же плюс отображение файлов весов в память: меньше копий в ОЗУ. Хорошо сочетается с mmproj Q8_0.</value></data>
+  <data name="Enum_ImageMemoryProfile_SaveRam" xml:space="preserve"><value>Экономия ОЗУ</value></data>
+  <data name="Enum_ImageMemoryProfile_SaveRam_Hint" xml:space="preserve"><value>Для 16 ГБ или когда память занята другими программами: текстовый кодировщик читается с диска, а не держится в ОЗУ, файлы весов отображаются в память. Промпт разбирается на несколько секунд дольше.</value></data>
   <data name="Enum_ImageMemoryProfile_EncoderOnCpu" xml:space="preserve"><value>Кодировщик на процессоре, 32 ГБ</value></data>
   <data name="Enum_ImageMemoryProfile_EncoderOnCpu_Hint" xml:space="preserve"><value>Кодировщик с mmproj работает на процессоре и не занимает видеопамять. Разбор промпта медленнее (4–8 с), но кэш хранит его, пока вы меняете зерно.</value></data>
   <data name="Img_DroppedParams" xml:space="preserve"><value>В картинке сохранены параметры генерации</value></data>
@@ -1499,4 +1499,10 @@
   <data name="ImgEngine_VaeTileSizeHint" xml:space="preserve"><value>512 — хороший баланс на 8 ГБ; плитки меньше расходуют меньше памяти, но швы вероятнее</value></data>
   <data name="ImgEngine_Fact_Multiple" xml:space="preserve"><value>Кратность размера</value></data>
   <data name="ImgEngine_Fact_Alpha" xml:space="preserve"><value>Прозрачность (RGBA)</value></data>
+  <data name="Img_PreviewWaiting" xml:space="preserve"><value>Превью появится после первого шага</value></data>
+  <data name="Img_PreviewOff" xml:space="preserve"><value>Превью выключено: картинка появится, когда генерация закончится</value></data>
+  <data name="ImgEngine_ParamsBackend" xml:space="preserve"><value>Где хранить веса</value></data>
+  <data name="ImgEngine_ParamsBackendHint" xml:space="preserve"><value>te=disk — текстовый кодировщик читается из файла, а не из ОЗУ; disk — все веса на диске. Пусто — всё в ОЗУ при выгрузке на процессор.</value></data>
+  <data name="Img_FailRam" xml:space="preserve"><value>Генератору не хватило оперативной памяти (свободно сейчас: {0} ГБ), в файл подкачки он не уходит. Закройте тяжёлые программы, выберите профиль «Экономия ОЗУ» в «Движок → Изображения» или текстовый кодировщик Q4.</value></data>
+  <data name="Img_FailVram" xml:space="preserve"><value>Генератору не хватило видеопамяти. Уменьшите бюджет видеопамяти в «Движок → Изображения», размер картинки или число референсов.</value></data>
 </root>

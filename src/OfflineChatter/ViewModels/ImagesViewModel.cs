@@ -696,7 +696,8 @@ public sealed partial class ImagesViewModel : PageViewModel
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(GenerateCommand), nameof(CancelCommand), nameof(StopServerCommand), nameof(Final2KCommand))]
-    [NotifyPropertyChangedFor(nameof(ShowLivePreview), nameof(ShowCompare), nameof(ShowSingle), nameof(ShowResultTools))]
+    [NotifyPropertyChangedFor(nameof(ShowLivePreview), nameof(ShowCompare), nameof(ShowSingle), nameof(ShowResultTools),
+        nameof(ShowPreviewPlaceholder), nameof(PreviewPlaceholderText))]
     private bool _isGenerating;
 
     [ObservableProperty] private string? _status;
@@ -714,10 +715,19 @@ public sealed partial class ImagesViewModel : PageViewModel
 
     /// <summary>Свежий кадр превью во время генерации.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowLivePreview), nameof(ShowCompare), nameof(ShowSingle), nameof(ShowResultTools))]
+    [NotifyPropertyChangedFor(nameof(ShowLivePreview), nameof(ShowCompare), nameof(ShowSingle), nameof(ShowResultTools), nameof(ShowPreviewPlaceholder))]
     private BitmapSource? _livePreview;
 
     public bool ShowLivePreview => IsGenerating && LivePreview != null;
+
+    /// <summary>Сервер будет присылать кадры превью в текущей генерации.</summary>
+    private bool _livePreviewOn = true;
+
+    /// <summary>Область превью пуста: ни кадра генерации, ни выбранной картинки.</summary>
+    public bool ShowPreviewPlaceholder => !ShowLivePreview && !ShowCompare && !ShowSingle;
+
+    public string PreviewPlaceholderText =>
+        !IsGenerating ? L.Get("Img_NoResults") : L.Get(_livePreviewOn ? "Img_PreviewWaiting" : "Img_PreviewOff");
 
     private bool CanGenerate() =>
         !IsGenerating && SelectedModel?.IsReady == true && HasEngine &&
@@ -771,6 +781,7 @@ public sealed partial class ImagesViewModel : PageViewModel
         _s.Settings.Save();
 
         var cts = _cts = new CancellationTokenSource();
+        _livePreviewOn = ResolvePreview() != "none";
         IsGenerating = true;
         _s.ImageBusy = true;
         _nativeProgress = false;
@@ -785,6 +796,7 @@ public sealed partial class ImagesViewModel : PageViewModel
         _startedAt = DateTime.Now;
         UpdateElapsed();
         _clock.Start();
+        long outputMark = -1;
         try
         {
             if (!(_s.ImageServer.State == ServerState.Ready && _s.ImageServer.Model?.Id == model.Id))
@@ -815,6 +827,7 @@ public sealed partial class ImagesViewModel : PageViewModel
             Status = L.Get("Img_Generating");
             var client = new ImageClient(_s.LocalHttp, _s.ImageServer.BaseUrl);
             var progress = new Progress<ImageJobProgress>(j => OnJobProgress(j, p));
+            outputMark = _s.ImageServer.LineMark;
             var result = await Task.Run(() => client.GenerateAsync(request, cts.Token, progress));
             _condCache.Touch(condKey);
 
@@ -848,9 +861,10 @@ public sealed partial class ImagesViewModel : PageViewModel
         catch (Exception ex) when (ex is ImageApiException or System.Net.Http.HttpRequestException or IOException or TimeoutException or JsonException
                                        or NotSupportedException or InvalidOperationException or ArgumentException)
         {
-            Error = L.F("Img_Failed", ex.GetBaseException().Message);
+            var kind = outputMark >= 0 ? ImageFailures.Classify(_s.ImageServer.TailSince(outputMark)) : ImageFailureKind.Unknown;
+            Error = L.F("Img_Failed", ex.GetBaseException().Message) + FailureHint(kind);
             Status = null;
-            Log.Warn("Images", "Generation failed", ex);
+            Log.Warn("Images", "Generation failed", ex, new { kind });
         }
         finally
         {
@@ -879,6 +893,21 @@ public sealed partial class ImagesViewModel : PageViewModel
 
     private string SlowStepText() =>
         L.Get(_s.ImageEngines.Active?.Manifest.Backend == EngineBackend.Cuda ? "Img_SlowStepCuda" : "Img_SlowStep");
+
+    /// <summary>Что делать, если серверу не хватило памяти: сам он сообщает лишь «prompt encoding failed».</summary>
+    private static string FailureHint(ImageFailureKind kind)
+    {
+        switch (kind)
+        {
+            case ImageFailureKind.RamExhausted:
+                var free = HardwareProbe.Memory().available / (double)(1L << 30);
+                return Environment.NewLine + L.F("Img_FailRam", free.ToString("0.0", CultureInfo.CurrentCulture));
+            case ImageFailureKind.VramExhausted:
+                return Environment.NewLine + L.Get("Img_FailVram");
+            default:
+                return string.Empty;
+        }
+    }
 
     private bool CanCancel() => IsGenerating;
 
@@ -992,7 +1021,8 @@ public sealed partial class ImagesViewModel : PageViewModel
     public ObservableCollection<GalleryItem> Gallery { get; } = new();
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelectedImage), nameof(SelectedPreview), nameof(CanCompare), nameof(ShowCompare), nameof(ShowSingle), nameof(ShowResultTools))]
+    [NotifyPropertyChangedFor(nameof(HasSelectedImage), nameof(SelectedPreview), nameof(CanCompare), nameof(ShowCompare), nameof(ShowSingle), nameof(ShowResultTools),
+        nameof(ShowPreviewPlaceholder))]
     private GalleryItem? _selectedImage;
 
     public bool HasSelectedImage => SelectedImage != null;
@@ -1006,7 +1036,7 @@ public sealed partial class ImagesViewModel : PageViewModel
     public bool CanCompare => SelectedImage?.Before != null;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowCompare), nameof(ShowSingle))]
+    [NotifyPropertyChangedFor(nameof(ShowCompare), nameof(ShowSingle), nameof(ShowPreviewPlaceholder))]
     private bool _isComparing;
 
     public bool ShowCompare => IsComparing && CanCompare && !ShowLivePreview;

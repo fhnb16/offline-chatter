@@ -1392,8 +1392,8 @@ Install anyway?</value></data>
   <data name="Enum_ImageFit_Stretch" xml:space="preserve"><value>Stretch</value></data>
   <data name="Enum_ImageMemoryProfile_Balanced" xml:space="preserve"><value>Editing and generation, 8 GB</value></data>
   <data name="Enum_ImageMemoryProfile_Balanced_Hint" xml:space="preserve"><value>Weights stay in RAM and go to the card when needed; video memory budget, flash attention, cache of 8 prompts, VAE tiles by size</value></data>
-  <data name="Enum_ImageMemoryProfile_SaveRam" xml:space="preserve"><value>Saving RAM, 16 GB</value></data>
-  <data name="Enum_ImageMemoryProfile_SaveRam_Hint" xml:space="preserve"><value>The same plus memory-mapped weight files: fewer copies in RAM. Works well with mmproj Q8_0.</value></data>
+  <data name="Enum_ImageMemoryProfile_SaveRam" xml:space="preserve"><value>Saving RAM</value></data>
+  <data name="Enum_ImageMemoryProfile_SaveRam_Hint" xml:space="preserve"><value>For 16 GB or when other programs occupy memory: the text encoder is read from disk instead of being kept in RAM, weight files are memory-mapped. The prompt is read a few seconds longer.</value></data>
   <data name="Enum_ImageMemoryProfile_EncoderOnCpu" xml:space="preserve"><value>Encoder on the CPU, 32 GB</value></data>
   <data name="Enum_ImageMemoryProfile_EncoderOnCpu_Hint" xml:space="preserve"><value>The text encoder with mmproj runs on the CPU and takes no video memory. Prompt encoding is slower (4–8 s), but the cache keeps it while you change the seed.</value></data>
   <data name="Img_DroppedParams" xml:space="preserve"><value>This picture has saved generation settings</value></data>
@@ -1499,4 +1499,10 @@ Install anyway?</value></data>
   <data name="ImgEngine_VaeTileSizeHint" xml:space="preserve"><value>512 is a good balance on 8 GB; smaller tiles use less memory but seams are more likely</value></data>
   <data name="ImgEngine_Fact_Multiple" xml:space="preserve"><value>Size multiple</value></data>
   <data name="ImgEngine_Fact_Alpha" xml:space="preserve"><value>Transparency (RGBA)</value></data>
+  <data name="Img_PreviewWaiting" xml:space="preserve"><value>The preview appears after the first sampling step</value></data>
+  <data name="Img_PreviewOff" xml:space="preserve"><value>Live preview is off: the picture appears when generation finishes</value></data>
+  <data name="ImgEngine_ParamsBackend" xml:space="preserve"><value>Where weights are kept</value></data>
+  <data name="ImgEngine_ParamsBackendHint" xml:space="preserve"><value>te=disk reads the text encoder from the file instead of RAM; disk keeps all weights on disk. Empty means everything in RAM when offloading to the CPU.</value></data>
+  <data name="Img_FailRam" xml:space="preserve"><value>The generator ran out of RAM (free now: {0} GB) and does not use the page file. Close heavy programs, choose the &quot;Saving RAM&quot; profile in Engine → Images, or a Q4 text encoder.</value></data>
+  <data name="Img_FailVram" xml:space="preserve"><value>The generator ran out of video memory. Lower the video memory budget in Engine → Images, reduce the size or the number of reference images.</value></data>
 </root>
