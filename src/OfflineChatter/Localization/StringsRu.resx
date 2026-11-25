@@ -1236,8 +1236,11 @@
   <data name="Img_GetModel" xml:space="preserve"><value>Выбрать модель</value></data>
   <data name="Img_Model" xml:space="preserve"><value>Модель</value></data>
   <data name="Img_Generator" xml:space="preserve"><value>Генератор</value></data>
-  <data name="Img_StopServer" xml:space="preserve"><value>Остановить генератор</value></data>
-  <data name="Img_StopServerHint" xml:space="preserve"><value>Освобождает видеопамять; генератор запустится снова со следующей картинкой</value></data>
+  <data name="Img_StopServer" xml:space="preserve"><value>Освободить память</value></data>
+  <data name="Img_StopServerHint" xml:space="preserve"><value>Останавливает генератор, прерывает активные запросы и освобождает ОЗУ и видеопамять. Модель загрузится при следующей генерации.</value></data>
+  <data name="Img_ReleasingMemory" xml:space="preserve"><value>Освобождение памяти генератора</value></data>
+  <data name="Img_MemoryReleased" xml:space="preserve"><value>Память генератора освобождена</value></data>
+  <data name="Img_MemoryRecoveryReady" xml:space="preserve"><value>Память генератора освобождена. При следующем запуске будет использован режим экономии ОЗУ.</value></data>
   <data name="Img_Mode" xml:space="preserve"><value>Режим</value></data>
   <data name="Enum_ImageMode_TextToImage" xml:space="preserve"><value>Из текста</value></data>
   <data name="Enum_ImageMode_Edit" xml:space="preserve"><value>Редактирование по референсам</value></data>
@@ -1495,7 +1498,7 @@
   <data name="ImgEngine_MaxVram" xml:space="preserve"><value>Бюджет видеопамяти, ГБ</value></data>
   <data name="ImgEngine_MaxVramHint" xml:space="preserve"><value>Например, 6.8 на карте 8 ГБ или cuda0=6.8 по устройствам; -1 оставляет свободным около 1 ГБ. Пусто — без бюджета.</value></data>
   <data name="ImgEngine_CondCache" xml:space="preserve"><value>Кэш промптов</value></data>
-  <data name="ImgEngine_CondCacheHint" xml:space="preserve"><value>Сколько разобранных промптов с картинками помнить: смена зерна, силы или шагов не запускает кодировщик заново. Пусто — значение модели, 0 — выключить.</value></data>
+  <data name="ImgEngine_CondCacheHint" xml:space="preserve"><value>Сколько разобранных промптов с картинками помнить, чтобы не запускать кодировщик повторно. Пусто — автоматический размер, 0 — выключить кэш.</value></data>
   <data name="ImgEngine_TaePreviewOnly" xml:space="preserve"><value>TAE только для превью</value></data>
   <data name="ImgEngine_TaePreviewOnlyHint" xml:space="preserve"><value>Если есть и полный VAE, и TAE, результат декодирует полный VAE (с альфой и мелкими деталями), а TAE рисует только шаги</value></data>
   <data name="ImgEngine_VaeTileSize" xml:space="preserve"><value>Размер плитки VAE, px</value></data>

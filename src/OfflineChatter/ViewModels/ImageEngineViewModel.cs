@@ -290,13 +290,18 @@ public sealed partial class ImageEngineViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void Remove(SdEngineItem item)
+    private async Task RemoveAsync(SdEngineItem item)
     {
         var key = item.Install.IsExternal ? "Engine_ConfirmUnlink" : "Engine_ConfirmDelete";
         if (MessageBox.Show(L.F(key, item.Title, item.Path), "Offline Chatter", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {
-            if (_s.ImageServer.Engine?.Id == item.Install.Id) _s.ImageServer.Stop();
+            if (_s.ImageServer.Engine?.Id == item.Install.Id &&
+                !await Task.Run(() => _s.StopImageServerAsync(CancellationToken.None)))
+            {
+                ApiMessage = L.F("Img_ServerFailed", _s.ImageServerError ?? "?");
+                return;
+            }
             _s.ImageEngines.Remove(item.Install);
             _s.NotifyImageSetupChanged();
         }
@@ -374,7 +379,7 @@ public sealed partial class ImageEngineViewModel : ObservableObject
     private bool CanStop() => _s.ImageServer.IsRunning;
 
     [RelayCommand(CanExecute = nameof(CanStop))]
-    private void StopServer() => _s.ImageServer.Stop();
+    private Task StopServerAsync() => Task.Run(() => _s.StopImageServerAsync(CancellationToken.None));
 
     private bool CanStart() => _s.ImageServer.State is not (ServerState.Starting or ServerState.Loading) && Model != null && _s.ImageEngines.Active != null;
 
@@ -382,10 +387,9 @@ public sealed partial class ImageEngineViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanStart))]
     private async Task StartServerAsync()
     {
-        if (Model == null) return;
+        if (Model is not { } model) return;
         ApiMessage = null;
-        _s.ImageServer.Stop();
-        if (!await Task.Run(() => _s.EnsureImageServerAsync(Model, CancellationToken.None)))
+        if (!await Task.Run(() => _s.EnsureImageServerAsync(model, CancellationToken.None, restart: true)))
             ApiMessage = L.F("Img_ServerFailed", _s.ImageServerError ?? "?");
     }
 

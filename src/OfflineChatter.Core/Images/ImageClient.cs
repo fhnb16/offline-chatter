@@ -162,9 +162,8 @@ public sealed class ImageClient
     /// <summary>null — родного API нет (старая сборка): вызывающий переходит на /sdapi и /v1.</summary>
     private async Task<ImageResult?> TryNativeAsync(ImageRequest r, IProgress<ImageJobProgress>? progress, Stopwatch sw, CancellationToken ct)
     {
-        var body = BuildNative(r);
         string id;
-        using (var content = new StringContent(body.ToString(Formatting.None), Encoding.UTF8, "application/json"))
+        using (var content = new StringContent(BuildNative(r).ToString(Formatting.None), Encoding.UTF8, "application/json"))
         using (var resp = await _http.PostAsync(_baseUrl + "/sdcpp/v1/img_gen", content, ct).ConfigureAwait(false))
         {
             if ((int)resp.StatusCode is 404 or 405 or 501) return null;

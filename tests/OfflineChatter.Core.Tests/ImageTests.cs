@@ -361,6 +361,88 @@ public class ImageServerOptionsTests
     public void Non_Progress_Line() => Assert.Null(ImageProgress.Parse("[INFO ] loading model"));
 }
 
+public class ImageMemoryPolicyTests
+{
+    private const long GiB = 1L << 30;
+    private static readonly FlagCatalog NewFlags = SdHelp.Parse(string.Join("\n",
+        "  --completed-ttl-seconds <int>  job retention",
+        "  --weight-staging-ttl   idle staging retention",
+        "  --weight-residency-ttl   idle residency",
+        "  --conditioning-cache-size <int>  prompt cache",
+        "  --listen-ip <string>  host",
+        "  --listen-port <int>  port",
+        "  --mmap   map weights",
+        "  --params-backend <string>  parameter placement"))!;
+
+    [Fact]
+    public void Private_Server_Uses_Ttls_Only_When_Advertised()
+    {
+        var options = new ImageServerOptions { ConditioningCacheSize = 8 };
+        ImageMemoryPolicy.Configure(options, new ImageLaunchSettings(), NewFlags, false, 32 * GiB, false);
+        var args = string.Join(" ", options.BuildArgs("127.0.0.1", 1234, NewFlags));
+        Assert.Contains("--completed-ttl-seconds 60", args);
+        Assert.Contains("--weight-staging-ttl 15", args);
+        Assert.Contains("--weight-residency-ttl 45", args);
+        Assert.Contains("--conditioning-cache-size 2", args);
+        foreach (var flags in new[] { null, new FlagCatalog(Array.Empty<EngineFlag>()) })
+        {
+            var fallback = string.Join(" ", options.BuildArgs("127.0.0.1", 1234, flags));
+            Assert.DoesNotContain("--completed-ttl-seconds", fallback);
+            Assert.DoesNotContain("--weight-staging-ttl", fallback);
+            Assert.DoesNotContain("--weight-residency-ttl", fallback);
+        }
+    }
+
+    [Fact]
+    public void Public_Server_Keeps_Its_Retention_And_Explicit_Cache()
+    {
+        var launch = new ImageLaunchSettings { ConditioningCacheSize = 8 };
+        var options = new ImageServerOptions { ConditioningCacheSize = 8 };
+        ImageMemoryPolicy.Configure(options, launch, NewFlags, true, 16 * GiB, true);
+        Assert.Null(options.CompletedJobTtl);
+        Assert.Null(options.WeightStagingTtl);
+        Assert.Null(options.WeightResidencyTtl);
+        Assert.Equal(8, options.ConditioningCacheSize);
+        ImageMemoryPolicy.Configure(options, launch, NewFlags, false, 16 * GiB, false);
+        Assert.Equal(8, options.ConditioningCacheSize);
+    }
+
+    [Fact]
+    public void Ram_Recovery_Reduces_Cache_And_Uses_Disk_Only_When_Supported_And_Unspecified()
+    {
+        var options = new ImageServerOptions
+        {
+            ConditioningCacheSize = 8,
+            Files = { [ImageComponent.Llm] = "encoder.gguf", [ImageComponent.LlmVision] = "mmproj.gguf" },
+        };
+        ImageMemoryPolicy.Configure(options, new ImageLaunchSettings(), null, false, 32 * GiB, true);
+        Assert.Null(options.ParamsBackend);
+        Assert.False(options.Mmap);
+        Assert.Equal(8, options.ConditioningCacheSize);
+        ImageMemoryPolicy.Configure(options, new ImageLaunchSettings(), NewFlags, false, 32 * GiB, true);
+        Assert.Equal("te=disk", options.ParamsBackend);
+        Assert.True(options.Mmap);
+        Assert.Equal(1, options.ConditioningCacheSize);
+        options.ParamsBackend = "te=cpu";
+        options.ConditioningCacheSize = 0;
+        options.Mmap = false;
+        ImageMemoryPolicy.Configure(options, new ImageLaunchSettings { Mmap = false }, NewFlags, false, 32 * GiB, true);
+        Assert.Equal("te=cpu", options.ParamsBackend);
+        Assert.Equal(0, options.ConditioningCacheSize);
+        Assert.False(options.Mmap);
+    }
+
+    [Fact]
+    public void Releases_Only_When_Headroom_Is_Low_And_Server_Holds_Substantial_Memory()
+    {
+        Assert.True(ImageMemoryPolicy.ShouldRelease(32 * GiB, GiB, 5 * GiB));
+        Assert.True(ImageMemoryPolicy.ShouldRelease(8 * GiB, 0, GiB));
+        Assert.False(ImageMemoryPolicy.ShouldRelease(32 * GiB, 2 * GiB, 5 * GiB));
+        Assert.False(ImageMemoryPolicy.ShouldRelease(32 * GiB, GiB, GiB / 2));
+        Assert.False(ImageMemoryPolicy.ShouldRelease(0, 0, 5 * GiB));
+    }
+}
+
 public class ImageClientTests
 {
     [Fact]
@@ -753,6 +835,7 @@ public class QwenImage21Tests
         Assert.Null(s.ParamsBackend);
         ImageMemoryProfiles.Apply(s, ImageMemoryProfile.SaveRam, 0);
         Assert.True(s.Mmap);
+        Assert.Equal(1, s.ConditioningCacheSize);
         Assert.Equal("te=disk", s.ParamsBackend);
         Assert.Null(s.MaxVram);
         Assert.Equal(2.0, ImageMemoryProfiles.VramBudgetGb(1L << 30));

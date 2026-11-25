@@ -1241,8 +1241,11 @@ Img_InstallEngine	Install engine	Установить движок
 Img_GetModel	Choose model	Выбрать модель
 Img_Model	Model	Модель
 Img_Generator	Generator	Генератор
-Img_StopServer	Stop generator	Остановить генератор
-Img_StopServerHint	Frees the video memory; the generator starts again with the next picture	Освобождает видеопамять; генератор запустится снова со следующей картинкой
+Img_StopServer	Free memory	Освободить память
+Img_StopServerHint	Stops the generator, interrupts active requests and releases RAM and video memory. The model reloads on the next generation.	Останавливает генератор, прерывает активные запросы и освобождает ОЗУ и видеопамять. Модель загрузится при следующей генерации.
+Img_ReleasingMemory	Releasing generator memory	Освобождение памяти генератора
+Img_MemoryReleased	Generator memory released	Память генератора освобождена
+Img_MemoryRecoveryReady	Generator memory released. The next launch will use less memory.	Память генератора освобождена. При следующем запуске будет использован режим экономии ОЗУ.
 Img_Mode	Mode	Режим
 Enum_ImageMode_TextToImage	From text	Из текста
 Enum_ImageMode_Edit	Edit by references	Редактирование по референсам
@@ -1504,7 +1507,7 @@ ImgEngine_MmapHint	Fewer copies of the weights in RAM; useful with 16 GB	Мен�
 ImgEngine_MaxVram	Video memory budget, GB	Бюджет видеопамяти, ГБ
 ImgEngine_MaxVramHint	For example 6.8 on an 8 GB card or cuda0=6.8 per device; -1 keeps about 1 GB free. Empty means no budget.	Например, 6.8 на карте 8 ГБ или cuda0=6.8 по устройствам; -1 оставляет свободным около 1 ГБ. Пусто — без бюджета.
 ImgEngine_CondCache	Prompt cache	Кэш промптов
-ImgEngine_CondCacheHint	How many encoded prompts with pictures to keep: changing the seed, strength or steps does not run the encoder again. Empty means the model default, 0 turns it off.	Сколько разобранных промптов с картинками помнить: смена зерна, силы или шагов не запускает кодировщик заново. Пусто — значение модели, 0 — выключить.
+ImgEngine_CondCacheHint	How many encoded prompts with images to keep so the encoder can skip repeat work. Leave empty for automatic sizing, or enter 0 to turn caching off.	Сколько разобранных промптов с картинками помнить, чтобы не запускать кодировщик повторно. Пусто — автоматический размер, 0 — выключить кэш.
 ImgEngine_TaePreviewOnly	TAE only for preview	TAE только для превью
 ImgEngine_TaePreviewOnlyHint	With both a full VAE and TAE the result is decoded by the full VAE (with alpha and fine detail), TAE draws only the steps	Если есть и полный VAE, и TAE, результат декодирует полный VAE (с альфой и мелкими деталями), а TAE рисует только шаги
 ImgEngine_VaeTileSize	VAE tile size, px	Размер плитки VAE, px

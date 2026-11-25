@@ -200,7 +200,9 @@ public sealed partial class ImagesViewModel : PageViewModel
     private readonly MainViewModel _main;
     private readonly DispatcherTimer _clock;
     private readonly ConditioningCacheTracker _condCache = new();
+    private DateTime? _lastConditioningUse;
     private CancellationTokenSource? _cts;
+    private bool _resetGeneration;
     private DateTime _startedAt;
     private bool _loading;
     private bool _nativeProgress;
@@ -339,11 +341,35 @@ public sealed partial class ImagesViewModel : PageViewModel
         _main.Navigate(PageKind.Models);
     }
 
-    private bool CanStopServer() => _s.ImageServer.IsRunning && !IsGenerating;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(StopServerCommand), nameof(GenerateCommand), nameof(Final2KCommand), nameof(CancelCommand))]
+    private bool _isReleasingMemory;
 
-    /// <summary>Остановить генератор и освободить видеопамять.</summary>
+    private bool CanStopServer() => _s.ImageServer.IsRunning && !IsReleasingMemory;
+
     [RelayCommand(CanExecute = nameof(CanStopServer))]
-    private void StopServer() => _s.ImageServer.Stop();
+    private async Task StopServerAsync()
+    {
+        IsReleasingMemory = true;
+        Status = L.Get("Img_ReleasingMemory");
+        _resetGeneration = _cts != null;
+        _cts?.Cancel();
+        try
+        {
+            if (await Task.Run(() => _s.StopImageServerAsync(CancellationToken.None)))
+            {
+                _condCache.Clear();
+                ConditioningText = null;
+                Status = L.Get("Img_MemoryReleased");
+            }
+            else Status = null;
+        }
+        finally
+        {
+            IsReleasingMemory = false;
+            RefreshSetup();
+        }
+    }
 
     // ---------------- Параметры ----------------
 
@@ -733,7 +759,7 @@ public sealed partial class ImagesViewModel : PageViewModel
             : L.Get(HasSelectedImage ? "Img_ResultPreviewUnavailable" : "Img_NoResults");
 
     private bool CanGenerate() =>
-        !IsGenerating && SelectedModel?.IsReady == true && HasEngine &&
+        !IsGenerating && !IsReleasingMemory && SelectedModel?.IsReady == true && HasEngine &&
         (Mode != ImageMode.Edit || RefImages.Count > 0) && (Mode != ImageMode.ImageToImage || InitImage != null);
 
     [RelayCommand(CanExecute = nameof(CanGenerate))]
@@ -784,10 +810,12 @@ public sealed partial class ImagesViewModel : PageViewModel
         _s.Settings.Save();
 
         var cts = _cts = new CancellationTokenSource();
+        _resetGeneration = false;
         _livePreviewOn = ResolvePreview() != "none";
         IsGenerating = true;
         _s.ImageBusy = true;
         _nativeProgress = false;
+        Status = null;
         Error = null;
         LastStats = null;
         ConditioningText = null;
@@ -800,29 +828,43 @@ public sealed partial class ImagesViewModel : PageViewModel
         UpdateElapsed();
         _clock.Start();
         long outputMark = -1;
+        DateTime? sessionStarted = null;
+        var failure = ImageFailureKind.Unknown;
         try
         {
             await RememberPromptAsync(p, cts.Token);
+            var previousSession = _s.ImageServer.StartedAt;
             if (!(_s.ImageServer.State == ServerState.Ready && _s.ImageServer.Model?.Id == model.Id))
                 Status = L.F("Img_LoadingModel", model.DisplayName);
-            var ok = await Task.Run(() => _s.EnsureImageServerAsync(model, cts.Token));
-            if (cts.IsCancellationRequested) return;
+            var ok = await Task.Run(() => _s.EnsureImageServerAsync(model, cts.Token, forGeneration: true), cts.Token);
+            cts.Token.ThrowIfCancellationRequested();
             if (!ok)
             {
-                Error = L.F("Img_ServerFailed", _s.ImageServerError ?? "?");
+                if (_s.ImageServer.State == ServerState.Failed && _s.ImageServer.StartedAt != previousSession)
+                {
+                    sessionStarted = _s.ImageServer.StartedAt;
+                    failure = ImageFailures.Classify(_s.ImageServer.TailSince(0));
+                }
+                Status = null;
+                Error = L.F("Img_ServerFailed", _s.ImageServerError ?? "?") + FailureHint(failure);
                 return;
             }
+            sessionStarted = _s.ImageServer.StartedAt;
             Status = L.Get("Img_Preparing");
             _s.ImageServer.ResetProgress();
             _startedAt = DateTime.Now;
 
             var inputs = SnapshotInputs(p);
-            var request = await Task.Run(() => BuildRequest(p, inputs));
+            var request = await Task.Run(() => BuildRequest(p, inputs), cts.Token);
+            cts.Token.ThrowIfCancellationRequested();
             request.Preview = ResolvePreview();
             request.PreviewInterval = Math.Max(1, _s.Settings.Current.Images.PreviewInterval);
 
             // Кэш кондиционирования: тот же промпт и те же байты картинок для той же модели не кодируются заново
             _condCache.Capacity = _s.ImageServer.Options?.ConditioningCacheSize ?? 4;
+            if (_s.ImageServer.Options?.WeightResidencyTtl is { } ttl && _lastConditioningUse is { } used
+                && DateTime.UtcNow - used >= TimeSpan.FromSeconds(ttl))
+                _condCache.Clear();
             var session = $"{_s.ImageServer.Port}|{_s.ImageServer.StartedAt?.Ticks}|{model.Id}";
             var condKey = ConditioningCacheTracker.Key(session, ImageClient.EffectivePrompt(p), p.NegativePrompt,
                 request.RefImages.Concat(request.PromptImages.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Value)));
@@ -830,10 +872,14 @@ public sealed partial class ImagesViewModel : PageViewModel
 
             Status = L.Get("Img_Generating");
             var client = new ImageClient(_s.LocalHttp, _s.ImageServer.BaseUrl);
-            var progress = new Progress<ImageJobProgress>(j => OnJobProgress(j, p));
+            var progress = new Progress<ImageJobProgress>(j =>
+            {
+                if (_cts == cts && !cts.IsCancellationRequested) OnJobProgress(j, p);
+            });
             outputMark = _s.ImageServer.LineMark;
             var result = await Task.Run(() => client.GenerateAsync(request, cts.Token, progress));
             _condCache.Touch(condKey);
+            _lastConditioningUse = DateTime.UtcNow;
 
             var (saved, before) = await Task.Run(() =>
             {
@@ -853,7 +899,7 @@ public sealed partial class ImagesViewModel : PageViewModel
                 p.Seed.ToString(CultureInfo.InvariantCulture), result.Endpoint);
             ConditioningText = DescribeConditioning(result, expectCached, request);
             if (result.SecondsPerStep is { } spi && ImageInputPolicy.IsSlowStep(spi, p.Width, p.Height)) SlowHint = SlowStepText();
-            Status = null;
+            if (!_resetGeneration) Status = null;
             Log.Info("Images", "Generated", new
             {
                 count = result.Images.Count, ms = (long)result.Elapsed.TotalMilliseconds, result.Endpoint, family = model.Family, mode = p.Mode,
@@ -863,26 +909,44 @@ public sealed partial class ImagesViewModel : PageViewModel
         }
         catch (OperationCanceledException)
         {
-            Status = L.Get("Img_Canceled");
+            if (!_resetGeneration) Status = L.Get("Img_Canceled");
         }
         catch (Exception ex) when (ex is ImageApiException or System.Net.Http.HttpRequestException or IOException or TimeoutException or JsonException
-                                       or NotSupportedException or InvalidOperationException or ArgumentException)
+                                       or NotSupportedException or InvalidOperationException or ArgumentException or OutOfMemoryException)
         {
-            var kind = outputMark >= 0 ? ImageFailures.Classify(_s.ImageServer.TailSince(outputMark)) : ImageFailureKind.Unknown;
-            Error = L.F("Img_Failed", ex.GetBaseException().Message) + FailureHint(kind);
-            Status = null;
-            Log.Warn("Images", "Generation failed", ex, new { kind });
+            if (cts.IsCancellationRequested)
+            {
+                if (!_resetGeneration) Status = L.Get("Img_Canceled");
+            }
+            else
+            {
+                failure = ex is OutOfMemoryException ? ImageFailureKind.RamExhausted
+                    : outputMark >= 0 ? ImageFailures.Classify(_s.ImageServer.TailSince(outputMark)) : ImageFailureKind.Unknown;
+                Error = L.F("Img_Failed", ex.GetBaseException().Message) + FailureHint(failure);
+                Status = null;
+                Log.Warn("Images", "Generation failed", ex, new { kind = failure });
+            }
         }
         finally
         {
             _clock.Stop();
             ElapsedText = null;
+            LivePreview = null;
+            if (sessionStarted is { } started && !_resetGeneration)
+            {
+                var reclaimed = await Task.Run(() => _s.ReclaimImageMemoryAsync(started, failure, cts.IsCancellationRequested, CancellationToken.None));
+                if (reclaimed)
+                {
+                    _condCache.Clear();
+                    if (!_resetGeneration && !cts.IsCancellationRequested)
+                        Status = L.Get(failure == ImageFailureKind.RamExhausted ? "Img_MemoryRecoveryReady" : "Img_MemoryReleased");
+                }
+            }
             IsGenerating = false;
             _s.ImageBusy = false;
             ProgressIndeterminate = false;
             ProgressValue = 0;
             ProgressText = null;
-            LivePreview = null;
             cts.Dispose();
             _cts = null;
             RefreshSetup();
@@ -916,7 +980,7 @@ public sealed partial class ImagesViewModel : PageViewModel
         }
     }
 
-    private bool CanCancel() => IsGenerating;
+    private bool CanCancel() => IsGenerating && !IsReleasingMemory;
 
     /// <summary>Отмена: родной API прерывает генерацию на сервере на ближайшем шаге; у старых сборок ответ просто перестаём ждать.</summary>
     [RelayCommand(CanExecute = nameof(CanCancel))]
@@ -929,7 +993,7 @@ public sealed partial class ImagesViewModel : PageViewModel
     /// <summary>Ход по выводу сервера — только для старых сборок без /sdcpp (у родного API своя, более точная стадия).</summary>
     private void OnProgress(ImageProgress p)
     {
-        if (!IsGenerating || _nativeProgress) return;
+        if (!IsGenerating || _nativeProgress || _cts?.IsCancellationRequested == true) return;
         ProgressIndeterminate = false;
         ProgressValue = 100.0 * p.Step / p.Total;
         var eta = p.SecondsPerStep is { } spi ? TimeSpan.FromSeconds(spi * (p.Total - p.Step)) : (TimeSpan?)null;

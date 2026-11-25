@@ -1236,8 +1236,11 @@ Install anyway?</value></data>
   <data name="Img_GetModel" xml:space="preserve"><value>Choose model</value></data>
   <data name="Img_Model" xml:space="preserve"><value>Model</value></data>
   <data name="Img_Generator" xml:space="preserve"><value>Generator</value></data>
-  <data name="Img_StopServer" xml:space="preserve"><value>Stop generator</value></data>
-  <data name="Img_StopServerHint" xml:space="preserve"><value>Frees the video memory; the generator starts again with the next picture</value></data>
+  <data name="Img_StopServer" xml:space="preserve"><value>Free memory</value></data>
+  <data name="Img_StopServerHint" xml:space="preserve"><value>Stops the generator, interrupts active requests and releases RAM and video memory. The model reloads on the next generation.</value></data>
+  <data name="Img_ReleasingMemory" xml:space="preserve"><value>Releasing generator memory</value></data>
+  <data name="Img_MemoryReleased" xml:space="preserve"><value>Generator memory released</value></data>
+  <data name="Img_MemoryRecoveryReady" xml:space="preserve"><value>Generator memory released. The next launch will use less memory.</value></data>
   <data name="Img_Mode" xml:space="preserve"><value>Mode</value></data>
   <data name="Enum_ImageMode_TextToImage" xml:space="preserve"><value>From text</value></data>
   <data name="Enum_ImageMode_Edit" xml:space="preserve"><value>Edit by references</value></data>
@@ -1495,7 +1498,7 @@ Install anyway?</value></data>
   <data name="ImgEngine_MaxVram" xml:space="preserve"><value>Video memory budget, GB</value></data>
   <data name="ImgEngine_MaxVramHint" xml:space="preserve"><value>For example 6.8 on an 8 GB card or cuda0=6.8 per device; -1 keeps about 1 GB free. Empty means no budget.</value></data>
   <data name="ImgEngine_CondCache" xml:space="preserve"><value>Prompt cache</value></data>
-  <data name="ImgEngine_CondCacheHint" xml:space="preserve"><value>How many encoded prompts with pictures to keep: changing the seed, strength or steps does not run the encoder again. Empty means the model default, 0 turns it off.</value></data>
+  <data name="ImgEngine_CondCacheHint" xml:space="preserve"><value>How many encoded prompts with images to keep so the encoder can skip repeat work. Leave empty for automatic sizing, or enter 0 to turn caching off.</value></data>
   <data name="ImgEngine_TaePreviewOnly" xml:space="preserve"><value>TAE only for preview</value></data>
   <data name="ImgEngine_TaePreviewOnlyHint" xml:space="preserve"><value>With both a full VAE and TAE the result is decoded by the full VAE (with alpha and fine detail), TAE draws only the steps</value></data>
   <data name="ImgEngine_VaeTileSize" xml:space="preserve"><value>VAE tile size, px</value></data>

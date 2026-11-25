@@ -126,6 +126,8 @@
                                             Visibility="{Binding CanFinal2K, Converter={StaticResource BoolToVisibility}}" />
                                     <Button Command="{Binding CancelCommand}" Content="{l:Loc Common_Cancel}" Margin="0,0,8,4"
                                             Visibility="{Binding IsGenerating, Converter={StaticResource BoolToVisibility}}" ToolTip="{l:Loc Img_CancelHint}" />
+                                    <Button Command="{Binding StopServerCommand}" Content="{l:Loc Img_StopServer}" Margin="0,0,8,4"
+                                            Visibility="{Binding IsServerRunning, Converter={StaticResource BoolToVisibility}}" ToolTip="{l:Loc Img_StopServerHint}" />
                                 </WrapPanel>
                                 <StackPanel Visibility="{Binding IsGenerating, Converter={StaticResource BoolToVisibility}}" Margin="0,4,0,0">
                                     <DockPanel>
@@ -169,13 +171,9 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                             </DockPanel>
-                            <DockPanel Margin="0,6,0,0">
-                                <Button DockPanel.Dock="Right" Style="{DynamicResource SubtleButtonStyle}" Command="{Binding StopServerCommand}" Content="{l:Loc Img_StopServer}"
-                                        ToolTip="{l:Loc Img_StopServerHint}" Visibility="{Binding IsServerRunning, Converter={StaticResource BoolToVisibility}}" />
-                                <TextBlock Style="{StaticResource CaptionText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
-                                    <Run Text="{l:Loc Img_Generator}" /><Run Text=": " /><Run Text="{Binding ServerStateText, Mode=OneWay}" />
-                                </TextBlock>
-                            </DockPanel>
+                            <TextBlock Style="{StaticResource CaptionText}" Margin="0,8,0,0" TextTrimming="CharacterEllipsis">
+                                <Run Text="{l:Loc Img_Generator}" /><Run Text=": " /><Run Text="{Binding ServerStateText, Mode=OneWay}" />
+                            </TextBlock>
                             <TextBlock Text="{Binding PresetHint}" Style="{StaticResource FieldHint}"
                                        Visibility="{Binding PresetHint, Converter={StaticResource NullToCollapsed}}" />
 

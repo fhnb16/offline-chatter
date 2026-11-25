@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -325,13 +326,18 @@ public sealed partial class ModelsViewModel
     }
 
     [RelayCommand]
-    private void RemoveImageModel(ImageModelItem? item)
+    private async Task RemoveImageModelAsync(ImageModelItem? item)
     {
         if (item == null) return;
         var res = MessageBox.Show(L.F("Models_ConfirmRemove", item.Title, item.Model.MainFile ?? string.Empty), "Offline Chatter",
             MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
         if (res == MessageBoxResult.Cancel) return;
-        if (_s.ImageServer.Model?.Id == item.Model.Id) _s.ImageServer.Stop();
+        if (_s.ImageServer.Model?.Id == item.Model.Id &&
+            !await Task.Run(() => _s.StopImageServerAsync(CancellationToken.None)))
+        {
+            MessageBox.Show(L.F("Img_ServerFailed", _s.ImageServerError ?? "?"), "Offline Chatter", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
         _s.ImageModels.Remove(item.Model, deleteFiles: res == MessageBoxResult.Yes);
         if (_s.Settings.Current.Images.ActiveModelId == item.Model.Id) _s.Settings.Current.Images.ActiveModelId = null;
         _s.NotifyImageSetupChanged();

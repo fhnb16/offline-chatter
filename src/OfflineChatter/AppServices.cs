@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OfflineChatter.Core.Images;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using OfflineChatter.Core.Chat;
 using OfflineChatter.Core.Models;
 using OfflineChatter.Core.Diagnostics;
@@ -80,7 +82,8 @@ public sealed class AppServices : IDisposable
     }
 
     /// <summary>Идёт генерация — генератор нельзя останавливать ради llama-server.</summary>
-    public bool ImageBusy { get; set; }
+    private volatile bool _imageBusy;
+    public bool ImageBusy { get => _imageBusy; set => _imageBusy = value; }
 
     public Core.Images.ImageModel? ActiveImageModel =>
         ImageModels.Find(Settings.Current.Images.ActiveModelId) ?? ImageModels.Models.FirstOrDefault(m => m.IsReady);
@@ -125,7 +128,10 @@ public sealed class AppServices : IDisposable
     }
 
     private string? _imageSignature;
-    private readonly System.Threading.SemaphoreSlim _imageGate = new(1, 1);
+    private string? _imageRamRecoveryModelId;
+    private readonly SemaphoreSlim _imageGate = new(1, 1);
+    private readonly object _imageStartupLock = new();
+    private CancellationTokenSource? _imageStartup;
 
     /// <summary>Ошибка последнего запуска генератора (или почему его нельзя запустить) — для UI.</summary>
     public string? ImageServerError { get; private set; }
@@ -134,9 +140,11 @@ public sealed class AppServices : IDisposable
     /// Убедиться, что sd-server запущен с этой моделью и параметрами; иначе (пере)запустить.
     /// При общей видеопамяти сначала останавливается llama-server (если его не держит публичный API).
     /// </summary>
-    public async System.Threading.Tasks.Task<bool> EnsureImageServerAsync(Core.Images.ImageModel model, System.Threading.CancellationToken ct)
+    public async Task<bool> EnsureImageServerAsync(ImageModel model, CancellationToken ct, bool forGeneration = false, bool restart = false)
     {
+        using var startup = CancellationTokenSource.CreateLinkedTokenSource(ct);
         await _imageGate.WaitAsync(ct).ConfigureAwait(false);
+        lock (_imageStartupLock) _imageStartup = startup;
         try
         {
             var engine = ImageEngines.Active;
@@ -150,10 +158,17 @@ public sealed class AppServices : IDisposable
                 ImageServerError = Localization.L.F("Img_ModelIncomplete", string.Join(", ", model.Missing().Select(c => Localization.L.Get("Enum_ImageComponent_" + c))));
                 return false;
             }
-            var launch = Settings.Current.Images.Launch;
-            var options = Core.Images.ImageServerOptions.Resolve(model, launch);
+            var flags = await GetImageFlagsAsync(engine).ConfigureAwait(false);
+            startup.Token.ThrowIfCancellationRequested();
+            var memory = HardwareProbe.Memory();
+            var options = ResolveImageLaunch(model, flags, memory.total);
             var signature = engine.Id + "|" + Newtonsoft.Json.JsonConvert.SerializeObject(options) + "|" + model.Family;
-            if (ImageServer.State == ServerState.Ready && signature == _imageSignature) return true;
+            if (!restart && ImageServer.State == ServerState.Ready && signature == _imageSignature)
+            {
+                if (!forGeneration || !NeedsImageMemoryRelease()) return true;
+                Log.Info("Images", "Releasing sd-server memory before generation");
+                if (!StopImageServer()) return false;
+            }
 
             var s = Settings.Current;
             if (s.Images.ShareVram && !s.Engine.ExposeApi && Engine.Server.State != ServerState.Stopped)
@@ -161,17 +176,83 @@ public sealed class AppServices : IDisposable
                 Log.Info("Images", "Stopping llama-server to free video memory");
                 Engine.Server.Stop();
             }
-            var flags = await GetImageFlagsAsync(engine).ConfigureAwait(false);
-            await ImageServer.StartAsync(engine, model, options, flags, ct).ConfigureAwait(false);
+            await ImageServer.StartAsync(engine, model, options, flags, startup.Token).ConfigureAwait(false);
             var ok = ImageServer.State == ServerState.Ready;
             _imageSignature = ok ? signature : null;
             ImageServerError = ok ? null : ImageServer.LastError ?? "?";
             return ok;
         }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested && startup.IsCancellationRequested)
+        {
+            ImageServerError = Localization.L.Get("Img_Canceled");
+            return false;
+        }
+        finally
+        {
+            lock (_imageStartupLock) _imageStartup = null;
+            _imageGate.Release();
+        }
+    }
+
+    private ImageServerOptions ResolveImageLaunch(ImageModel model, FlagCatalog? flags, long totalRam)
+    {
+        var settings = Settings.Current.Images;
+        var options = ImageServerOptions.Resolve(model, settings.Launch);
+        ImageMemoryPolicy.Configure(options, settings.Launch, flags, settings.ExposeApi, totalRam, _imageRamRecoveryModelId == model.Id);
+        return options;
+    }
+
+    private bool NeedsImageMemoryRelease()
+    {
+        if (Settings.Current.Images.ExposeApi) return false;
+        var (total, available) = HardwareProbe.Memory();
+        return ImageMemoryPolicy.ShouldRelease(total, available, ImageServer.PrivateMemoryBytes() ?? 0);
+    }
+
+    public async Task<bool> ReclaimImageMemoryAsync(DateTime session, ImageFailureKind failure, bool cancelled, CancellationToken ct)
+    {
+        await _imageGate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            if (Settings.Current.Images.ExposeApi || ImageServer.StartedAt != session) return false;
+            if (failure == ImageFailureKind.RamExhausted) _imageRamRecoveryModelId = ImageServer.Model?.Id;
+            if (!ImageServer.IsRunning || (!cancelled && failure == ImageFailureKind.Unknown && !NeedsImageMemoryRelease())) return false;
+
+            Log.Info("Images", "Releasing sd-server memory after generation", new { failure, cancelled });
+            return StopImageServer();
+        }
         finally
         {
             _imageGate.Release();
         }
+    }
+
+    public async Task<bool> StopImageServerAsync(CancellationToken ct, bool onlyIfIdle = false)
+    {
+        if (!onlyIfIdle) CancelImageStartup();
+        await _imageGate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            if (onlyIfIdle && (Settings.Current.Images.ExposeApi || ImageBusy)) return true;
+            return StopImageServer();
+        }
+        finally
+        {
+            _imageGate.Release();
+        }
+    }
+
+    private void CancelImageStartup()
+    {
+        lock (_imageStartupLock) _imageStartup?.Cancel();
+    }
+
+    private bool StopImageServer()
+    {
+        _imageSignature = null;
+        var stopped = ImageServer.Stop();
+        ImageServerError = stopped ? null : ImageServer.LastError;
+        return stopped;
     }
 
     /// <summary>Превью командной строки sd-server для модели (порт условный).</summary>
@@ -181,7 +262,7 @@ public sealed class AppServices : IDisposable
         if (engine == null || model == null) return (null, Array.Empty<string>());
         var flags = await GetImageFlagsAsync(engine).ConfigureAwait(false);
         var skipped = new List<string>();
-        var args = Core.Images.ImageServerOptions.Resolve(model, Settings.Current.Images.Launch).BuildArgs("127.0.0.1", 8081, flags, skipped);
+        var args = ResolveImageLaunch(model, flags, HardwareProbe.Memory().total).BuildArgs("127.0.0.1", 8081, flags, skipped);
         return ("sd-server.exe " + ServerLaunchOptions.JoinCommandLine(args), skipped);
     }
 
@@ -493,7 +574,7 @@ public sealed class AppServices : IDisposable
             {
                 // Генератор и llama-server на одной видеокарте часто не помещаются вместе
                 Log.Info("Images", "Stopping sd-server to free video memory");
-                ImageServer.Stop();
+                if (!await StopImageServerAsync(ct, onlyIfIdle: true).ConfigureAwait(false)) return false;
             }
             await Engine.StartAsync(resolved.Options, ct).ConfigureAwait(false);
             _runningSignature = Engine.Server.State == ServerState.Ready ? signature : null;
@@ -590,6 +671,7 @@ public sealed class AppServices : IDisposable
     {
         _forwarder?.Dispose();
         _imageProxy?.Dispose();
+        CancelImageStartup();
         ImageServer.Dispose();
         Tools.Dispose();
         Engine.Dispose();

@@ -163,7 +163,7 @@ public static class ImageMemoryProfiles
     {
         s.OffloadToCpu = true;
         s.FlashAttention = "on";
-        s.ConditioningCacheSize = 8;
+        s.ConditioningCacheSize = profile == ImageMemoryProfile.SaveRam ? 1 : 8;
         s.VaeTiling = null; // плитки включаются по размеру в каждом запросе
         s.MaxVram = dedicatedVram > 0 ? VramBudgetGb(dedicatedVram).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) : null;
         s.Mmap = profile == ImageMemoryProfile.SaveRam ? true : null;

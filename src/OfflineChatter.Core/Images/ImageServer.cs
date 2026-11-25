@@ -37,6 +37,9 @@ public sealed class ImageServerOptions
     public bool TaePreviewOnly { get; set; } = true;
     public bool Mmap { get; set; }
     public string? ParamsBackend { get; set; }
+    public int? CompletedJobTtl { get; set; }
+    public int? WeightStagingTtl { get; set; }
+    public int? WeightResidencyTtl { get; set; }
 
     /// <summary>Есть и полный VAE, и TAE: TAE рисует только превью (иначе sd.cpp декодировал бы им итог).</summary>
     public bool TaeIsPreviewOnly => TaePreviewOnly && Files.ContainsKey(ImageComponent.Vae) && Files.ContainsKey(ImageComponent.Tae);
@@ -149,6 +152,13 @@ public sealed class ImageServerOptions
         if (ModelArgs != null) Add("--model-args", ModelArgs);
         if (MaxVram != null) Add("--max-vram", MaxVram);
         if (ConditioningCacheSize is { } ccs and >= 0) Add("--conditioning-cache-size", I(ccs));
+        // Эти параметры необязательны. Старый сервер должен запускаться и без доступной справки.
+        if (CompletedJobTtl is { } completedTtl && flags?.Supports("--completed-ttl-seconds") == true)
+            Add("--completed-ttl-seconds", I(completedTtl));
+        if (WeightStagingTtl is { } stagingTtl && flags?.Supports("--weight-staging-ttl") == true)
+            Add("--weight-staging-ttl", I(stagingTtl));
+        if (WeightResidencyTtl is { } residencyTtl && flags?.Supports("--weight-residency-ttl") == true)
+            Add("--weight-residency-ttl", I(residencyTtl));
         if (Mmap) Add("--mmap");
         // После --offload-to-cpu: сервер ставит «*=cpu» первым, явное назначение модуля его перекрывает
         if (ParamsBackend != null) Add("--params-backend", ParamsBackend);
@@ -198,7 +208,6 @@ public sealed class ImageServer : IDisposable
     private readonly LinkedList<string> _tail = new();
     private Process? _process;
     private IntPtr _job;
-    private CancellationTokenSource? _watchCts;
 
     public ImageServer(string root)
     {
@@ -250,7 +259,8 @@ public sealed class ImageServer : IDisposable
 
     public async Task StartAsync(SdEngineInstall engine, ImageModel model, ImageServerOptions options, FlagCatalog? flags, CancellationToken ct)
     {
-        Stop();
+        ct.ThrowIfCancellationRequested();
+        if (!Stop()) return;
         lock (_tail) _tail.Clear();
         Engine = engine;
         Model = model;
@@ -287,6 +297,7 @@ public sealed class ImageServer : IDisposable
         }
         catch (System.ComponentModel.Win32Exception ex)
         {
+            p.Dispose();
             Fail("Cannot start sd-server: " + ex.Message);
             return;
         }
@@ -298,8 +309,16 @@ public sealed class ImageServer : IDisposable
         p.BeginOutputReadLine();
         p.BeginErrorReadLine();
 
-        _watchCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        await WaitReadyAsync(p, _watchCts.Token).ConfigureAwait(false);
+        try
+        {
+            await WaitReadyAsync(p, ct).ConfigureAwait(false);
+            ct.ThrowIfCancellationRequested();
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            Stop();
+            throw;
+        }
     }
 
     private async Task WaitReadyAsync(Process p, CancellationToken ct)
@@ -326,6 +345,7 @@ public sealed class ImageServer : IDisposable
             try { await Task.Delay(500, ct).ConfigureAwait(false); }
             catch (TaskCanceledException) { return; }
         }
+        if (!ct.IsCancellationRequested && State != ServerState.Failed && p.HasExited) OnExited(p);
     }
 
     private void OnLine(string? line)
@@ -370,39 +390,63 @@ public sealed class ImageServer : IDisposable
         SetState(ServerState.Failed);
     }
 
-    public void Stop()
+    public bool Stop()
     {
-        _watchCts?.Cancel();
-        var p = _process;
-        _process = null;
+        var p = Interlocked.Exchange(ref _process, null);
         if (p != null)
         {
-            SetState(ServerState.Stopped);
             try
             {
-                if (!p.HasExited)
-                {
-                    p.Kill();
-                    p.WaitForExit(5000);
-                }
+                if (!p.HasExited) p.Kill();
             }
             catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
             {
                 Log.Warn("ImageEngine", "Error while stopping sd-server", ex);
             }
+        }
+        var job = Interlocked.Exchange(ref _job, IntPtr.Zero);
+        if (job != IntPtr.Zero) Native.CloseHandle(job);
+        if (p != null)
+        {
+            try
+            {
+                if (!p.WaitForExit(5000))
+                {
+                    _process = p;
+                    Fail("sd-server did not stop within five seconds");
+                    return false;
+                }
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+            {
+                _process = p;
+                Fail("Could not verify that sd-server stopped: " + ex.Message);
+                return false;
+            }
             p.Dispose();
             DeletePidFile();
             Log.Info("ImageEngine", "sd-server stopped");
         }
-        if (_job != IntPtr.Zero)
-        {
-            Native.CloseHandle(_job);
-            _job = IntPtr.Zero;
-        }
         if (State != ServerState.Stopped) SetState(ServerState.Stopped);
+        return true;
     }
 
     public bool IsRunning => State is ServerState.Starting or ServerState.Loading or ServerState.Ready;
+
+    public long? PrivateMemoryBytes()
+    {
+        var p = _process;
+        if (p == null) return null;
+        try
+        {
+            p.Refresh();
+            return p.HasExited ? null : p.PrivateMemorySize64;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            return null;
+        }
+    }
 
     private void SetState(ServerState s)
     {
