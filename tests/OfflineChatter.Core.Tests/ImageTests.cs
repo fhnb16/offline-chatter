@@ -577,6 +577,37 @@ public class ImageClientTests
         Assert.Equal("cat", (string?)o["prompt"]);
     }
 
+    [Theory]
+    [InlineData(ImageFamily.QwenImage21)]
+    [InlineData(ImageFamily.QwenImage21Turbo)]
+    public void Qwen21_Uses_The_Three_Reference_Images_Once(ImageFamily family)
+    {
+        var references = new[] { new byte[] { 1 }, new byte[] { 2 }, new byte[] { 3 } };
+        var parameters = new ImageGenParams
+        {
+            Family = family.ToString(),
+            Mode = ImageMode.Edit,
+            Prompt = @"Use <image:3> with <image: 1 > and <image:2>, then <image:3>. Literal \<image:1>.",
+            NegativePrompt = "Avoid the background of <image:2>",
+        };
+        var request = new ImageRequest
+        {
+            Params = parameters,
+            RefImages = references,
+            PromptImages = new Dictionary<string, byte[]> { ["1"] = references[0], ["2"] = references[1], ["3"] = references[2] },
+        };
+
+        var payload = ImageClient.BuildNative(request);
+        Assert.Equal(references.Select(ImageClient.DataUri), payload["ref_images"]!.Values<string>());
+        Assert.Null(payload["prompt_images"]);
+        Assert.Equal(@"Use <image3> with <image1> and <image2>, then <image3>. Literal \<image:1>.", (string?)payload["prompt"]);
+        Assert.Equal("Avoid the background of <image2>", (string?)payload["negative_prompt"]);
+        var compatibility = ImageClient.BuildExtraArgs(parameters, request);
+        Assert.Contains("Avoid the background of <image2>", compatibility);
+        Assert.DoesNotContain("\"prompt_images\"", compatibility);
+        Assert.Contains("<image:3>", parameters.Prompt);
+    }
+
     [Fact]
     public void Parses_Job_Progress()
     {
@@ -960,6 +991,8 @@ public class ImageInputTests
         Assert.Empty(PromptImageTags.Ids(@"literal \<image:1> text"));
         Assert.Equal(new[] { "2" }, PromptImageTags.Ids(@"two slashes \\<image:2>"));
         Assert.Equal("<image:3>", PromptImageTags.Tag("3"));
+        Assert.Equal(@"two slashes \\<image2>; unknown <image:style>",
+            PromptImageTags.ToNumberedReferences(@"two slashes \\<image:002>; unknown <image:style>"));
     }
 
     [Fact]

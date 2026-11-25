@@ -108,6 +108,8 @@ public sealed record ImagePreset(
     /// <summary>Картинки внутри промпта (&lt;image:ID&gt;) понимают только кодировщики Qwen-VL со зрением (mmproj).</summary>
     public bool SupportsPromptImages => AllComponents.Contains(ImageComponent.LlmVision);
 
+    public bool UsesNumberedReferenceTags => Family is ImageFamily.QwenImage21 or ImageFamily.QwenImage21Turbo;
+
     /// <summary>Расписание шума модели строкой «1,0.97,…,0» (для поля и --sigmas); null — нет своего.</summary>
     public string? SigmasText => Sigmas == null ? null : ImageSigmas.Format(Sigmas);
 }

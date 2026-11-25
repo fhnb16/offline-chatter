@@ -1423,7 +1423,7 @@ Install anyway?</value></data>
   <data name="Img_RefSent" xml:space="preserve"><value>→ {0} × {1}</value></data>
   <data name="Img_RefsScaled" xml:space="preserve"><value>Large pictures will be reduced to {0} px on the long side to fit in video memory</value></data>
   <data name="Img_VisionMissing" xml:space="preserve"><value>The model has no vision file (mmproj): editing with a GGUF encoder needs it. Add it in “Models”.</value></data>
-  <data name="Img_TagsHint" xml:space="preserve"><value>Click a picture number to insert &lt;image:N&gt;: the model sees that picture at this place in the text</value></data>
+  <data name="Img_TagsHint" xml:space="preserve"><value>Click a picture number to refer to that picture in the prompt</value></data>
   <data name="Img_TagsInPrompt" xml:space="preserve"><value>Pictures in the prompt: {0}</value></data>
   <data name="Img_TagsUnsupported" xml:space="preserve"><value>This model does not understand pictures in the prompt; remove the &lt;image:N&gt; tags</value></data>
   <data name="Img_TagsNeedImages" xml:space="preserve"><value>Pictures in the prompt work in the editing and redraw modes</value></data>

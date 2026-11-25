@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -149,7 +150,7 @@ public static class ImageInputPolicy
 public static class PromptImageTags
 {
     // Маркер экранируется нечётным числом обратных слешей перед ним (правило sd.cpp)
-    private static readonly Regex Rx = new(@"(?<!\\)(?:\\\\)*<image:(?<id>[^>]+)>", RegexOptions.CultureInvariant);
+    private static readonly Regex Rx = new(@"(?<!\\)(?<slashes>(?:\\\\)*)<image:(?<id>[^>]+)>", RegexOptions.CultureInvariant);
 
     public static string Tag(string id) => "<image:" + id + ">";
 
@@ -159,6 +160,12 @@ public static class PromptImageTags
         if (string.IsNullOrEmpty(prompt)) return Array.Empty<string>();
         return Rx.Matches(prompt!).Cast<Match>().Select(m => m.Groups["id"].Value.Trim()).Where(s => s.Length > 0).Distinct(StringComparer.Ordinal).ToList();
     }
+
+    /// <summary>Qwen Image 2.1 сам нумерует визуальные референсы как &lt;image1&gt;, &lt;image2&gt; и т. д.</summary>
+    public static string ToNumberedReferences(string prompt) => Rx.Replace(prompt, match =>
+        int.TryParse(match.Groups["id"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) && number > 0
+            ? match.Groups["slashes"].Value + "<image" + number.ToString(CultureInfo.InvariantCulture) + ">"
+            : match.Value);
 }
 
 /// <summary>Прозрачный фон Qwen-Image 2.1: модель решает по тексту, поэтому промпт оборачивается в форму из README авторов.</summary>

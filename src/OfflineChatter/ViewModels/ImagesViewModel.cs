@@ -866,7 +866,7 @@ public sealed partial class ImagesViewModel : PageViewModel
                 && DateTime.UtcNow - used >= TimeSpan.FromSeconds(ttl))
                 _condCache.Clear();
             var session = $"{_s.ImageServer.Port}|{_s.ImageServer.StartedAt?.Ticks}|{model.Id}";
-            var condKey = ConditioningCacheTracker.Key(session, ImageClient.EffectivePrompt(p), p.NegativePrompt,
+            var condKey = ConditioningCacheTracker.Key(session, ImageClient.EffectivePrompt(p), ImageClient.EffectiveNegativePrompt(p),
                 request.RefImages.Concat(request.PromptImages.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Value)));
             var expectCached = _condCache.Contains(condKey);
 

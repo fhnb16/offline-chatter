@@ -1423,7 +1423,7 @@
   <data name="Img_RefSent" xml:space="preserve"><value>→ {0} × {1}</value></data>
   <data name="Img_RefsScaled" xml:space="preserve"><value>Крупные картинки будут уменьшены до {0} px по длинной стороне, чтобы хватило видеопамяти</value></data>
   <data name="Img_VisionMissing" xml:space="preserve"><value>У модели нет файла зрения (mmproj): без него правка с GGUF-кодировщиком не работает. Добавьте его в «Моделях».</value></data>
-  <data name="Img_TagsHint" xml:space="preserve"><value>Щёлкните номер картинки, чтобы вставить &lt;image:N&gt;: модель увидит эту картинку в этом месте текста</value></data>
+  <data name="Img_TagsHint" xml:space="preserve"><value>Нажмите номер картинки, чтобы сослаться на неё в промпте</value></data>
   <data name="Img_TagsInPrompt" xml:space="preserve"><value>Картинки в промпте: {0}</value></data>
   <data name="Img_TagsUnsupported" xml:space="preserve"><value>Эта модель не понимает картинки в промпте; уберите теги &lt;image:N&gt;</value></data>
   <data name="Img_TagsNeedImages" xml:space="preserve"><value>Картинки в промпте работают в режимах правки и перерисовки</value></data>

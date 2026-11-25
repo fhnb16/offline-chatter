@@ -140,7 +140,19 @@ public sealed class ImageClient
         : Route.Txt2Img;
 
     /// <summary>Промпт, который уйдёт серверу: с обёрткой прозрачного фона, если она включена.</summary>
-    public static string EffectivePrompt(ImageGenParams p) => p.Transparent ? TransparentPrompt.Wrap(p.Prompt) : p.Prompt;
+    public static string EffectivePrompt(ImageGenParams p)
+    {
+        var prompt = FormatReferenceTags(p.Prompt, p.Family);
+        return p.Transparent ? TransparentPrompt.Wrap(prompt) : prompt;
+    }
+
+    public static string EffectiveNegativePrompt(ImageGenParams p) => FormatReferenceTags(p.NegativePrompt, p.Family);
+
+    private static string FormatReferenceTags(string? text, string? family)
+    {
+        var prompt = text ?? string.Empty;
+        return ImagePresets.Get(family).UsesNumberedReferenceTags ? PromptImageTags.ToNumberedReferences(prompt) : prompt;
+    }
 
     public async Task<ImageResult> GenerateAsync(ImageRequest r, CancellationToken ct, IProgress<ImageJobProgress>? progress = null)
     {
@@ -285,7 +297,7 @@ public sealed class ImageClient
         var o = new JObject
         {
             ["prompt"] = EffectivePrompt(p),
-            ["negative_prompt"] = p.NegativePrompt ?? string.Empty,
+            ["negative_prompt"] = EffectiveNegativePrompt(p),
             ["width"] = p.Width,
             ["height"] = p.Height,
             ["seed"] = p.Seed,
@@ -310,12 +322,7 @@ public sealed class ImageClient
         }
         if (r.MaskImage != null) o["mask_image"] = DataUri(r.MaskImage);
         if (r.RefImages.Count > 0) o["ref_images"] = new JArray(r.RefImages.Select(DataUri));
-        if (r.PromptImages.Count > 0)
-        {
-            var pi = new JObject();
-            foreach (var kv in r.PromptImages) pi[kv.Key] = DataUri(kv.Value);
-            o["prompt_images"] = pi;
-        }
+        AddPromptImages(o, r);
         if (p.Loras.Count > 0)
             o["lora"] = new JArray(p.Loras.Where(l => !string.IsNullOrWhiteSpace(l.Path))
                 .Select(l => new JObject { ["path"] = l.Path.Replace('\\', '/'), ["multiplier"] = l.Multiplier, ["is_high_noise"] = false }));
@@ -471,7 +478,7 @@ public sealed class ImageClient
         var o = new JObject
         {
             ["prompt"] = EffectivePrompt(p),
-            ["negative_prompt"] = p.NegativePrompt ?? string.Empty,
+            ["negative_prompt"] = EffectiveNegativePrompt(p),
             ["width"] = p.Width,
             ["height"] = p.Height,
             ["steps"] = p.Steps,
@@ -514,7 +521,8 @@ public sealed class ImageClient
 
     private static void AddPromptImages(JObject o, ImageRequest? r)
     {
-        if (r == null || r.PromptImages.Count == 0) return;
+        // Qwen Image 2.1 строит визуальные слоты и латенты из ref_images. Inline-картинки добавляют слоты без латентов.
+        if (r == null || r.PromptImages.Count == 0 || ImagePresets.Get(r.Params.Family).UsesNumberedReferenceTags) return;
         var pi = new JObject();
         foreach (var kv in r.PromptImages) pi[kv.Key] = DataUri(kv.Value);
         o["prompt_images"] = pi;
@@ -533,7 +541,7 @@ public sealed class ImageClient
             ["height"] = p.Height,
             ["sample_params"] = SampleParams(p),
         };
-        if (!string.IsNullOrWhiteSpace(p.NegativePrompt)) o["negative_prompt"] = p.NegativePrompt;
+        if (!string.IsNullOrWhiteSpace(p.NegativePrompt)) o["negative_prompt"] = EffectiveNegativePrompt(p);
         if (p.ClipSkip is { } cs and > 0) o["clip_skip"] = cs;
         if (!string.IsNullOrEmpty(p.CacheMode)) o["cache_mode"] = p.CacheMode;
         if (p.Loras.Count > 0) o["lora"] = new JArray(p.Loras.Select(l => new JObject { ["path"] = l.Path.Replace('\\', '/'), ["multiplier"] = l.Multiplier }));

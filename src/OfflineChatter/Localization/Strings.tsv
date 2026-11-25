@@ -1432,7 +1432,7 @@ Img_LimitInputHint	One picture up to 1536 px (2048 at 2K), two or three up to 10
 Img_RefSent	→ {0} × {1}	→ {0} × {1}
 Img_RefsScaled	Large pictures will be reduced to {0} px on the long side to fit in video memory	Крупные картинки будут уменьшены до {0} px по длинной стороне, чтобы хватило видеопамяти
 Img_VisionMissing	The model has no vision file (mmproj): editing with a GGUF encoder needs it. Add it in “Models”.	У модели нет файла зрения (mmproj): без него правка с GGUF-кодировщиком не работает. Добавьте его в «Моделях».
-Img_TagsHint	Click a picture number to insert <image:N>: the model sees that picture at this place in the text	Щёлкните номер картинки, чтобы вставить <image:N>: модель увидит эту картинку в этом месте текста
+Img_TagsHint	Click a picture number to refer to that picture in the prompt	Нажмите номер картинки, чтобы сослаться на неё в промпте
 Img_TagsInPrompt	Pictures in the prompt: {0}	Картинки в промпте: {0}
 Img_TagsUnsupported	This model does not understand pictures in the prompt; remove the <image:N> tags	Эта модель не понимает картинки в промпте; уберите теги <image:N>
 Img_TagsNeedImages	Pictures in the prompt work in the editing and redraw modes	Картинки в промпте работают в режимах правки и перерисовки

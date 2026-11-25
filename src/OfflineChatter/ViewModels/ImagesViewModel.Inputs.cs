@@ -108,7 +108,7 @@ public sealed partial class ImagesViewModel
     /// <summary>Теги, которые не на что сопоставить, или модель без зрения: ошибка до запуска (sd.cpp упал бы на кодировании).</summary>
     private string? CheckPromptTags()
     {
-        var ids = PromptImageTags.Ids(Prompt);
+        var ids = PromptImageTags.Ids(Prompt).Union(PromptImageTags.Ids(NegativePrompt), StringComparer.Ordinal).ToList();
         if (ids.Count == 0) return null;
         if (Preset?.SupportsPromptImages != true) return L.Get("Img_TagsUnsupported");
         if (Mode == ImageMode.TextToImage) return L.Get("Img_TagsNeedImages");
@@ -369,10 +369,13 @@ public sealed partial class ImagesViewModel
     {
         var refs = s.Refs.Select(r => s.LimitSize ? ImagePrep.Downscale(r, s.RefLimit, s.Multiple) : r).ToList();
         var promptImages = new Dictionary<string, byte[]>(StringComparer.Ordinal);
-        foreach (var id in PromptImageTags.Ids(p.Prompt))
+        if (!ImagePresets.Get(p.Family).UsesNumberedReferenceTags)
         {
-            if (int.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) && n >= 1 && n <= refs.Count)
-                promptImages[id] = refs[n - 1].Data;
+            foreach (var id in PromptImageTags.Ids(p.Prompt).Union(PromptImageTags.Ids(p.NegativePrompt), StringComparer.Ordinal))
+            {
+                if (int.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) && n >= 1 && n <= refs.Count)
+                    promptImages[id] = refs[n - 1].Data;
+            }
         }
 
         byte[]? init = null, mask = null;
